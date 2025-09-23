@@ -10,12 +10,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductRequest {
-    Long categoryId;
-    String productName;
-    String image;
-    String description;
+public class OrderItemRequest {
+    Long productId;
     Integer quantity;
-    double price;
-    double discount;
 }

@@ -36,7 +36,7 @@ public class AddressController {
                 .build();
     }
 
-    @PostMapping("/usersProfileId/{userProfileId}")
+    @PostMapping("/usersProfile/{userProfileId}")
     ApiResponse<AddressResponse> createAddress(@RequestBody AddressRequest addressRequest, @PathVariable Long userProfileId) {
         return ApiResponse.<AddressResponse>builder()
                 .data(addressService.createAddress(addressRequest, userProfileId))
@@ -51,8 +51,12 @@ public class AddressController {
     }
 
     @DeleteMapping("/{id}")
-    void deleteAddress(@PathVariable Long id) {
+    ApiResponse<Void> deleteAddress(@PathVariable Long id) {
         addressService.deleteAddress(id);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Success")
+                .build();
     }
 
 }

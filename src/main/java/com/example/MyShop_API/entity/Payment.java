@@ -22,6 +22,8 @@ public class Payment {
     Order order;
 
     @NotBlank
+
     @Size(min = 4, message = "Payment method must contain at least 4 characters")
+    @Column(unique = true, nullable = false)
     String paymentMethod;
 }

@@ -27,6 +27,12 @@ public enum ErrorCode {
     PRODUCT_IS_NOT_ENOUGH(1014, "The product quantity is out of stock: Requested: %d, Available: %d", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_EXISTED(1015, "Category not existed", HttpStatus.NOT_FOUND),
     CATEGORY_EXISTED(1016, "Category existed", HttpStatus.BAD_REQUEST),
+    PAYMENT_EXISTED(1017, "Payment existed", HttpStatus.BAD_REQUEST),
+    PAYMENT_NOT_EXISTED(1018, "Payment not existed", HttpStatus.NOT_FOUND),
+    ORDER_ITEM_NOT_EXISTED(1018, "OrderItem not existed", HttpStatus.NOT_FOUND),
+    ORDER_ITEM_EXISTED(1018, "OrderItem existed", HttpStatus.BAD_REQUEST),
+    ORDER_EXISTED(1019, "Order existed", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_EXISTED(1020, "Order not existed", HttpStatus.NOT_FOUND),
     ;
 
 

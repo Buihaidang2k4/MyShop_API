@@ -1,5 +1,6 @@
 package com.example.MyShop_API.entity;
 
+import com.example.MyShop_API.Enum.OrderStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
@@ -15,14 +16,12 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "oders")
+@Table(name = "orders")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long oderId;
+    Long orderId;
 
-    @Email
-    @Column(nullable = false)
     String email;
 
     @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -35,5 +34,6 @@ public class Order {
     Payment payment;
 
     Double totalAmount;
-    String orderStatus;
+    @Enumerated(EnumType.STRING)
+    OrderStatus orderStatus;
 }
