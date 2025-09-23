@@ -52,6 +52,8 @@ JWT_SECRET=your_jwt_secret
 ![img_9.png](img_9.png)
 ![img_10.png](img_10.png)
 ![img_11.png](img_11.png)
+<img width="1881" height="352" alt="Screenshot 2025-09-23 221648" src="https://github.com/user-attachments/assets/d57ed989-bcb3-4c28-9e5c-7efc1cc6972a" />
+
 
 ## ER-Diagram
 
