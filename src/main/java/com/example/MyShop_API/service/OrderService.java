@@ -1,8 +1,8 @@
 package com.example.MyShop_API.service;
 
 import com.example.MyShop_API.Enum.OrderStatus;
-import com.example.MyShop_API.dto.OrderRequest;
-import com.example.MyShop_API.dto.OrderResponse;
+import com.example.MyShop_API.dto.request.OrderRequest;
+import com.example.MyShop_API.dto.response.OrderResponse;
 import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.entity.OrderItem;
 import com.example.MyShop_API.entity.Payment;
@@ -10,7 +10,6 @@ import com.example.MyShop_API.entity.Product;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.OrderMapper;
-import com.example.MyShop_API.repo.OrderItemRepository;
 import com.example.MyShop_API.repo.OrderRepository;
 import com.example.MyShop_API.repo.PaymentRepository;
 import com.example.MyShop_API.repo.ProductRepository;
@@ -21,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -2,9 +2,9 @@ package com.example.MyShop_API.controller;
 
 
 import com.example.MyShop_API.Enum.OrderStatus;
-import com.example.MyShop_API.dto.ApiResponse;
-import com.example.MyShop_API.dto.OrderRequest;
-import com.example.MyShop_API.dto.OrderResponse;
+import com.example.MyShop_API.dto.response.ApiResponse;
+import com.example.MyShop_API.dto.request.OrderRequest;
+import com.example.MyShop_API.dto.response.OrderResponse;
 import com.example.MyShop_API.service.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

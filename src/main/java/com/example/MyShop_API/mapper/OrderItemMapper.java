@@ -1,7 +1,7 @@
 package com.example.MyShop_API.mapper;
 
-import com.example.MyShop_API.dto.OrderItemRequest;
-import com.example.MyShop_API.dto.OrderItemResponse;
+import com.example.MyShop_API.dto.request.OrderItemRequest;
+import com.example.MyShop_API.dto.response.OrderItemResponse;
 import com.example.MyShop_API.entity.OrderItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -17,7 +17,6 @@ public class Role {
 
     @Id
     String roleName;
-
     String description;
 
     @ManyToMany(mappedBy = "roles")

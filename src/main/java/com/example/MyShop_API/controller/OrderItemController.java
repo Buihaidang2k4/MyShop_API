@@ -1,8 +1,8 @@
 package com.example.MyShop_API.controller;
 
-import com.example.MyShop_API.dto.ApiResponse;
-import com.example.MyShop_API.dto.OrderItemRequest;
-import com.example.MyShop_API.dto.OrderItemResponse;
+import com.example.MyShop_API.dto.response.ApiResponse;
+import com.example.MyShop_API.dto.request.OrderItemRequest;
+import com.example.MyShop_API.dto.response.OrderItemResponse;
 import com.example.MyShop_API.service.OrderItemService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

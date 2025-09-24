@@ -1,7 +1,7 @@
 package com.example.MyShop_API.service;
 
-import com.example.MyShop_API.dto.AddressRequest;
-import com.example.MyShop_API.dto.AddressResponse;
+import com.example.MyShop_API.dto.request.AddressRequest;
+import com.example.MyShop_API.dto.response.AddressResponse;
 import com.example.MyShop_API.entity.Address;
 import com.example.MyShop_API.entity.UserProfile;
 import com.example.MyShop_API.exception.AppException;

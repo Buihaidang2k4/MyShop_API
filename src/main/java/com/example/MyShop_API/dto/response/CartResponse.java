@@ -1,4 +1,4 @@
-package com.example.MyShop_API.dto;
+package com.example.MyShop_API.dto.response;
 
 import com.example.MyShop_API.entity.CartItem;
 import lombok.AccessLevel;

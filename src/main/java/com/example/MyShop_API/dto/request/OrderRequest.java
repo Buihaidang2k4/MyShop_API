@@ -1,4 +1,4 @@
-package com.example.MyShop_API.dto;
+package com.example.MyShop_API.dto.request;
 
 
 import com.example.MyShop_API.Enum.OrderStatus;

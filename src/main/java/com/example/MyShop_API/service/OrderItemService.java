@@ -1,10 +1,8 @@
 package com.example.MyShop_API.service;
 
-import com.example.MyShop_API.dto.OrderItemRequest;
-import com.example.MyShop_API.dto.OrderItemResponse;
-import com.example.MyShop_API.entity.Order;
+import com.example.MyShop_API.dto.request.OrderItemRequest;
+import com.example.MyShop_API.dto.response.OrderItemResponse;
 import com.example.MyShop_API.entity.OrderItem;
-import com.example.MyShop_API.entity.Product;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.OrderItemMapper;
@@ -41,7 +39,7 @@ public class OrderItemService {
         return orderItemMapper.toResponse(findOrderItem);
     }
 
-    
+
     public OrderItemResponse updateOrderItem(Long orderItemId, OrderItemRequest orderItemRequest) {
         OrderItem findOrderItem = orderItemRepository.findById(orderItemId).orElseThrow(() -> new AppException(ErrorCode.ORDER_ITEM_NOT_EXISTED));
         orderItemMapper.updateOrder(orderItemRequest, findOrderItem);

@@ -1,7 +1,7 @@
 package com.example.MyShop_API.service;
 
-import com.example.MyShop_API.dto.PaymentRequest;
-import com.example.MyShop_API.dto.PaymentResponse;
+import com.example.MyShop_API.dto.request.PaymentRequest;
+import com.example.MyShop_API.dto.response.PaymentResponse;
 import com.example.MyShop_API.entity.Payment;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;

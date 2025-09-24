@@ -1,9 +1,9 @@
 package com.example.MyShop_API.service;
 
-import com.example.MyShop_API.dto.AuthenticationRequest;
-import com.example.MyShop_API.dto.IntrosprectRequest;
-import com.example.MyShop_API.dto.AuthenticationResponse;
-import com.example.MyShop_API.dto.IntrospectResponse;
+import com.example.MyShop_API.dto.request.AuthenticationRequest;
+import com.example.MyShop_API.dto.request.IntrosprectRequest;
+import com.example.MyShop_API.dto.response.AuthenticationResponse;
+import com.example.MyShop_API.dto.response.IntrospectResponse;
 import com.example.MyShop_API.entity.InvaildatedToken;
 import com.example.MyShop_API.entity.User;
 import com.example.MyShop_API.exception.AppException;

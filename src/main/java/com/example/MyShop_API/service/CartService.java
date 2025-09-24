@@ -1,7 +1,7 @@
 package com.example.MyShop_API.service;
 
-import com.example.MyShop_API.dto.CartRequest;
-import com.example.MyShop_API.dto.CartResponse;
+import com.example.MyShop_API.dto.request.CartRequest;
+import com.example.MyShop_API.dto.response.CartResponse;
 import com.example.MyShop_API.entity.Cart;
 import com.example.MyShop_API.entity.CartItem;
 import com.example.MyShop_API.entity.Product;
@@ -18,10 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -1,7 +1,7 @@
 package com.example.MyShop_API.mapper;
 
-import com.example.MyShop_API.dto.CategoryRequest;
-import com.example.MyShop_API.dto.CategoryResponse;
+import com.example.MyShop_API.dto.request.CategoryRequest;
+import com.example.MyShop_API.dto.response.CategoryResponse;
 import com.example.MyShop_API.entity.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;

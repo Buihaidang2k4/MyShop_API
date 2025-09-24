@@ -1,7 +1,7 @@
 package com.example.MyShop_API.service;
 
-import com.example.MyShop_API.dto.RoleRequest;
-import com.example.MyShop_API.dto.RoleResponse;
+import com.example.MyShop_API.dto.request.RoleRequest;
+import com.example.MyShop_API.dto.response.RoleResponse;
 import com.example.MyShop_API.entity.Role;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;

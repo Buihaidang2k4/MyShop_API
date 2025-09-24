@@ -1,10 +1,10 @@
 package com.example.MyShop_API.controller;
 
-import com.example.MyShop_API.dto.AuthenticationRequest;
-import com.example.MyShop_API.dto.IntrosprectRequest;
-import com.example.MyShop_API.dto.ApiResponse;
-import com.example.MyShop_API.dto.AuthenticationResponse;
-import com.example.MyShop_API.dto.IntrospectResponse;
+import com.example.MyShop_API.dto.request.AuthenticationRequest;
+import com.example.MyShop_API.dto.request.IntrosprectRequest;
+import com.example.MyShop_API.dto.response.ApiResponse;
+import com.example.MyShop_API.dto.response.AuthenticationResponse;
+import com.example.MyShop_API.dto.response.IntrospectResponse;
 import com.example.MyShop_API.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
 import lombok.AccessLevel;

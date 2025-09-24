@@ -1,8 +1,8 @@
 package com.example.MyShop_API.mapper;
 
-import com.example.MyShop_API.dto.UserCreationRequest;
-import com.example.MyShop_API.dto.UserUpdateRequest;
-import com.example.MyShop_API.dto.UserResponse;
+import com.example.MyShop_API.dto.request.UserCreationRequest;
+import com.example.MyShop_API.dto.request.UserUpdateRequest;
+import com.example.MyShop_API.dto.response.UserResponse;
 import com.example.MyShop_API.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.BeanMapping;

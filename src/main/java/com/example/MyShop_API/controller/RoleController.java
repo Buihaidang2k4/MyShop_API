@@ -1,8 +1,8 @@
 package com.example.MyShop_API.controller;
 
-import com.example.MyShop_API.dto.RoleRequest;
-import com.example.MyShop_API.dto.RoleResponse;
-import com.example.MyShop_API.dto.ApiResponse;
+import com.example.MyShop_API.dto.request.RoleRequest;
+import com.example.MyShop_API.dto.response.RoleResponse;
+import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.service.RoleService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

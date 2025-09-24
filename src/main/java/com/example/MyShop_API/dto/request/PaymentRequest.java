@@ -1,11 +1,6 @@
-package com.example.MyShop_API.dto;
+package com.example.MyShop_API.dto.request;
 
 
-import com.example.MyShop_API.entity.Order;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.OneToOne;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,7 +1,7 @@
 package com.example.MyShop_API.service;
 
-import com.example.MyShop_API.dto.UserProfileRequest;
-import com.example.MyShop_API.dto.UserProfileResponse;
+import com.example.MyShop_API.dto.request.UserProfileRequest;
+import com.example.MyShop_API.dto.response.UserProfileResponse;
 import com.example.MyShop_API.entity.Cart;
 import com.example.MyShop_API.entity.User;
 import com.example.MyShop_API.entity.UserProfile;

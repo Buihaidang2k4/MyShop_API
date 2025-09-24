@@ -1,4 +1,4 @@
-package com.example.MyShop_API.dto;
+package com.example.MyShop_API.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;

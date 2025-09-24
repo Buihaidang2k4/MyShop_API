@@ -1,6 +1,5 @@
-package com.example.MyShop_API.dto;
+package com.example.MyShop_API.dto.response;
 
-import com.example.MyShop_API.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

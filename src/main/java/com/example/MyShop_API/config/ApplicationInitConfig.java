@@ -40,7 +40,6 @@ public class ApplicationInitConfig {
                         )
                 );
 
-                
                 roleRepository.save(role);
 
                 User user = User.builder()

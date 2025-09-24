@@ -1,8 +1,6 @@
-package com.example.MyShop_API.dto;
+package com.example.MyShop_API.dto.response;
 
 
-import com.example.MyShop_API.entity.OrderItem;
-import com.example.MyShop_API.entity.Payment;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data

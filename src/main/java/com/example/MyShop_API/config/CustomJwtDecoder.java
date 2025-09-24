@@ -1,6 +1,6 @@
 package com.example.MyShop_API.config;
 
-import com.example.MyShop_API.dto.IntrosprectRequest;
+import com.example.MyShop_API.dto.request.IntrosprectRequest;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.service.AuthenticationService;

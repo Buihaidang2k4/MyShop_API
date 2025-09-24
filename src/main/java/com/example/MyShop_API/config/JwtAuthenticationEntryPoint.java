@@ -1,6 +1,6 @@
 package com.example.MyShop_API.config;
 
-import com.example.MyShop_API.dto.ApiResponse;
+import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;

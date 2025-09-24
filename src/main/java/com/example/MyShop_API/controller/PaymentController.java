@@ -1,8 +1,8 @@
 package com.example.MyShop_API.controller;
 
-import com.example.MyShop_API.dto.ApiResponse;
-import com.example.MyShop_API.dto.PaymentRequest;
-import com.example.MyShop_API.dto.PaymentResponse;
+import com.example.MyShop_API.dto.response.ApiResponse;
+import com.example.MyShop_API.dto.request.PaymentRequest;
+import com.example.MyShop_API.dto.response.PaymentResponse;
 import com.example.MyShop_API.service.PaymentService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

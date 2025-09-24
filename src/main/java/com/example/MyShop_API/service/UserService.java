@@ -1,9 +1,10 @@
 package com.example.MyShop_API.service;
 
 import com.example.MyShop_API.constant.PredefinedRole;
-import com.example.MyShop_API.dto.UserCreationRequest;
-import com.example.MyShop_API.dto.UserUpdateRequest;
-import com.example.MyShop_API.dto.UserResponse;
+import com.example.MyShop_API.dto.request.ChangePasswordRequest;
+import com.example.MyShop_API.dto.request.UserCreationRequest;
+import com.example.MyShop_API.dto.request.UserUpdateRequest;
+import com.example.MyShop_API.dto.response.UserResponse;
 import com.example.MyShop_API.entity.*;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,8 +37,6 @@ public class UserService {
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
     RoleRepository roleRepository;
-    CartRepository cartRepository;
-    UserProfileRepository userProfileRepository;
 
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers() {
@@ -79,6 +80,25 @@ public class UserService {
         }
 
         return userMapper.toResponse(user);
+    }
+
+    public void changePassword(ChangePasswordRequest request, Long id) {
+        log.info("changePassword().........");
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (!user.getPassword().equals(request.getOldPassword())) {
+            new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return;
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new AppException(ErrorCode.USER_EXISTED);
+        }
+        new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

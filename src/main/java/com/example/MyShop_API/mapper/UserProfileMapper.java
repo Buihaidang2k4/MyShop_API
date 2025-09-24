@@ -1,7 +1,7 @@
 package com.example.MyShop_API.mapper;
 
-import com.example.MyShop_API.dto.UserProfileRequest;
-import com.example.MyShop_API.dto.UserProfileResponse;
+import com.example.MyShop_API.dto.request.UserProfileRequest;
+import com.example.MyShop_API.dto.response.UserProfileResponse;
 import com.example.MyShop_API.entity.UserProfile;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

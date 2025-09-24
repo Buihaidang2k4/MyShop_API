@@ -1,9 +1,7 @@
 package com.example.MyShop_API.service;
 
-import com.example.MyShop_API.dto.CategoryResponse;
-import com.example.MyShop_API.dto.ProductRequest;
-import com.example.MyShop_API.dto.ProductResponse;
-import com.example.MyShop_API.entity.CartItem;
+import com.example.MyShop_API.dto.request.ProductRequest;
+import com.example.MyShop_API.dto.response.ProductResponse;
 import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.entity.Product;
 import com.example.MyShop_API.exception.AppException;
