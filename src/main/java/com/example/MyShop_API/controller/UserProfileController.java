@@ -3,7 +3,8 @@ package com.example.MyShop_API.controller;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.request.UserProfileRequest;
 import com.example.MyShop_API.dto.response.UserProfileResponse;
-import com.example.MyShop_API.service.UserProfileService;
+import com.example.MyShop_API.service.userprofie.IUserProfileService;
+import com.example.MyShop_API.service.userprofie.UserProfileService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -13,12 +14,12 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/user-profiles")
+@RequestMapping("${api.prefix}/user-profiles")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserProfileController {
-    UserProfileService userProfileService;
+    IUserProfileService userProfileService;
 
-    @GetMapping
+    @GetMapping("/all")
     ApiResponse<List<UserProfileResponse>> getUserProfiles() {
         return ApiResponse.<List<UserProfileResponse>>builder()
                 .code(200)
@@ -36,7 +37,7 @@ public class UserProfileController {
                 .build();
     }
 
-    @PostMapping("/user/{userId}")
+    @PostMapping("/user/{userId}/addUserProfile")
     ApiResponse<UserProfileResponse> addUserProfile(@RequestBody UserProfileRequest userProfileRequest, @PathVariable Long userId) {
         return ApiResponse.<UserProfileResponse>builder()
                 .code(200)
@@ -45,7 +46,7 @@ public class UserProfileController {
                 .build();
     }
 
-    @PutMapping("/{account_id}")
+    @PutMapping("/{account_id}/update")
     ApiResponse<UserProfileResponse> updateUserProfile(@RequestBody UserProfileRequest userProfileRequest, @PathVariable Long account_id) {
         return ApiResponse.<UserProfileResponse>builder()
                 .code(200)

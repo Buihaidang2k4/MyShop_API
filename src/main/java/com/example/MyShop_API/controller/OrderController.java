@@ -5,7 +5,8 @@ import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.request.OrderRequest;
 import com.example.MyShop_API.dto.response.OrderResponse;
-import com.example.MyShop_API.service.OrderService;
+import com.example.MyShop_API.service.order.IOrderService;
+import com.example.MyShop_API.service.order.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -14,20 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/order")
+@RequestMapping("${api.prefix}/order")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderController {
-    OrderService orderService;
+    IOrderService orderService;
 
-    @GetMapping
-    ApiResponse<List<OrderResponse>> getOrder() {
-        return ApiResponse.<List<OrderResponse>>builder()
-                .code(200)
-                .message("Success")
-                .data(orderService.getOrder())
-                .build();
-    }
 
     @GetMapping("/{orderId}")
     ApiResponse<OrderResponse> getOrder(@PathVariable Long orderId) {
@@ -47,7 +40,7 @@ public class OrderController {
                 .build();
     }
 
-    @PutMapping("/{orderId}/status")
+    @PutMapping("/{orderId}/status/update")
     ApiResponse<OrderResponse> updateOrder(@RequestParam OrderStatus orderStatus, @PathVariable Long orderId) {
         return ApiResponse.<OrderResponse>builder()
                 .code(200)
@@ -56,7 +49,7 @@ public class OrderController {
                 .build();
     }
 
-    @DeleteMapping("/{orderId}")
+    @DeleteMapping("/{orderId}/delete")
     ApiResponse<Void> deleteOrder(@PathVariable Long orderId) {
         orderService.deleteOrder(orderId);
         return ApiResponse.<Void>builder()

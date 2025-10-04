@@ -18,7 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
     private static final String[] PUBLIC_ENPOINT = {
-            "/users/**", "/auth/**", "/address/**"
+            "/users/**", "/api/v1/auth/**"
     };
 
     private static final String[] SWAGGER_ENDPOINTS = {

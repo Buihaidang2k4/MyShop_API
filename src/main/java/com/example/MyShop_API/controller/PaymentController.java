@@ -3,7 +3,8 @@ package com.example.MyShop_API.controller;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.request.PaymentRequest;
 import com.example.MyShop_API.dto.response.PaymentResponse;
-import com.example.MyShop_API.service.PaymentService;
+import com.example.MyShop_API.service.payment.IPaymentService;
+import com.example.MyShop_API.service.payment.PaymentService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -12,13 +13,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/payments")
+@RequestMapping("${api.prefix}/payments")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PaymentController {
-    PaymentService paymentService;
+    IPaymentService paymentService;
 
-    @GetMapping
+    @GetMapping("/all")
     ApiResponse<List<PaymentResponse>> getPayment() {
         return ApiResponse.<List<PaymentResponse>>builder()
                 .code(200)
@@ -36,8 +37,8 @@ public class PaymentController {
                 .build();
     }
 
-    @PostMapping
-    ApiResponse<PaymentResponse> createPayment(@RequestBody PaymentRequest paymentRequest) {
+    @PostMapping("/add")
+    ApiResponse<PaymentResponse> addPayment(@RequestBody PaymentRequest paymentRequest) {
         return ApiResponse.<PaymentResponse>builder()
                 .code(200)
                 .message("Success")
@@ -45,8 +46,8 @@ public class PaymentController {
                 .build();
     }
 
-    @PutMapping("")
-    ApiResponse<PaymentResponse> updatePayment(@RequestBody PaymentRequest paymentRequest, @RequestParam Long paymentId) {
+    @PutMapping("/{paymentId}/update")
+    ApiResponse<PaymentResponse> updatePayment(@RequestBody PaymentRequest paymentRequest, @PathVariable Long paymentId) {
         return ApiResponse.<PaymentResponse>builder()
                 .code(200)
                 .message("Success")
@@ -54,8 +55,8 @@ public class PaymentController {
                 .build();
     }
 
-    @DeleteMapping("")
-    ApiResponse<Void> deletePayment(@RequestParam Long paymentId) {
+    @DeleteMapping("/{paymentId}/delete")
+    ApiResponse<Void> deletePayment(@PathVariable Long paymentId) {
         paymentService.deletePayment(paymentId);
 
         return ApiResponse.<Void>builder()

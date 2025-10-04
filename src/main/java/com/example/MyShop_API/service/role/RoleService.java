@@ -1,4 +1,4 @@
-package com.example.MyShop_API.service;
+package com.example.MyShop_API.service.role;
 
 import com.example.MyShop_API.dto.request.RoleRequest;
 import com.example.MyShop_API.dto.response.RoleResponse;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class RoleService {
+public class RoleService implements IRoleService {
     RoleRepository roleRepository;
     RoleMapper roleMapper;
 

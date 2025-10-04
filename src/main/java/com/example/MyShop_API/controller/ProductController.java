@@ -2,87 +2,103 @@ package com.example.MyShop_API.controller;
 
 
 import com.example.MyShop_API.dto.response.ApiResponse;
-import com.example.MyShop_API.dto.request.ProductRequest;
+import com.example.MyShop_API.dto.request.AddProductRequest;
 import com.example.MyShop_API.dto.response.ProductResponse;
-import com.example.MyShop_API.service.ProductService;
+import com.example.MyShop_API.entity.Category;
+import com.example.MyShop_API.entity.Product;
+import com.example.MyShop_API.exception.AppException;
+import com.example.MyShop_API.mapper.ProductMapper;
+import com.example.MyShop_API.service.product.IProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.*;
+
 @Slf4j
 @RestController
-@RequestMapping("/products")
+@RequestMapping("${api.prefix}/products")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProductController {
-    ProductService productService;
+    IProductService productService;
+    ProductMapper productMapper;
 
-    @GetMapping
-    ApiResponse<List<ProductResponse>> getProducts() {
-        return ApiResponse.<List<ProductResponse>>builder()
-                .code(200)
-                .message("Success")
-                .data(productService.getProducts())
-                .build();
+    @GetMapping("/category/by-category")
+    ResponseEntity<ApiResponse> getProductByCategory(@RequestParam String category) {
+        try {
+            List<Product> products = productService.searchProductByCategory(category);
+            return ResponseEntity.ok(new ApiResponse<>(200, "GetProductByCategory", productMapper.toResponseList(products)));
+        } catch (AppException e) {
+            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(404, e.getMessage(), null));
+        }
     }
 
-    @GetMapping("/{id}")
-    ApiResponse<ProductResponse> getProductById(@PathVariable Long id) {
-        return ApiResponse.<ProductResponse>builder()
-                .code(200)
-                .message("Success")
-                .data(productService.getProduct(id))
-                .build();
+    @GetMapping("/all")
+    ResponseEntity<ApiResponse> getAllProducts() {
+        try {
+            List<ProductResponse> products = productMapper.toResponseList(productService.getProducts());
+            return ResponseEntity.ok(new ApiResponse(200, "Get all products successfully!", products));
+        } catch (AppException e) {
+            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(404, e.getMessage(), null));
+        }
     }
 
-    @GetMapping("/category/{categoryName}")
-    ApiResponse<List<ProductResponse>> getProductByCategoryName(@PathVariable String categoryName) {
-        return ApiResponse.<List<ProductResponse>>builder()
-                .code(200)
-                .message("Success")
-                .data(productService.searchProductByCategory(categoryName))
-                .build();
+    @GetMapping("/product/{productId}")
+    ResponseEntity<ApiResponse> getProductById(@PathVariable Long productId) {
+        try {
+            Product product = productService.getProductById(productId);
+            return ResponseEntity.ok(new ApiResponse(200, "Get product successfully!", productMapper.toResponse(product)));
+        } catch (AppException e) {
+            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(404, e.getMessage(), null));
+        }
     }
 
-    @PostMapping("/category/{productId}")
-    ApiResponse<ProductResponse> addProduct(@RequestBody ProductRequest productRequest, @PathVariable Long productId) {
-        return ApiResponse.<ProductResponse>builder()
-                .code(200)
-                .message("Success")
-                .data(productService.addProduct(productRequest, productId))
-                .build();
+    @GetMapping("/product/by-productName")
+    ResponseEntity<ApiResponse> getProductByName(@RequestParam String productName) {
+        try {
+            Product product = productService.getProductByName(productName);
+            return ResponseEntity.ok(new ApiResponse(200, "Get product successfully!", productMapper.toResponse(product)));
+        } catch (AppException e) {
+            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(404, e.getMessage(), null));
+        }
     }
 
-    @PutMapping("/{id}")
-    ApiResponse<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest) {
-        return ApiResponse.<ProductResponse>builder()
-                .code(200)
-                .message("Success")
-                .data(productService.updateProduct(productRequest, id))
-                .build();
+    @PostMapping("/product/add")
+    ResponseEntity<ApiResponse> addProduct(@RequestBody AddProductRequest addProductRequest) {
+        try {
+            Product product = productService.addProduct(addProductRequest);
+            return ResponseEntity.status(CREATED).body(new ApiResponse(201, "Add product successfully!", productMapper.toResponse(product)));
+        } catch (AppException e) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(500, e.getMessage(), null));
+        }
     }
 
-    @PutMapping("/{productId}/image")
-    ApiResponse<ProductResponse> updateImage(@PathVariable Long productId, @RequestParam("image") MultipartFile image) throws IOException {
-        return ApiResponse.<ProductResponse>builder()
-                .code(200)
-                .message("Success")
-                .data(productService.updateProductImage(productId, image))
-                .build();
+    @PutMapping("/product/{productId}/update")
+    ResponseEntity<ApiResponse> updateProduct(@PathVariable Long productId, @RequestBody AddProductRequest addProductRequest) {
+        try {
+            Product product = productService.updateProduct(addProductRequest, productId);
+            return ResponseEntity.status(ACCEPTED).body(new ApiResponse(200, "Update product successfully!", productMapper.toResponse(product)));
+        } catch (AppException e) {
+            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getErrorCode().getCode(), e.getMessage(), null));
+        }
     }
 
-    @DeleteMapping("/{productId}")
-    ApiResponse<Void> deleteProduct(@PathVariable Long productId) {
-        productService.deleteProduct(productId);
-        return ApiResponse.<Void>builder()
-                .code(200)
-                .message("Success")
-                .build();
+    @DeleteMapping("/product/{productId}/delete")
+    ResponseEntity<ApiResponse> deleteProduct(@PathVariable Long productId) {
+        try {
+            productService.deleteProductById(productId);
+            return ResponseEntity.ok(new ApiResponse(200, "Delete product successfully!", productId));
+        } catch (AppException e) {
+            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getErrorCode().getCode(), e.getMessage(), null));
+        }
     }
 }

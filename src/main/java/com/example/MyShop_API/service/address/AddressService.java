@@ -1,4 +1,4 @@
-package com.example.MyShop_API.service;
+package com.example.MyShop_API.service.address;
 
 import com.example.MyShop_API.dto.request.AddressRequest;
 import com.example.MyShop_API.dto.response.AddressResponse;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class AddressService {
+public class AddressService implements IAddressService {
     AddressRepository addressRepository;
     AddressMapper addressMapper;
     UserProfileRepository userProfileRepository;

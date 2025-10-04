@@ -1,4 +1,4 @@
-package com.example.MyShop_API.service;
+package com.example.MyShop_API.service.userprofie;
 
 import com.example.MyShop_API.dto.request.UserProfileRequest;
 import com.example.MyShop_API.dto.response.UserProfileResponse;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class UserProfileService {
+public class UserProfileService implements IUserProfileService {
     UserProfileRepository userProfileRepository;
     UserProfileMapper userProfileMapper;
     UserRepository userRepository;

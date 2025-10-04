@@ -1,4 +1,4 @@
-package com.example.MyShop_API.service;
+package com.example.MyShop_API.service.cart;
 
 import com.example.MyShop_API.dto.request.CartRequest;
 import com.example.MyShop_API.dto.response.CartResponse;
@@ -18,7 +18,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,18 +28,20 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class CartService {
+public class CartService implements ICartService {
     CartRepository cartRepository;
     CartMapper cartMapper;
     UserProfileRepository userProfileRepository;
     ProductRepository productRepository;
     CartItemRepository cartItemRepository;
 
+    @Override
     public List<CartResponse> getCarts() {
         log.info("getCarts ");
         return cartRepository.findAll().stream().map(cartMapper::toResponse).collect(Collectors.toList());
     }
 
+    @Override
     public CartResponse getCartById(Long cartId) {
         log.info("getCartById ");
         return cartRepository.findById(cartId).map(cartMapper::toResponse).orElseThrow(
@@ -45,6 +49,12 @@ public class CartService {
         );
     }
 
+    @Override
+    public Cart getCartByUserProfileId(Long userProfileId) {
+        return cartRepository.findByUserProfileId(userProfileId);
+    }
+
+    @Override
     public CartResponse addCartForUserProfile(CartRequest cartRequest, Long userProfileId) {
         UserProfile userProfile = userProfileRepository.findById(userProfileId).orElseThrow(()
                 -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -55,7 +65,7 @@ public class CartService {
         return cartMapper.toResponse(newCart);
     }
 
-
+    @Override
     public CartResponse addProductToCart(Long cardId, Long productId, Integer quantity) {
         Cart findCart = cartRepository.findById(cardId).orElseThrow(()
                 -> new AppException(ErrorCode.CART_NOT_EXISTED));
@@ -82,17 +92,21 @@ public class CartService {
                 .product(findProduct)
                 .cart(findCart)
                 .quantity(quantity)
-                .discount(findProduct.getDiscount())
-                .productPrice(findProduct.getPrice())
+                .unitPrice(findProduct.getPrice())
                 .build();
 
+        newCartItem.setTotalPrice();
         cartItemRepository.save(newCartItem);
 
-        findCart.setTotalPrice(findCart.getTotalPrice() + (findProduct.getSpecialPrice() * quantity));
+        // cap nhat tong gia cua gio hang
+        findCart.getCartItems().add(newCartItem);
+        findCart.updateTotalAmout();
+        cartRepository.save(findCart);
 
         return cartMapper.toResponse(findCart);
     }
 
+    @Override
     public CartResponse updateCart(Long cartId, CartRequest cartRequest) {
         log.info("updateCartById ");
         Cart findCart = cartRepository.findById(cartId).orElseThrow(
@@ -103,12 +117,13 @@ public class CartService {
         return cartMapper.toResponse(findCart);
     }
 
-    public void deleteCart(Long cartId) {
-        Cart findCart = cartRepository.findById(cartId).orElseThrow(
-                () -> new AppException(ErrorCode.CART_NOT_EXISTED)
-        );
-        log.info("deleteCart ID: {}");
-        cartRepository.deleteById(findCart.getCartId());
+    @Transactional
+    @Override
+    public void clearCart(Long cartId) {
+        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
+        cartItemRepository.deleteAllByCart_CartId(cartId);
+        cart.getCartItems().clear();
+        cartRepository.deleteById(cartId);
     }
 
 

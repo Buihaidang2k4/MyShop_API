@@ -1,4 +1,4 @@
-package com.example.MyShop_API.service;
+package com.example.MyShop_API.service.user;
 
 import com.example.MyShop_API.constant.PredefinedRole;
 import com.example.MyShop_API.dto.request.ChangePasswordRequest;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class UserService {
+public class UserService implements IUserService {
     UserRepository userRepository;
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;

@@ -3,7 +3,8 @@ package com.example.MyShop_API.controller;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.request.OrderItemRequest;
 import com.example.MyShop_API.dto.response.OrderItemResponse;
-import com.example.MyShop_API.service.OrderItemService;
+import com.example.MyShop_API.service.order.IOrderItemService;
+import com.example.MyShop_API.service.order.OrderItemService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -12,11 +13,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/orderItem")
+@RequestMapping("${api.prefix}/orderItem")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderItemController {
-    OrderItemService orderItemService;
+    IOrderItemService orderItemService;
 
     @GetMapping
     ApiResponse<List<OrderItemResponse>> getOrderItem() {

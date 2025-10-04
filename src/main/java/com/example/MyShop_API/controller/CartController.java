@@ -3,22 +3,24 @@ package com.example.MyShop_API.controller;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.request.CartRequest;
 import com.example.MyShop_API.dto.response.CartResponse;
-import com.example.MyShop_API.service.CartService;
+import com.example.MyShop_API.service.cart.CartService;
+import com.example.MyShop_API.service.cart.ICartService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/carts")
+@RequestMapping("${api.prefix}/carts")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CartController {
-    CartService cartService;
+    ICartService cartService;
 
-    @GetMapping
+    @GetMapping("/all")
     ApiResponse<List<CartResponse>> getCarts() {
         return ApiResponse.<List<CartResponse>>builder()
                 .data(cartService.getCarts())
@@ -34,7 +36,7 @@ public class CartController {
                 .build();
     }
 
-    @PostMapping("/userProfile/{userProfileId}")
+    @PostMapping("/userProfile/{userProfileId}/add")
     ApiResponse<CartResponse> createCart(@PathVariable Long userProfileId, @RequestBody CartRequest cartRequest) {
         return ApiResponse.<CartResponse>builder()
                 .code(200)
@@ -43,13 +45,19 @@ public class CartController {
                 .build();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/update")
     ApiResponse<CartResponse> updateCart(@RequestBody CartRequest cartRequest, @PathVariable Long id) {
         return ApiResponse.<CartResponse>builder()
                 .code(200)
                 .message("Success")
                 .data(cartService.updateCart(id, cartRequest))
                 .build();
+    }
+
+    @DeleteMapping("")
+    ResponseEntity<ApiResponse> clearCart(@PathVariable Long cardId) {
+        cartService.clearCart(cardId);
+        return ResponseEntity.status(200).build();
     }
 
 }

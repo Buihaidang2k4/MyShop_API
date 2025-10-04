@@ -5,7 +5,8 @@ import com.example.MyShop_API.dto.request.UserCreationRequest;
 import com.example.MyShop_API.dto.request.UserUpdateRequest;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.response.UserResponse;
-import com.example.MyShop_API.service.UserService;
+import com.example.MyShop_API.service.user.IUserService;
+import com.example.MyShop_API.service.user.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,15 +21,15 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("${api.prefix}/users")
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Validated
 public class UserController {
-    UserService userService;
+    IUserService userService;
 
-    @GetMapping
+    @GetMapping("/all")
     ApiResponse<List<UserResponse>> getUsers() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info("Username: {}", authentication.getName());
@@ -48,7 +49,7 @@ public class UserController {
                 .build();
     }
 
-    @PostMapping
+    @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
         return ApiResponse.<UserResponse>builder()
@@ -57,7 +58,7 @@ public class UserController {
                 .build();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/update")
     ApiResponse<UserResponse> updateUser(
             @Valid @RequestBody UserUpdateRequest request
             , @PathVariable Long id) {
@@ -75,7 +76,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
     void deleteUser(@PathVariable Long id) {
         userService.deleteUserById(id);
     }

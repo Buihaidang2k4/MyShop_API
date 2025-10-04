@@ -1,5 +1,6 @@
 package com.example.MyShop_API.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -24,6 +25,7 @@ public class Category {
     @Size(min = 5, message = "Category name must contain at least 5 characters")
     String categoryName;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     List<Product> products;
 }

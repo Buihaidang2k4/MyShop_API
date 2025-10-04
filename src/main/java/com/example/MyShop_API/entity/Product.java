@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,22 +22,16 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     Long productId;
-
-    @NotBlank
-    @Size(min = 3, message = "Product name must contain least 3 char")
     String productName;
-
-    String image;
-
-    @NotBlank
-    @Size(min = 6, message = "Product description must contain at least 6 characters")
     String description;
+    int quantity;
+    BigDecimal price;
+    BigDecimal discount;
+    BigDecimal specialPrice;
 
-    Integer quantity;
-    double price;
-    double discount;
-    double specialPrice;
-
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Image> images;
+    
     @ManyToOne
     @JoinColumn(name = "category_id")
     Category category;
@@ -46,4 +41,14 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     List<OrderItem> orderItems = new ArrayList<>();
+
+    public Product(String productName, String description, int quantity, BigDecimal price, BigDecimal discount, BigDecimal specialPrice, Category category) {
+        this.productName = productName;
+        this.description = description;
+        this.quantity = quantity;
+        this.price = price;
+        this.discount = discount;
+        this.specialPrice = specialPrice;
+        this.category = category;
+    }
 }

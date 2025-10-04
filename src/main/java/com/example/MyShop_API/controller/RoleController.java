@@ -3,7 +3,8 @@ package com.example.MyShop_API.controller;
 import com.example.MyShop_API.dto.request.RoleRequest;
 import com.example.MyShop_API.dto.response.RoleResponse;
 import com.example.MyShop_API.dto.response.ApiResponse;
-import com.example.MyShop_API.service.RoleService;
+import com.example.MyShop_API.service.role.IRoleService;
+import com.example.MyShop_API.service.role.RoleService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -14,14 +15,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/roles")
+@RequestMapping("${api.prefix}/admin/roles")
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class RoleController {
-    RoleService roleService;
+    IRoleService roleService;
 
-    @GetMapping
+    @GetMapping("/all")
     ApiResponse<List<RoleResponse>> getRoles() {
         return ApiResponse.<List<RoleResponse>>builder()
                 .data(roleService.getAllRoles())
@@ -35,21 +36,21 @@ public class RoleController {
                 .build();
     }
 
-    @PostMapping
+    @PostMapping("/add")
     ApiResponse<RoleResponse> createRole(@RequestBody @Validated RoleRequest roleRequest) {
         return ApiResponse.<RoleResponse>builder()
                 .data(roleService.createRole(roleRequest))
                 .build();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/update")
     ApiResponse<RoleResponse> updateRole(@RequestBody @Validated RoleRequest roleRequest, @PathVariable String id) {
         return ApiResponse.<RoleResponse>builder()
                 .data(roleService.updateRole(id, roleRequest))
                 .build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
     void deleteRole(@PathVariable String id) {
         roleService.deleteRole(id);
     }

@@ -1,4 +1,4 @@
-package com.example.MyShop_API.service;
+package com.example.MyShop_API.service.order;
 
 import com.example.MyShop_API.dto.request.OrderItemRequest;
 import com.example.MyShop_API.dto.response.OrderItemResponse;
@@ -7,8 +7,6 @@ import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.OrderItemMapper;
 import com.example.MyShop_API.repo.OrderItemRepository;
-import com.example.MyShop_API.repo.OrderRepository;
-import com.example.MyShop_API.repo.ProductRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,11 +20,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class OrderItemService {
+public class OrderItemService implements IOrderItemService {
     OrderItemRepository orderItemRepository;
     OrderItemMapper orderItemMapper;
-    OrderRepository orderRepository;
-    ProductRepository productRepository;
 
     public List<OrderItemResponse> getOrderItem() {
         return orderItemRepository.findAll().stream().map(orderItemMapper::toResponse).collect(Collectors.toList());

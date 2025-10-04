@@ -1,4 +1,4 @@
-package com.example.MyShop_API.service;
+package com.example.MyShop_API.service.authentication;
 
 import com.example.MyShop_API.dto.request.AuthenticationRequest;
 import com.example.MyShop_API.dto.request.IntrosprectRequest;
@@ -37,10 +37,10 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class AuthenticationService {
+public class AuthenticationService implements IAuthenticationService {
     UserRepository userRepository;
     InvalidatedTokenRepository invalidatedTokenRepository;
-
+    PasswordEncoder passwordEncoder;
 
     @NonFinal
     @Value("${jwt.secret}")
@@ -58,7 +58,7 @@ public class AuthenticationService {
         var user = userRepository.findByUsername(request.getUsername()).orElseThrow(
                 () -> new AppException(ErrorCode.USER_NOT_EXISTED)
         );
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         var authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
@@ -99,7 +99,7 @@ public class AuthenticationService {
 
             invalidatedTokenRepository.save(invaildatedToken);
         } catch (AppException e) {
-            log.error("Token already expired " + e.getMessage());
+            throw new AppException(ErrorCode.TOKEN_EXPIRED);
         }
     }
 
@@ -190,7 +190,6 @@ public class AuthenticationService {
             user.getRoles().forEach(role
                     -> stringJoiner.add("ROLE_" + role.getRoleName()));
         }
-
         return stringJoiner.toString();
     }
 

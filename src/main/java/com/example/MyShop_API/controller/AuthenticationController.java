@@ -5,12 +5,14 @@ import com.example.MyShop_API.dto.request.IntrosprectRequest;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.response.AuthenticationResponse;
 import com.example.MyShop_API.dto.response.IntrospectResponse;
-import com.example.MyShop_API.service.AuthenticationService;
+import com.example.MyShop_API.service.authentication.AuthenticationService;
+import com.example.MyShop_API.service.authentication.IAuthenticationService;
 import com.nimbusds.jose.JOSEException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,18 +24,14 @@ import java.text.ParseException;
 @RequiredArgsConstructor
 @RestController
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequestMapping("/auth")
+@RequestMapping("${api.prefix}/auth")
 public class AuthenticationController {
-    AuthenticationService authenticationService;
+    IAuthenticationService authenticationService;
 
     @PostMapping("/token")
-    ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
+    ResponseEntity<String> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
         var results = authenticationService.authenticate(authenticationRequest);
-
-        return ApiResponse.<AuthenticationResponse>builder()
-                .code(1000)
-                .data(results)
-                .build();
+        return ResponseEntity.ok().body(results.getToken());
     }
 
     @PostMapping("/introspect")

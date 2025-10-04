@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+
 @Entity
 @Data
 @Builder
@@ -25,6 +27,14 @@ public class CartItem {
     Product product;
 
     Integer quantity;
-    double discount;
-    double productPrice;
+    BigDecimal unitPrice;
+    BigDecimal totalPrice;
+
+    public void setTotalPrice() {
+        if (unitPrice != null && quantity != null) {
+            this.totalPrice = unitPrice.multiply(BigDecimal.valueOf(quantity));
+        } else {
+            this.totalPrice = BigDecimal.ZERO;
+        }
+    }
 }

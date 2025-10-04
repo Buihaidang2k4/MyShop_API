@@ -1,4 +1,4 @@
-package com.example.MyShop_API.service;
+package com.example.MyShop_API.service.order;
 
 import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.dto.request.OrderRequest;
@@ -19,6 +19,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,16 +28,15 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class OrderService {
+public class OrderService implements IOrderService {
     OrderRepository orderRepository;
     OrderMapper orderMapper;
     ProductRepository productRepository;
     PaymentRepository paymentRepository;
 
-    public List<OrderResponse> getOrder() {
-        log.info("getOrder().........");
-        return orderRepository.findAll().stream().map(orderMapper::toResponse).collect(Collectors.toList());
-    }
+//    public OrderResponse getUserProfileOrder(Long order_id) {
+//        return orderMapperzorderRepository.findById(order_id);
+//    }
 
     public OrderResponse getOrder(Long id) {
         log.info("getOrderById().........");
@@ -52,7 +52,7 @@ public class OrderService {
 
         // So luong don hang nguoi ta dat mua
         int quantity = orderRequest.getOrderItemRequest().getQuantity();
-        double finalPrice = findProduct.getPrice() * quantity * (findProduct.getDiscount() * 0.01);
+        BigDecimal finalPrice = BigDecimal.ONE;
 
         if (findProduct.getQuantity() < quantity) {
             throw new AppException(ErrorCode.PRODUCT_IS_NOT_ENOUGH, quantity, findProduct.getQuantity());
@@ -61,7 +61,6 @@ public class OrderService {
         OrderItem orderItem = OrderItem.builder()
                 .product(findProduct)
                 .quantity(orderRequest.getOrderItemRequest().getQuantity())
-                .discount(findProduct.getDiscount())
                 .orderedProductPrice(finalPrice)
                 .build();
 
