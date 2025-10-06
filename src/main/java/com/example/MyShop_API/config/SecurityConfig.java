@@ -18,7 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
     private static final String[] PUBLIC_ENPOINT = {
-            "/users/**", "/api/v1/auth/**"
+            "/api/v1/users/add", "/api/v1/auth/**"
     };
 
     private static final String[] SWAGGER_ENDPOINTS = {
@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth
                                 .requestMatchers(SWAGGER_ENDPOINTS).permitAll()
-                                .requestMatchers(HttpMethod.POST, PUBLIC_ENPOINT).permitAll()
+                                .requestMatchers(PUBLIC_ENPOINT).permitAll()
                                 .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasicAuth -> httpBasicAuth.disable())

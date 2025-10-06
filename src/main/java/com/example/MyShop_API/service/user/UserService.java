@@ -51,7 +51,6 @@ public class UserService implements IUserService {
         return userMapper.toResponse(user);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public UserResponse createUser(UserCreationRequest request) {
         log.info("createUser().........");

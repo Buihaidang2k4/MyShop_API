@@ -35,6 +35,7 @@ public class CustomJwtDecoder implements JwtDecoder {
     private String signerKey;
 
     @Override
+//    Giải mã và xác thực token nâng cao
     public Jwt decode(String token) throws JwtException {
 
         try {

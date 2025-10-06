@@ -7,18 +7,25 @@ import com.example.MyShop_API.dto.response.AuthenticationResponse;
 import com.example.MyShop_API.dto.response.IntrospectResponse;
 import com.example.MyShop_API.service.authentication.AuthenticationService;
 import com.example.MyShop_API.service.authentication.IAuthenticationService;
+import com.example.MyShop_API.service.token_blacklist.TokenBlacklistService;
 import com.nimbusds.jose.JOSEException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,37 +33,74 @@ import java.text.ParseException;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("${api.prefix}/auth")
 public class AuthenticationController {
+    private final static String REFRESH_COOKIES_NAME = "refresh_token";
+    private final static Duration REFRESH_COOKIES_EXPIRATION = Duration.ofDays(7);
     IAuthenticationService authenticationService;
 
-    @PostMapping("/token")
-    ResponseEntity<String> authenticate(@RequestBody AuthenticationRequest authenticationRequest) {
-        var results = authenticationService.authenticate(authenticationRequest);
-        return ResponseEntity.ok().body(results.getToken());
-    }
+    @PostMapping("/login")
+    ResponseEntity<String> login(@RequestBody AuthenticationRequest request,
+                                 HttpServletResponse response
+    ) {
+        try {
+            AuthenticationResponse tokens = authenticationService.authenticate(request);
+            ResponseCookie cookie = authenticationService.buildRefreshCookie(tokens.getRefreshToken());
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-    @PostMapping("/introspect")
-    ApiResponse<IntrospectResponse> introspect(@RequestBody IntrosprectRequest request) throws ParseException, JOSEException {
-        var results = authenticationService.introspect(request);
-        return ApiResponse.<IntrospectResponse>builder()
-                .code(1000)
-                .data(results)
-                .build();
-    }
-
-    @PostMapping("/logout")
-    ApiResponse<Void> logout(@RequestBody IntrosprectRequest request) throws ParseException, JOSEException {
-        authenticationService.logout(request);
-        log.info("Logout ");
-        return ApiResponse.<Void>builder()
-                .code(1000)
-                .build();
+            return ResponseEntity.ok(tokens.getAccessToken());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Credentials " + e.getMessage());
+        }
     }
 
     @PostMapping("/refresh")
-    ApiResponse<AuthenticationResponse> refreshToken(@RequestBody IntrosprectRequest request) throws ParseException, JOSEException {
-        return ApiResponse.<AuthenticationResponse>builder()
-                .code(1000)
-                .data(authenticationService.refreshToken(request))
-                .build();
+    ResponseEntity<?> refreshToken(HttpServletRequest request) throws ParseException, JOSEException {
+        String refreshToken = authenticationService.getRefreshTokenFromRequest(request);
+
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token not found in cookies");
+        }
+
+        String newAccessToken = authenticationService.refreshToken(refreshToken);
+        return ResponseEntity.ok(newAccessToken);
+
     }
+
+    @PostMapping("/introspect")
+    ResponseEntity<IntrospectResponse> introspect(
+            @CookieValue(name = REFRESH_COOKIES_NAME, required = false) String refreshToken
+    ) {
+
+        if (refreshToken == null) {
+            return ResponseEntity.ok(IntrospectResponse.builder().valid(false).build());
+        }
+
+        try {
+            IntrospectResponse response = authenticationService.introspect(new IntrosprectRequest(refreshToken));
+            return ResponseEntity.ok(response);
+        } catch (ParseException | JOSEException e) {
+            return ResponseEntity.ok(IntrospectResponse.builder()
+                    .valid(false)
+                    .build());
+        }
+    }
+
+    @PostMapping("/logout")
+    ResponseEntity<ApiResponse> logout(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
+        String refreshToken = authenticationService.getRefreshTokenFromRequest(request);
+
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            try {
+                authenticationService.logout(refreshToken);
+            } catch (ParseException | JOSEException e) {
+                throw new RuntimeException("Error logout: " + e);
+            }
+        }
+
+        ResponseCookie responseCookie = authenticationService.logoutAndGetCookie(refreshToken);
+        response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
+
+        return ResponseEntity.ok(new ApiResponse(200, "Logout successful", null));
+    }
+
+
 }

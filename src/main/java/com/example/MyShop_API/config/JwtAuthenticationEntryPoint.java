@@ -12,6 +12,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 
 import java.io.IOException;
 
+//Xử lý lỗi khi chưa đăng nhập (401)
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     //     Convert khi callapi sai không trả về login mà trả về JSON tùy chỉnh Custom
     @Override

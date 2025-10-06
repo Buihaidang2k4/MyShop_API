@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,6 +15,8 @@ public class UserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username).map(MyUserDetails::new).orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        return userRepository.findByUsername(username)
+                .map(MyUserDetails::new)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 }

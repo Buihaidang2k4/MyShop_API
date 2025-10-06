@@ -29,6 +29,8 @@ public class User {
     @Column(unique = true)
     String email;
 
+    boolean enabled = true;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role", // tên bảng trung gian
