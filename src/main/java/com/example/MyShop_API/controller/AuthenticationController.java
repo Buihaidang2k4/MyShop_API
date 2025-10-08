@@ -42,6 +42,7 @@ public class AuthenticationController {
                                  HttpServletResponse response
     ) {
         try {
+            log.info("Login");
             AuthenticationResponse tokens = authenticationService.authenticate(request);
             ResponseCookie cookie = authenticationService.buildRefreshCookie(tokens.getRefreshToken());
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -54,6 +55,7 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     ResponseEntity<?> refreshToken(HttpServletRequest request) throws ParseException, JOSEException {
+        log.info("Refresh Token");
         String refreshToken = authenticationService.getRefreshTokenFromRequest(request);
 
         if (refreshToken == null) {
@@ -86,6 +88,7 @@ public class AuthenticationController {
 
     @PostMapping("/logout")
     ResponseEntity<ApiResponse> logout(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
+        log.info("Logout");
         String refreshToken = authenticationService.getRefreshTokenFromRequest(request);
 
         if (refreshToken != null && !refreshToken.isBlank()) {

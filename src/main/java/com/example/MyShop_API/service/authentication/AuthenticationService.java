@@ -56,39 +56,27 @@ public class AuthenticationService implements IAuthenticationService {
     protected Long REFRESH_TOKEN_DURATION;
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        var user = userRepository.findByUsername(request.getUsername()).orElseThrow(
-                () -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        try {
-            //  Thu hồi toàn bộ token cũ trước khi sinh token mới
-            try {
-                blacklistService.revokeAllTokensForUser(user.getId(), Duration.ofMillis(REFRESH_TOKEN_DURATION));
-            } catch (Exception e) {
-                log.error("Cannot revoke old tokens for user [{}]: {}", user.getId(), e.getMessage());
-            }
+        // Thu hồi toàn bộ token cũ trước khi sinh token mới
+        blacklistService.revokeAllTokensForUser(user.getId(), Duration.ofMillis(REFRESH_TOKEN_DURATION));
 
-            String accessToken = generateAccessToken(user);
-            String refreshToken = generateRefreshToken(user);
+        // Sinh token mới
+        String accessToken = generateAccessToken(user);
+        String refreshToken = generateRefreshToken(user);
 
-            //  Lưu token mới vào danh sách của user
-            try {
-                blacklistService.storeRefreshToken(user.getId(), refreshToken);
-            } catch (Exception e) {
-                log.error("Cannot store new refresh token for user [{}]: {}", user.getId(), e.getMessage());
-            }
+        // Lưu token mới vào Redis (không ghi DB)
+        blacklistService.storeRefreshToken(user.getId(), refreshToken);
 
-            return AuthenticationResponse.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .build();
-        } catch (Exception e) {
-            log.error("Token generation failed: " + e.getMessage());
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
-        }
+        return AuthenticationResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
 
@@ -129,6 +117,7 @@ public class AuthenticationService implements IAuthenticationService {
         try {
             // revoke then add blacklist
             blacklistService.blacklist(refreshToken, Duration.ofMillis(REFRESH_TOKEN_DURATION));
+
         } catch (AppException e) {
             log.error("Logout failed for token [{}]: {}", refreshToken, e.getMessage());
             throw new AppException(ErrorCode.TOKEN_REVOKED);
@@ -146,10 +135,9 @@ public class AuthenticationService implements IAuthenticationService {
         String type = signedJWT.getJWTClaimsSet().getClaim("type").toString();
 
         // Neu chu ky khong dung && het han
-        if (!(verified && expiryTime.after(new Date()))) throw new AppException(ErrorCode.UNAUTHENTICATED);
-
+        if (!verified) throw new AppException(ErrorCode.UNAUTHENTICATED);
+        if (expiryTime.before(new Date())) throw new AppException(ErrorCode.TOKEN_EXPIRED);
         if (isRefresh && !"refresh_token".equals(type)) throw new AppException(ErrorCode.UNAUTHENTICATED);
-
         if (!isRefresh && !"access_token".equals(type)) throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         return signedJWT;

@@ -57,6 +57,9 @@ public enum ErrorCode {
     IMAGE_NOT_FOUND(1027, "Image not found id: %d", NOT_FOUND),
     REDIS_ERROR(1028, "Redis error", INTERNAL_SERVER_ERROR),
     TOKEN_REVOKED(1029, "Token has been revoked or is no longer valid", UNAUTHORIZED.getHttpStatus()),
+
+    VALIDATION_ERROR(1030, "Input data is not valid", BAD_REQUEST),
+
     ;
 
 

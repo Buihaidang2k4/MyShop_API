@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,17 +31,53 @@ public class TokenBlacklistService {
     /**
      * Thêm token vào blacklist với TTL
      */
+//    public void blacklist(String token, Duration duration) {
+//        String key = PREFIX + token;
+//        try {
+//            // Kiểm tra xem token đã bị thu hồi chưa
+//            boolean alreadyRevokedInRedis = Boolean.TRUE.equals(redisTemplate.hasKey(key));
+//            boolean alreadyRevokedInDb = revokedTokenRepository.existsByToken(token);
+//
+//            // Luôn ghi vào Redis để đảm bảo TTL cập nhật
+//            redisTemplate.opsForValue().set(key, true, duration);
+//
+//            // Chỉ ghi vào DB nếu chưa có
+//            if (!alreadyRevokedInDb) {
+//                revokedTokenRepository.save(RevokedToken.builder()
+//                        .token(token)
+//                        .revokedAt(Instant.now())
+//                        .expiresAt(Instant.now().plus(duration))
+//                        .build());
+//            } else {
+//                log.info("Token [{}] already exists in DB, skipped insert", token);
+//            }
+//
+//        } catch (Exception e) {
+//            log.error("Failed to blacklist token [{}]: {}", token, e.getMessage());
+//            throw new AppException(ErrorCode.REDIS_ERROR);
+//        }
+//    }
     public void blacklist(String token, Duration duration) {
         String key = PREFIX + token;
         try {
+            // Luôn ghi vào Redis để đảm bảo TTL cập nhật
             redisTemplate.opsForValue().set(key, true, duration);
-            revokedTokenRepository.save(RevokedToken.builder()
-                    .token(token)
-                    .revokedAt(Instant.now())
-                    .expiresAt(Instant.now().plus(duration))
-                    .build());
-            
-            log.info("Token [{}] has been blacklisted for {} ms", token, duration.toMillis());
+
+            // Kiểm tra DB: chỉ ghi nếu chưa có hoặc đã hết hạn
+            RevokedToken existing = revokedTokenRepository.findByToken(token).orElse(null);
+            Instant now = Instant.now();
+
+            if (existing == null || existing.getExpiresAt().isBefore(now)) {
+                revokedTokenRepository.save(RevokedToken.builder()
+                        .token(token)
+                        .revokedAt(now)
+                        .expiresAt(now.plus(duration))
+                        .build());
+                log.info("Token [{}] saved to DB", token);
+            } else {
+                log.info("Token [{}] already exists and valid in DB, skipped insert", token);
+            }
+
         } catch (Exception e) {
             log.error("Failed to blacklist token [{}]: {}", token, e.getMessage());
             throw new AppException(ErrorCode.REDIS_ERROR);
@@ -53,11 +90,11 @@ public class TokenBlacklistService {
     public boolean isBlacklisted(String token) {
         String key = PREFIX + token;
         try {
-            Boolean redisFlag = redisTemplate.hasKey(key);
-            if (Boolean.TRUE.equals(redisFlag)) return true;
+            Boolean exists = redisTemplate.hasKey(key);
+            if (Boolean.TRUE.equals(exists)) return true;
             return revokedTokenRepository.existsByToken(token);
         } catch (Exception e) {
-            log.error("Failed to check blacklist for token [{}]: {}", token, e.getMessage());
+            log.info("Redis failed to blacklist token [{}]: {}", token, e.getMessage());
             return false;
         }
     }
@@ -95,7 +132,6 @@ public class TokenBlacklistService {
                 blacklist(token, ttl);
             }
             redisTemplate.delete(listKey);
-            log.info("Revoked all previous tokens for user [{}]", userId);
         } else {
             log.info("No previous tokens found for user [{}]", userId);
         }
@@ -114,9 +150,20 @@ public class TokenBlacklistService {
                     redisTemplate.opsForValue().set(PREFIX + token.getToken(), true, Duration.ofMillis(ttl));
                 }
             }
-            log.info("Reloaded {} revoked tokens from DB into Redis", tokens.size());
         } catch (Exception e) {
             log.error("Failed to reload revoked tokens: {}", e.getMessage());
         }
     }
+
+    /**
+     * Auto delete token expiredToken
+     */
+    @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
+    public void cleanExpiredTokens() {
+        Instant now = Instant.now();
+        int deletedCount = revokedTokenRepository.deleteExpiredTokens(now);
+        log.info("🧹 Cleaned {} expired tokens at {}", deletedCount, now);
+    }
+
 }
