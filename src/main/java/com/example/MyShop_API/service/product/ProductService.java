@@ -16,6 +16,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -82,6 +84,11 @@ public class ProductService implements IProductService {
     public List<Product> getProducts() {
         log.info("getProducts ");
         return productRepository.findAll();
+    }
+
+    @Override
+    public Page<Product> getProducts(Pageable pageable) {
+        return productRepository.findAll(pageable);
     }
 
     @Override

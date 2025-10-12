@@ -3,19 +3,26 @@ package com.example.MyShop_API.service.cart;
 import com.example.MyShop_API.dto.request.CartRequest;
 import com.example.MyShop_API.dto.response.CartResponse;
 import com.example.MyShop_API.entity.Cart;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ICartService {
-    List<CartResponse> getCarts();
+    List<Cart> getCarts();
 
-    CartResponse getCartById(Long cartId);
+    Page<Cart> getAllCarts(Pageable pageable);
+
+    Cart getCartById(Long cartId);
 
     Cart getCartByUserProfileId(Long userProfileId);
 
-    CartResponse addCartForUserProfile(CartRequest cartRequest, Long userProfileId);
+    BigDecimal getTotalPrice(Long id);
 
-    CartResponse addProductToCart(Long cardId, Long productId, Integer quantity);
+    Long initializeNewCart();
+
+    CartResponse addCartForUserProfile(CartRequest cartRequest, Long userProfileId);
 
     CartResponse updateCart(Long cartId, CartRequest cartRequest);
 

@@ -47,7 +47,16 @@ public class CategoryController {
         } catch (AppException e) {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse<>(200, e.getMessage(), null));
         }
+    }
 
+    @GetMapping("/category/{categoryName}")
+    ResponseEntity<ApiResponse> getCategory(@PathVariable String categoryName) {
+        try {
+            Category category = categoryService.getCategoryByName(categoryName);
+            return ResponseEntity.ok(new ApiResponse<>(200, "success", category));
+        } catch (AppException e) {
+            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse<>(200, e.getMessage(), null));
+        }
     }
 
     @PostMapping("/category/add")

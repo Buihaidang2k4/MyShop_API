@@ -1,10 +1,7 @@
 package com.example.MyShop_API.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
@@ -12,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "carts")
@@ -26,14 +24,14 @@ public class Cart {
     @JoinColumn(name = "account_id")
     UserProfile userProfile;
 
-    @OneToMany(mappedBy = "cart", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CartItem> cartItems = new ArrayList<>();
 
     BigDecimal totalPrice = BigDecimal.ZERO;
 
     public void addItem(CartItem item) {
         this.cartItems.add(item);
-        item.setCart(null);
+        item.setCart(this);
         updateTotalAmout();
     }
 

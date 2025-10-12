@@ -17,11 +17,14 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,28 +35,87 @@ public class CartService implements ICartService {
     CartRepository cartRepository;
     CartMapper cartMapper;
     UserProfileRepository userProfileRepository;
-    ProductRepository productRepository;
     CartItemRepository cartItemRepository;
+    AtomicLong generatorId = new AtomicLong(0);
 
+    /**
+     * Get all cart
+     *
+     * @return {@link List<Cart>}
+     */
     @Override
-    public List<CartResponse> getCarts() {
+    public List<Cart> getCarts() {
         log.info("getCarts ");
-        return cartRepository.findAll().stream().map(cartMapper::toResponse).collect(Collectors.toList());
+        List<Cart> carts = cartRepository.findAll();
+        return carts;
     }
 
+    /**
+     * Get cart by page
+     *
+     * @param pageable
+     * @return
+     */
     @Override
-    public CartResponse getCartById(Long cartId) {
-        log.info("getCartById ");
-        return cartRepository.findById(cartId).map(cartMapper::toResponse).orElseThrow(
-                () -> new AppException(ErrorCode.CART_NOT_EXISTED)
-        );
+    public Page<Cart> getAllCarts(Pageable pageable) {
+        return cartRepository.findAll(pageable);
     }
 
+    /**
+     * Get card by cardId
+     *
+     * @param cartId
+     * @return cart
+     */
+    @Override
+    public Cart getCartById(Long cartId) {
+        return cartRepository.findByIdWithItems(cartId)
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
+    }
+
+    /**
+     * Get cart by userprofileId
+     *
+     * @param userProfileId
+     * @return cart
+     */
     @Override
     public Cart getCartByUserProfileId(Long userProfileId) {
         return cartRepository.findByUserProfileId(userProfileId);
     }
 
+    /**
+     * Get total price
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public BigDecimal getTotalPrice(Long id) {
+        Cart cart = getCartById(id);
+        return cart.getTotalPrice();
+    }
+
+    /**
+     * Create new cart
+     *
+     * @return cartId
+     */
+    @Override
+    public Long initializeNewCart() {
+        Cart newCart = new Cart();
+        Long cartId = generatorId.incrementAndGet();
+        newCart.setCartId(cartId);
+        return cartRepository.save(newCart).getCartId();
+    }
+
+    /**
+     * add cart -> User
+     *
+     * @param cartRequest
+     * @param userProfileId
+     * @return cart
+     */
     @Override
     public CartResponse addCartForUserProfile(CartRequest cartRequest, Long userProfileId) {
         UserProfile userProfile = userProfileRepository.findById(userProfileId).orElseThrow(()
@@ -65,47 +127,13 @@ public class CartService implements ICartService {
         return cartMapper.toResponse(newCart);
     }
 
-    @Override
-    public CartResponse addProductToCart(Long cardId, Long productId, Integer quantity) {
-        Cart findCart = cartRepository.findById(cardId).orElseThrow(()
-                -> new AppException(ErrorCode.CART_NOT_EXISTED));
-
-        Product findProduct = productRepository.findById(productId).orElseThrow(
-                () -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
-
-        CartItem cartItem = cartItemRepository.findCartItemByProductIdAndCartId(productId, cardId);
-
-        // Kiem tra card da ton tai chua
-        if (cartItem != null) {
-            throw new AppException(ErrorCode.CART_EXISTED);
-        }
-
-        // kiem tra so luong ton kho
-        if (findProduct.getQuantity() == 0)
-            throw new AppException(ErrorCode.PRODUCT_OUT_OF_STOCK);
-
-        if (findProduct.getQuantity() < quantity) {
-            throw new AppException(ErrorCode.PRODUCT_OUT_OF_STOCK, findProduct.getQuantity(), quantity);
-        }
-
-        CartItem newCartItem = CartItem.builder()
-                .product(findProduct)
-                .cart(findCart)
-                .quantity(quantity)
-                .unitPrice(findProduct.getPrice())
-                .build();
-
-        newCartItem.setTotalPrice();
-        cartItemRepository.save(newCartItem);
-
-        // cap nhat tong gia cua gio hang
-        findCart.getCartItems().add(newCartItem);
-        findCart.updateTotalAmout();
-        cartRepository.save(findCart);
-
-        return cartMapper.toResponse(findCart);
-    }
-
+    /**
+     * update card by cardId, and body cartRequest
+     *
+     * @param cartId
+     * @param cartRequest
+     * @return
+     */
     @Override
     public CartResponse updateCart(Long cartId, CartRequest cartRequest) {
         log.info("updateCartById ");
@@ -117,10 +145,15 @@ public class CartService implements ICartService {
         return cartMapper.toResponse(findCart);
     }
 
+    /**
+     * clear cart
+     *
+     * @param cartId
+     */
     @Transactional
     @Override
     public void clearCart(Long cartId) {
-        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
+        Cart cart = getCartById(cartId);
         cartItemRepository.deleteAllByCart_CartId(cartId);
         cart.getCartItems().clear();
         cartRepository.deleteById(cartId);

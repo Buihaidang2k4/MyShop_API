@@ -1,5 +1,6 @@
 package com.example.MyShop_API.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -7,7 +8,8 @@ import lombok.experimental.FieldDefaults;
 import java.math.BigDecimal;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
@@ -18,6 +20,7 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long cartItemId;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "cart_id")
     Cart cart;
@@ -37,4 +40,6 @@ public class CartItem {
             this.totalPrice = BigDecimal.ZERO;
         }
     }
+
+
 }

@@ -8,6 +8,7 @@ import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.repo.CartItemRepository;
 import com.example.MyShop_API.repo.CartRepository;
 import com.example.MyShop_API.repo.ProductRepository;
+import com.example.MyShop_API.service.product.IProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -24,12 +25,13 @@ import java.math.BigDecimal;
 public class CartItemService implements ICartItemService {
     CartItemRepository cartItemRepository;
     CartRepository cartRepository;
-    ProductRepository productRepository;
+    ICartService cartService;
+    IProductService productService;
 
     @Override
     public void addItemToCart(Long cartId, Long productId, int quantity) {
-        Cart cart = cartRepository.findById(cartId).orElse(null);
-        Product product = productRepository.findById(productId).orElse(null);
+        Cart cart = cartService.getCartById(cartId);
+        Product product = productService.getProductById(productId);
 
         // Tìm sản phẩm có productId khớp thì lấy ra, nếu không tìm thấy ,tạo mới một CartItem
         CartItem cartItem = cart.getCartItems()
@@ -37,17 +39,20 @@ public class CartItemService implements ICartItemService {
                 .filter(item -> item.getProduct().getProductId().equals(productId))
                 .findFirst().orElse(null);
 
-        if (cartItem.getCartItemId() == null) {
-            cartItem.setCart(cart);
-            cartItem.setProduct(product);
-            cartItem.setQuantity(quantity);
-            cartItem.setUnitPrice(product.getPrice());
+        if (cartItem == null) {
+            cartItem = CartItem.builder()
+                    .cart(cart)
+                    .product(product)
+                    .quantity(quantity)
+                    .unitPrice(product.getPrice())
+                    .build();
         } else {
             // Neu san pham da co tang so luong
             cartItem.setQuantity(cartItem.getQuantity() + quantity);
         }
 
         // them cartitem vao gio hang
+        cartItem.setCart(cart);
         cartItem.setTotalPrice();
         cart.addItem(cartItem);
         cartItemRepository.save(cartItem);
@@ -55,18 +60,19 @@ public class CartItemService implements ICartItemService {
     }
 
     @Override
-    public void removeItemFromCart(Long cartId, Long productId) {
-        Cart cart = cartRepository.findById(cartId).orElse(null);
-        CartItem itemToRemove = getCartItem(cartId, productId);
+    public void removeItemFromCart(Long cartId, Long cartItemId) {
+        Cart cart = cartService.getCartById(cartId);
+        CartItem itemToRemove = getCartItem(cartId, cartItemId);
+
         cart.removeItem(itemToRemove);
         cartRepository.save(cart);
     }
 
     @Override
-    public void updateItemQuantity(Long cartId, Long productId, int quantity) {
-        Cart cart = cartRepository.findById(cartId).orElse(null);
+    public void updateItemQuantity(Long cartId, Long cartItemId, int quantity) {
+        Cart cart = cartService.getCartById(cartId);
         cart.getCartItems().stream()
-                .filter(item -> item.getProduct().getProductId().equals(productId))
+                .filter(item -> item.getCartItemId().equals(cartItemId))
                 .findFirst()
                 .ifPresent(item -> {
                     item.setQuantity(quantity);
@@ -74,6 +80,7 @@ public class CartItemService implements ICartItemService {
                     item.setTotalPrice();
                 });
 
+        // Cong tong gia tien
         BigDecimal totalPrice = cart.getCartItems()
                 .stream().map(CartItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -83,13 +90,13 @@ public class CartItemService implements ICartItemService {
     }
 
     @Override
-    public CartItem getCartItem(Long cartId, Long productId) {
-        Cart cart = cartRepository.findById(cartId).orElse(null);
+    public CartItem getCartItem(Long cartId, Long cartItemId) {
+        Cart cart = cartService.getCartById(cartId);
 
         return cart.getCartItems()
                 .stream()
-                .filter(item -> item.getProduct().getProductId().equals(productId))
-                .findFirst().orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
+                .filter(item -> item.getCartItemId().equals(cartItemId))
+                .findFirst().orElseThrow(() -> new AppException(ErrorCode.CART_ITEM_NOT_EXISTED));
     }
 
 }
