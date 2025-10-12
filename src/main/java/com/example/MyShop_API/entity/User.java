@@ -19,13 +19,12 @@ public class User {
     @Column(name = "id")
     Long id;
 
-    @Column(name = "username", unique = true, columnDefinition = "VARCHAR(255) COLLATE utf8mb4_unicode_ci")
+    @Column(name = "username", columnDefinition = "VARCHAR(255) COLLATE utf8mb4_unicode_ci")
     String username;
 
     @Column(name = "password")
     String password;
 
-    @Email
     @Column(unique = true)
     String email;
 

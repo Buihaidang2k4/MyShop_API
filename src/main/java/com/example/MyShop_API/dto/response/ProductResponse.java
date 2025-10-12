@@ -1,5 +1,6 @@
 package com.example.MyShop_API.dto.response;
 
+import com.example.MyShop_API.dto.request.ImageDTO;
 import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.entity.Image;
 import lombok.AccessLevel;
@@ -8,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -19,9 +21,9 @@ public class ProductResponse {
     String productName;
     String description;
     Integer quantity;
-    double price;
-    double discount;
-    double specialPrice;
+    BigDecimal price;
+    BigDecimal discount;
+    BigDecimal specialPrice;
     Category category;
-    List<Image> images;
+    List<ImageDTO> images;
 }

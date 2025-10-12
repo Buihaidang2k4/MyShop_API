@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,37 +29,16 @@ public class TokenBlacklistService {
     RedisTemplate<String, Object> redisTemplate;
     RevokedTokenRepository revokedTokenRepository;
 
+    // hash token key save redis
+    private String getRedisKey(String token) {
+        return PREFIX + DigestUtils.sha256Hex(token);
+    }
+
     /**
      * Thêm token vào blacklist với TTL
      */
-//    public void blacklist(String token, Duration duration) {
-//        String key = PREFIX + token;
-//        try {
-//            // Kiểm tra xem token đã bị thu hồi chưa
-//            boolean alreadyRevokedInRedis = Boolean.TRUE.equals(redisTemplate.hasKey(key));
-//            boolean alreadyRevokedInDb = revokedTokenRepository.existsByToken(token);
-//
-//            // Luôn ghi vào Redis để đảm bảo TTL cập nhật
-//            redisTemplate.opsForValue().set(key, true, duration);
-//
-//            // Chỉ ghi vào DB nếu chưa có
-//            if (!alreadyRevokedInDb) {
-//                revokedTokenRepository.save(RevokedToken.builder()
-//                        .token(token)
-//                        .revokedAt(Instant.now())
-//                        .expiresAt(Instant.now().plus(duration))
-//                        .build());
-//            } else {
-//                log.info("Token [{}] already exists in DB, skipped insert", token);
-//            }
-//
-//        } catch (Exception e) {
-//            log.error("Failed to blacklist token [{}]: {}", token, e.getMessage());
-//            throw new AppException(ErrorCode.REDIS_ERROR);
-//        }
-//    }
     public void blacklist(String token, Duration duration) {
-        String key = PREFIX + token;
+        String key = getRedisKey(token);
         try {
             // Luôn ghi vào Redis để đảm bảo TTL cập nhật
             redisTemplate.opsForValue().set(key, true, duration);
@@ -73,7 +53,6 @@ public class TokenBlacklistService {
                         .revokedAt(now)
                         .expiresAt(now.plus(duration))
                         .build());
-                log.info("Token [{}] saved to DB", token);
             } else {
                 log.info("Token [{}] already exists and valid in DB, skipped insert", token);
             }
@@ -88,7 +67,7 @@ public class TokenBlacklistService {
      * Kiểm tra token có bị thu hồi không
      */
     public boolean isBlacklisted(String token) {
-        String key = PREFIX + token;
+        String key = getRedisKey(token);
         try {
             Boolean exists = redisTemplate.hasKey(key);
             if (Boolean.TRUE.equals(exists)) return true;
@@ -147,7 +126,7 @@ public class TokenBlacklistService {
             for (RevokedToken token : tokens) {
                 long ttl = Duration.between(Instant.now(), token.getExpiresAt()).toMillis();
                 if (ttl > 0) {
-                    redisTemplate.opsForValue().set(PREFIX + token.getToken(), true, Duration.ofMillis(ttl));
+                    redisTemplate.opsForValue().set(getRedisKey(token.getToken()), true, Duration.ofMillis(ttl));
                 }
             }
         } catch (Exception e) {

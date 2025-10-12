@@ -17,6 +17,8 @@ public interface UserMapper {
 
     UserResponse toResponse(User user);
 
+    User toEntity(UserResponse userResponse);
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "roles", ignore = true)

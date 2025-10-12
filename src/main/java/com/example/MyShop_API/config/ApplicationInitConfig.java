@@ -11,9 +11,11 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -24,6 +26,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ApplicationInitConfig {
+    @Autowired
+    @Lazy
     PasswordEncoder passwordEncoder;
 
     @Bean
@@ -44,14 +48,13 @@ public class ApplicationInitConfig {
 
                 User user = User.builder()
                         .username("admin")
-                        .password(passwordEncoder.encode("admin"))
-                        .email("Admin@gmail.com")
+                        .password(passwordEncoder.encode("Admin@123"))
+                        .email("admin@gmail.com")
                         .roles((Set.of(role)))
                         .build();
 
 
                 userRepository.save(user);
-                log.info("Default user has been created with password:admin , please change it");
             }
         };
     }

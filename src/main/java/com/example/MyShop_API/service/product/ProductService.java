@@ -1,5 +1,6 @@
 package com.example.MyShop_API.service.product;
 
+import com.example.MyShop_API.anotation.AllAccess;
 import com.example.MyShop_API.dto.request.AddProductRequest;
 import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.entity.Product;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,9 +43,12 @@ public class ProductService implements IProductService {
                 });
         request.setCategory(category);
 
-        // Chuyen dooi
+        // Chuyen doi
         Product product = productMapper.toEntity(request);
         product.setCategory(category);
+        product.setSpecialPrice(
+                request.getPrice()
+                        .multiply(BigDecimal.ONE.subtract(request.getDiscount().divide(BigDecimal.valueOf(100)))));
 
         return productRepository.save(product);
     }
@@ -72,6 +77,7 @@ public class ProductService implements IProductService {
         productRepository.deleteById(productId);
     }
 
+    @AllAccess
     @Override
     public List<Product> getProducts() {
         log.info("getProducts ");

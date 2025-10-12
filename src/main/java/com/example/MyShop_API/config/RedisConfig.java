@@ -15,12 +15,15 @@ public class RedisConfig {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         // Thiết lập factory để RedisTemplate biết cách kết nối đến Redis server
         redisTemplate.setConnectionFactory(factory);
-        // Đặt serializer cho key: String → byte[]
+        // Key serializer → string
         redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
 
-        // Đặt serializer cho value: String → byte[]
+        //  Value serializer → JSON
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
 
+        redisTemplate.afterPropertiesSet();
         return redisTemplate;
     }
 }

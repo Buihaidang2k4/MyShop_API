@@ -1,5 +1,7 @@
 package com.example.MyShop_API.service.user;
 
+import com.example.MyShop_API.anotation.AdminOnly;
+import com.example.MyShop_API.anotation.AllAccess;
 import com.example.MyShop_API.constant.PredefinedRole;
 import com.example.MyShop_API.dto.request.ChangePasswordRequest;
 import com.example.MyShop_API.dto.request.UserCreationRequest;
@@ -28,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@AdminOnly
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -38,19 +41,18 @@ public class UserService implements IUserService {
     PasswordEncoder passwordEncoder;
     RoleRepository roleRepository;
 
-    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers() {
         log.info("getUsers().........");
         return userRepository.findAll().stream().map(userMapper::toResponse).collect(Collectors.toList());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse getUserById(Long id) {
         log.info("getUserById().........");
         User user = userRepository.findById(id).orElse(null);
         return userMapper.toResponse(user);
     }
 
+    @AllAccess
     @Transactional
     public UserResponse createUser(UserCreationRequest request) {
         log.info("createUser().........");
@@ -100,7 +102,6 @@ public class UserService implements IUserService {
         new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse updateUser(UserUpdateRequest request, Long id) {
         log.info("updateUser().........");
         User findUser = userRepository.findById(id)
@@ -121,7 +122,6 @@ public class UserService implements IUserService {
         return userMapper.toResponse(findUser);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     public void deleteUserById(Long id) {
         log.info("deleteUserById().........");
         userRepository.deleteById(id);

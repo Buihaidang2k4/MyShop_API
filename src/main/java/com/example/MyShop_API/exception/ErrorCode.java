@@ -60,6 +60,8 @@ public enum ErrorCode {
 
     VALIDATION_ERROR(1030, "Input data is not valid", BAD_REQUEST),
 
+    ACCOUNT_NOT_EXISTED(1031, "incorrect password account", BAD_REQUEST),
+
     ;
 
 

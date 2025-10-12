@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.stream.Collectors;
+
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -59,8 +61,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleValidationException(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .findFirst()
-                .orElse("Invalid request");
+                .collect(Collectors.joining("; ")); // nối tất cả lỗi bằng dấu ;
 
         log.warn("Validation failed: {}", message);
 
@@ -69,6 +70,7 @@ public class GlobalExceptionHandler {
                 .message(message)
                 .build());
     }
+
 
     /**
      * Json sai dinh dang

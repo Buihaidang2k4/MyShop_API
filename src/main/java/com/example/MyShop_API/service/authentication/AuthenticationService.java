@@ -1,14 +1,22 @@
 package com.example.MyShop_API.service.authentication;
 
+import com.example.MyShop_API.anotation.AllAccess;
 import com.example.MyShop_API.dto.request.AuthenticationRequest;
-import com.example.MyShop_API.dto.request.IntrosprectRequest;
+import com.example.MyShop_API.dto.request.IntrospectRequest;
+import com.example.MyShop_API.dto.request.UserCreationRequest;
 import com.example.MyShop_API.dto.response.AuthenticationResponse;
 import com.example.MyShop_API.dto.response.IntrospectResponse;
 import com.example.MyShop_API.entity.User;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
+import com.example.MyShop_API.mapper.UserMapper;
 import com.example.MyShop_API.repo.UserRepository;
 import com.example.MyShop_API.service.token_blacklist.TokenBlacklistService;
+import com.example.MyShop_API.service.user.UserService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -27,7 +35,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
@@ -38,10 +48,12 @@ import java.util.*;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationService implements IAuthenticationService {
-    private static final String REFRESH_COOKIES_NAME = "refresh_token";
     private static final Duration REFRESH_COOKIES_EXPIRATION = Duration.ofDays(7);
+    private final static String REFRESH_COOKIES_NAME = "refresh_token";
 
     UserRepository userRepository;
+    UserService userService;
+    UserMapper userMapper;
     PasswordEncoder passwordEncoder;
     TokenBlacklistService blacklistService;
 
@@ -54,10 +66,22 @@ public class AuthenticationService implements IAuthenticationService {
     @NonFinal
     @Value("${jwt.refreshable-duration}")
     protected Long REFRESH_TOKEN_DURATION;
+    @NonFinal
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    protected String GOOGLE_CLIENT_ID;
 
+    /**
+     * Login with jwt && redis
+     *
+     * @param request
+     * @return
+     */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        var user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        log.info("GOOGLE_CLIENT_ID = {}", GOOGLE_CLIENT_ID);
+
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
+                () -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED)
+        );
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
@@ -79,6 +103,52 @@ public class AuthenticationService implements IAuthenticationService {
                 .build();
     }
 
+    /**
+     * Login with google && jwt && redis
+     *
+     * @param request
+     * @return {@link AuthenticationResponse}
+     * @throws ParseException
+     * @throws JOSEException
+     */
+    public AuthenticationResponse authenticateGoogle(IntrospectRequest request) throws GeneralSecurityException, IOException {
+        GoogleIdToken idToken = verifyIdToken(request.getToken());
+
+        String email = idToken.getPayload().getEmail();
+        log.info("Google user verified successfully: {}", email);
+
+        if (email == null || email.trim().isEmpty()) {
+            log.error("Email is null or empty from Google token");
+            throw new AppException(ErrorCode.USER_INVALID);
+        }
+
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            // Lấy name từ Google token trong lambda để tránh lỗi final
+            String userName = (String) idToken.getPayload().get("name");
+            if (userName == null || userName.trim().isEmpty()) {
+                userName = email.split("@")[0];
+            }
+            // neu chua co tao moi
+            UserCreationRequest userCreationRequest = UserCreationRequest.builder()
+                    .email(email)
+                    .username(userName)
+                    .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                    .build();
+            return userMapper.toEntity(userService.createUser(userCreationRequest));
+        });
+
+        blacklistService.revokeAllTokensForUser(user.getId(), Duration.ofMillis(REFRESH_TOKEN_DURATION));
+
+        String accessToken = generateAccessToken(user);
+        String refreshToken = generateRefreshToken(user);
+
+        log.info("Google ID token verification successfully: {}", accessToken);
+        log.info("Google ID token verification successfully: {}", refreshToken);
+
+        blacklistService.storeRefreshToken(user.getId(), refreshToken);
+
+        return new AuthenticationResponse(accessToken, refreshToken);
+    }
 
     public String refreshToken(String token) throws ParseException, JOSEException {
         // check token revoked
@@ -86,9 +156,9 @@ public class AuthenticationService implements IAuthenticationService {
 
         SignedJWT signedJWT = verifyToken(token, true);
 
-        String username = signedJWT.getJWTClaimsSet().getSubject();
+        String email = signedJWT.getJWTClaimsSet().getSubject();
 
-        User user = userRepository.findByUsername(username).orElseThrow(() ->
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTED));
 
         try {
@@ -98,14 +168,16 @@ public class AuthenticationService implements IAuthenticationService {
         }
     }
 
-    public IntrospectResponse introspect(IntrosprectRequest request) throws ParseException, JOSEException {
+    public IntrospectResponse introspect(IntrospectRequest request)
+            throws JOSEException, ParseException {
+        var token = request.getToken();
         boolean isValid = true;
 
         try {
-            SignedJWT signedJWT = verifyToken(request.getToken(), false);
-            blacklistService.validate(request.getToken());
+            verifyToken(token, false);
         } catch (AppException e) {
             isValid = false;
+            log.warn("Token introspection failed: {}", e.getMessage());
         }
 
         return IntrospectResponse.builder()
@@ -143,6 +215,22 @@ public class AuthenticationService implements IAuthenticationService {
         return signedJWT;
     }
 
+    public GoogleIdToken verifyIdToken(String token) throws GeneralSecurityException, IOException {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                GoogleNetHttpTransport.newTrustedTransport(),
+                JacksonFactory.getDefaultInstance()
+        ).setAudience(Collections.singletonList(GOOGLE_CLIENT_ID)).build();
+
+        log.info("Google verifier built successfully");
+
+        GoogleIdToken idToken = verifier.verify(token);
+        if (idToken == null) {
+            log.error("Google ID token verification failed - token is null");
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        return idToken;
+    }
 
     private String generateAccessToken(User user) {
         return buildToken(user, Duration.ofMillis(ACCESS_TOKEN_DURATION), "access_token");
@@ -155,7 +243,7 @@ public class AuthenticationService implements IAuthenticationService {
     private String buildToken(User user, Duration duration, String type) {
         try {
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                    .subject(user.getUsername())
+                    .subject(user.getEmail())
                     .issuer("ANH DANG")
                     .issueTime(new Date())
                     .expirationTime(new Date(Instant.now().plus(duration).toEpochMilli()))
@@ -166,7 +254,6 @@ public class AuthenticationService implements IAuthenticationService {
 
             SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
 
-            log.info("JWT payload: {}", claimsSet.toJSONObject().toString());
             signedJWT.sign(new MACSigner(TOKEN_KEY.getBytes(StandardCharsets.UTF_8)));
             return signedJWT.serialize();
         } catch (JOSEException e) {
@@ -184,29 +271,18 @@ public class AuthenticationService implements IAuthenticationService {
         return stringJoiner.toString();
     }
 
-    public ResponseCookie logoutAndGetCookie(String refreshToken) {
-        if (refreshToken != null && !refreshToken.isBlank()) {
-            try {
-                logout(refreshToken); // blacklist token
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            } catch (JOSEException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        // tạo cookie xóa trên client
-        return ResponseCookie.from(REFRESH_COOKIES_NAME, "")
+    public ResponseCookie clearCookie(String cookieName) {
+        return ResponseCookie.from(cookieName, "")
                 .httpOnly(true)
-                .maxAge(0)
                 .secure(true)
                 .sameSite("Strict")
                 .path("/")
+                .maxAge(0)
                 .build();
     }
 
-    public ResponseCookie buildRefreshCookie(String refreshToken) {
-        return ResponseCookie.from(REFRESH_COOKIES_NAME, refreshToken)
+    public ResponseCookie buildCookie(String refreshToken, String cookieName) {
+        return ResponseCookie.from(cookieName, refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
@@ -215,13 +291,12 @@ public class AuthenticationService implements IAuthenticationService {
                 .build();
     }
 
-    public String getRefreshTokenFromRequest(HttpServletRequest request) {
+    public String getTokenFromCookie(HttpServletRequest request, String cookieName) {
         return Arrays.stream(Optional.ofNullable(request.getCookies()).orElse(new Cookie[0]))
-                .filter(c -> REFRESH_COOKIES_NAME.equals(c.getName()))
+                .filter(c -> cookieName.equals(c.getName()))
                 .map(Cookie::getValue)
                 .findFirst()
                 .orElse(null);
-
     }
 }
 

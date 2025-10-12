@@ -1,14 +1,11 @@
 package com.example.MyShop_API.config;
 
-import com.example.MyShop_API.dto.request.IntrosprectRequest;
-import com.example.MyShop_API.exception.AppException;
-import com.example.MyShop_API.exception.ErrorCode;
+import com.example.MyShop_API.dto.request.IntrospectRequest;
 import com.example.MyShop_API.service.authentication.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -19,46 +16,51 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.text.ParseException;
-import java.util.Objects;
 
 @Component
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class CustomJwtDecoder implements JwtDecoder {
-    AuthenticationService authenticationService;
 
-    @NonFinal
-    NimbusJwtDecoder jwtDecoder = null;
+    @Autowired
+    private AuthenticationService authenticationService;
 
-    @NonFinal
     @Value("${jwt.secret}")
     private String signerKey;
 
+    private NimbusJwtDecoder jwtDecoder;
+
+    @PostConstruct
+    public void initDecoder() {
+        SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HmacSHA256");
+        this.jwtDecoder = NimbusJwtDecoder
+                .withSecretKey(secretKeySpec)
+                .macAlgorithm(MacAlgorithm.HS256)
+                .build();
+    }
+
     @Override
-//    Giải mã và xác thực token nâng cao
     public Jwt decode(String token) throws JwtException {
-
         try {
-            var response = authenticationService.introspect(IntrosprectRequest
-                    .builder()
-                    .token(token)
-                    .build());
+            var response = authenticationService.introspect(
+                    IntrospectRequest.builder().token(token).build()
+            );
 
-            if (!response.isValid())
-                throw new AppException(ErrorCode.UNAUTHENTICATED);
+            if (!response.isValid()) {
+                throw new JwtException("Token is invalid or expired");
+            }
+
+            return jwtDecoder.decode(token);
 
         } catch (ParseException | JOSEException e) {
-            throw new JwtException("Invalid token " + e.getMessage());
-        }
+            log.error("Token parsing error: {}", e.getMessage(), e);
+            throw new JwtException("Token parsing error: " + e.getMessage());
 
-        if (Objects.isNull(jwtDecoder)) {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HmacSHA256");
-            jwtDecoder = NimbusJwtDecoder
-                    .withSecretKey(secretKeySpec)
-                    .macAlgorithm(MacAlgorithm.HS256)
-                    .build();
+        } catch (JwtException e) {
+            log.error("JWT decoding error: {}", e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error during token decoding: {}", e.getMessage(), e);
+            throw new JwtException("Unexpected error: " + e.getMessage());
         }
-
-        return jwtDecoder.decode(token);
     }
 }
