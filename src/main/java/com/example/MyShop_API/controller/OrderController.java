@@ -10,52 +10,58 @@ import com.example.MyShop_API.service.order.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("${api.prefix}/order")
+@RequestMapping("${api.prefix}/orders")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderController {
     IOrderService orderService;
 
-
-    @GetMapping("/{orderId}")
-    ApiResponse<OrderResponse> getOrder(@PathVariable Long orderId) {
-        return ApiResponse.<OrderResponse>builder()
-                .code(200)
-                .message("Success")
-                .data(orderService.getOrder(orderId))
-                .build();
+    @GetMapping("/all")
+    ResponseEntity<ApiResponse> getOrders() {
+        return ResponseEntity.ok(new ApiResponse<>(200, "Get orders", orderService.getOrders()));
     }
 
-    @PostMapping("/placeOrder/product/{productId}")
-    ApiResponse<OrderResponse> placeOrder(@RequestBody OrderRequest orderRequest, @PathVariable Long productId) {
-        return ApiResponse.<OrderResponse>builder()
-                .code(200)
-                .message("Success")
-                .data(orderService.placeOrder(productId, orderRequest))
-                .build();
+    @GetMapping("/order/{orderId}")
+    ResponseEntity<ApiResponse> getOrder(@PathVariable Long orderId) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "Get order", orderService.getOrder(orderId)));
     }
 
-    @PutMapping("/{orderId}/status/update")
-    ApiResponse<OrderResponse> updateOrder(@RequestParam OrderStatus orderStatus, @PathVariable Long orderId) {
-        return ApiResponse.<OrderResponse>builder()
-                .code(200)
-                .message("Success")
-                .data(orderService.updateOrder(orderId, orderStatus))
-                .build();
+    @GetMapping("/OrderStatus")
+    ResponseEntity<ApiResponse> getOrderByStatus(@RequestParam OrderStatus orderStatus) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "Get orders by status", orderService.getOrdersByStatus(orderStatus)));
     }
 
-    @DeleteMapping("/{orderId}/delete")
-    ApiResponse<Void> deleteOrder(@PathVariable Long orderId) {
+    @GetMapping("/userprofile/{profileId}")
+    ResponseEntity<ApiResponse> getOrderByUser(@PathVariable Long profileId) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "Get orders by user", orderService.getUserOrders(profileId)));
+    }
+
+    @PostMapping("/userprofile/{profileId}/placeOrder")
+    ResponseEntity<ApiResponse> placeOrder(@PathVariable Long profileId) {
+        return ResponseEntity.ok(new ApiResponse(200, "place order", orderService.placeOrder(profileId)));
+    }
+
+    @PutMapping("/order/{orderId}/cancelOrder")
+    ResponseEntity<ApiResponse> cancelOrder(@PathVariable Long orderId) {
+        orderService.cancelOrder(orderId);
+        return ResponseEntity.ok(new ApiResponse(200, "Cancel Order", null));
+    }
+
+    @PutMapping("/order/{orderId}/updateStatus")
+    ResponseEntity<ApiResponse> updateOrderStatus(@RequestParam OrderStatus orderStatus, @PathVariable Long orderId) {
+        return ResponseEntity.ok(new ApiResponse(200, "update status", orderService.updateOrderStatus(orderId, orderStatus)));
+    }
+
+    @DeleteMapping("/order/{orderId}/delete")
+    ResponseEntity<ApiResponse> deleteOrder(@PathVariable Long orderId) {
         orderService.deleteOrder(orderId);
-        return ApiResponse.<Void>builder()
-                .code(200)
-                .message("Success")
-                .build();
+        return ResponseEntity.ok(new ApiResponse(200, "Delete Order Success", null));
     }
 
 }

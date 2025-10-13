@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CartService implements ICartService {
     CartRepository cartRepository;
-    CartMapper cartMapper;
     UserProfileRepository userProfileRepository;
     CartItemRepository cartItemRepository;
     AtomicLong generatorId = new AtomicLong(0);
@@ -113,38 +112,20 @@ public class CartService implements ICartService {
     /**
      * add cart -> User
      *
-     * @param cartRequest
+     * @param cartId
      * @param userProfileId
      * @return cart
      */
     @Override
-    public CartResponse addCartForUserProfile(CartRequest cartRequest, Long userProfileId) {
+    public Cart addCartForUserProfile(Long userProfileId, Long cartId) {
         UserProfile userProfile = userProfileRepository.findById(userProfileId).orElseThrow(()
                 -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        Cart newCart = cartMapper.toEntity(cartRequest);
-        newCart.setUserProfile(userProfile);
-        newCart = cartRepository.save(newCart);
-        return cartMapper.toResponse(newCart);
+        Cart cart = getCartById(cartId);
+        cart.setProfile(userProfile);
+        return cartRepository.save(cart);
     }
 
-    /**
-     * update card by cardId, and body cartRequest
-     *
-     * @param cartId
-     * @param cartRequest
-     * @return
-     */
-    @Override
-    public CartResponse updateCart(Long cartId, CartRequest cartRequest) {
-        log.info("updateCartById ");
-        Cart findCart = cartRepository.findById(cartId).orElseThrow(
-                () -> new AppException(ErrorCode.CART_NOT_EXISTED)
-        );
-
-        cartMapper.update(cartRequest, findCart);
-        return cartMapper.toResponse(findCart);
-    }
 
     /**
      * clear cart
@@ -154,10 +135,13 @@ public class CartService implements ICartService {
     @Transactional
     @Override
     public void clearCart(Long cartId) {
-        Cart cart = getCartById(cartId);
-        cartItemRepository.deleteAllByCart_CartId(cartId);
-        cart.getCartItems().clear();
+        // Hard delete all items first to avoid leaving rows with null cart_id
+        cartItemRepository.hardDeleteByCartId(cartId);
+        cartItemRepository.flush();
+
+        // Then delete the cart
         cartRepository.deleteById(cartId);
+        cartRepository.flush();
     }
 
 

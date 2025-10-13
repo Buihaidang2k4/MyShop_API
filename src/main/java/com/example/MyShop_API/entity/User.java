@@ -8,7 +8,8 @@ import lombok.experimental.FieldDefaults;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,6 +40,6 @@ public class User {
     Set<Role> roles;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "account_id", referencedColumnName = "account_id")
-    UserProfile userProfile;
+    @JoinColumn(name = "profile_id", referencedColumnName = "profile_id")
+    UserProfile profile;
 }

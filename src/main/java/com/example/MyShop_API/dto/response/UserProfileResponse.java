@@ -1,6 +1,7 @@
 package com.example.MyShop_API.dto.response;
 
 
+import com.example.MyShop_API.entity.Address;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -10,11 +11,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserProfileResponse {
-    Long account_id;
+    Long profile_id;
     String firstName;
     String lastName;
     String mobileNumber;
-    AddressResponse addressResponse;
+    Address addressResponse;
     CartResponse cartResponse;
-
 }

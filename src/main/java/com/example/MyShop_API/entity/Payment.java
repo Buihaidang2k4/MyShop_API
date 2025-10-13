@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Data
 @Entity
 @NoArgsConstructor
@@ -21,9 +23,31 @@ public class Payment {
     @OneToOne(mappedBy = "payment", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     Order order;
 
+    // Phương thức thanh toán (VD: "VNPAY", "COD", "MOMO", ...)
     @NotBlank
-
     @Size(min = 4, message = "Payment method must contain at least 4 characters")
     @Column(unique = true, nullable = false)
     String paymentMethod;
+
+    // Mã giao dịch VNPay (vnp_TxnRef)
+    @Column(unique = true)
+    String vnpTxnRef;
+
+    // Số tiền thanh toán (đơn vị: VNĐ)
+    Long amount;
+
+    // Nội dung thanh toán (vnp_OrderInfo)
+    String orderInfo;
+
+    // Mã ngân hàng (vnp_BankCode)
+    String bankCode;
+
+    // Mã phản hồi từ VNPay (vnp_ResponseCode)
+    String responseCode;
+
+    // Trạng thái giao dịch (PENDING, SUCCESS, FAILED)
+    String status;
+
+    // Thời gian thanh toán (vnp_PayDate)
+    LocalDateTime paymentDate;
 }

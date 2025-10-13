@@ -63,6 +63,8 @@ public enum ErrorCode {
     ACCOUNT_NOT_EXISTED(1031, "incorrect password account", BAD_REQUEST),
 
     CART_NOT_MATCH(1032, "Cart not match with cartItem", BAD_REQUEST),
+
+    ORDER_CANCEL_FAILED(1033, "Cannot cancel shipped or delivered orders", BAD_REQUEST),
     ;
 
 

@@ -18,5 +18,5 @@ public class AddressResponse {
     String state;
     String country;
     String pinCode;
-    Long userProfileId;
+    Long profileId;
 }

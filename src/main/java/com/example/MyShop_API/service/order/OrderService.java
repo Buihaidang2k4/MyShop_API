@@ -3,24 +3,25 @@ package com.example.MyShop_API.service.order;
 import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.dto.request.OrderRequest;
 import com.example.MyShop_API.dto.response.OrderResponse;
-import com.example.MyShop_API.entity.Order;
-import com.example.MyShop_API.entity.OrderItem;
-import com.example.MyShop_API.entity.Payment;
-import com.example.MyShop_API.entity.Product;
+import com.example.MyShop_API.entity.*;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.OrderMapper;
 import com.example.MyShop_API.repo.OrderRepository;
 import com.example.MyShop_API.repo.PaymentRepository;
 import com.example.MyShop_API.repo.ProductRepository;
+import com.example.MyShop_API.service.cart.ICartService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,69 +32,106 @@ import java.util.stream.Collectors;
 public class OrderService implements IOrderService {
     OrderRepository orderRepository;
     OrderMapper orderMapper;
+    ICartService cartService;
     ProductRepository productRepository;
-    PaymentRepository paymentRepository;
 
-//    public OrderResponse getUserProfileOrder(Long order_id) {
-//        return orderMapperzorderRepository.findById(order_id);
-//    }
+    @Override
+    public List<Order> getOrders() {
+        return orderRepository.findAll().stream().toList();
+    }
 
-    public OrderResponse getOrder(Long id) {
+    @Override
+    public Order getOrder(Long orderId) {
         log.info("getOrderById().........");
-        Order order = orderRepository.findById(id).orElseThrow(() ->
+        Order order = orderRepository.findById(orderId).orElseThrow(() ->
                 new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
-        return orderMapper.toResponse(order);
+        return order;
     }
 
-    public OrderResponse placeOrder(Long productId, OrderRequest orderRequest) {
+    @Override
+    public List<Order> getOrdersByStatus(OrderStatus status) {
+        return orderRepository.findByOrderStatus(status);
+    }
+
+    @Override
+    public List<Order> getUserOrders(Long profileId) {
+        return orderRepository.findByProfileProfile_id(profileId);
+    }
+
+    @Transactional
+    @Override
+    public Order placeOrder(Long profileId) {
         log.info("placeOrder().........");
-        Product findProduct = productRepository.findById(productId).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
+        Cart cart = cartService.getCartByUserProfileId(profileId);
+        Order order = createOrder(cart);
+        List<OrderItem> orderItems = createOrderItem(order, cart);
+        order.setOrderItems(new HashSet<>(orderItems));
+        order.setTotalAmount(calculateTotalAmount(orderItems));
+        Order saveOrder = orderRepository.save(order);
+        cartService.clearCart(cart.getCartId());
+        return saveOrder;
+    }
 
-        // So luong don hang nguoi ta dat mua
-        int quantity = orderRequest.getOrderItemRequest().getQuantity();
-        BigDecimal finalPrice = BigDecimal.ONE;
-
-        if (findProduct.getQuantity() < quantity) {
-            throw new AppException(ErrorCode.PRODUCT_IS_NOT_ENOUGH, quantity, findProduct.getQuantity());
+    @Transactional
+    @Override
+    public void cancelOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+        if (order.getOrderStatus() == OrderStatus.SHIPPED || order.getOrderStatus() == OrderStatus.DELIVERED) {
+            throw new AppException(ErrorCode.ORDER_CANCEL_FAILED);
         }
-        //  Tạo đơn hàng chi tiết
-        OrderItem orderItem = OrderItem.builder()
-                .product(findProduct)
-                .quantity(orderRequest.getOrderItemRequest().getQuantity())
-                .orderedProductPrice(finalPrice)
+
+        // Hoàn kho
+        order.getOrderItems().forEach(orderItem -> {
+            Product product = orderItem.getProduct();
+            product.setQuantity(product.getQuantity() + orderItem.getQuantity());
+            productRepository.save(product);
+        });
+
+        order.setOrderStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+    }
+
+    @Override
+    public Order updateOrderStatus(Long orderId, OrderStatus orderStatus) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() ->
+                new AppException(ErrorCode.ORDER_NOT_EXISTED));
+        order.setOrderStatus(orderStatus);
+        return orderRepository.save(order);
+    }
+
+    private Order createOrder(Cart cart) {
+        Order order = Order.builder()
+                .profile(cart.getProfile())
+                .orderDate(LocalDate.now())
+                .orderStatus(OrderStatus.PENDING)
                 .build();
-
-        // Tao don dat hang
-        Order order = orderMapper.toEntity(orderRequest);
-        order.setTotalAmount(finalPrice);
-        order.setOrderDate(LocalDate.now());
-        order.setOrderStatus(OrderStatus.PENDING);
-
-        // Set phuong thuc thanh toan
-        var paymentId = orderRequest.getPaymentId();
-        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
-        order.setPayment(payment);
-
-        // Cap nhat ton kho product
-        var inventory = findProduct.getQuantity() - quantity;
-        findProduct.setQuantity(inventory);
-
-        orderItem.setOrder(order);
-        order.setOrderItems(List.of(orderItem));
-
-        return orderMapper.toResponse(orderRepository.save(order));
+        return order;
     }
 
-    public OrderResponse updateOrder(Long orderid, OrderStatus orderStatus) {
-        Order findOrder = orderRepository.findById(orderid).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+    private List<OrderItem> createOrderItem(Order order, Cart cart) {
+        return cart.getCartItems().stream().map(cartItem -> {
+            Product product = cartItem.getProduct();
+            product.setQuantity(product.getQuantity() - cartItem.getQuantity());
 
-        findOrder.setOrderStatus(orderStatus);
-
-        return orderMapper.toResponse(orderRepository.save(findOrder));
+            return OrderItem.builder()
+                    .order(order)
+                    .product(product)
+                    .quantity(cartItem.getQuantity())
+                    .price(cartItem.getUnitPrice())
+                    .build();
+        }).toList();
     }
 
+    private BigDecimal calculateTotalAmount(List<OrderItem> orderItems) {
+        return orderItems.
+                stream()
+                .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
+    @Transactional
+    @Override
     public void deleteOrder(Long orderId) {
         log.info("deleteOrder().........");
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));

@@ -1,5 +1,6 @@
 package com.example.MyShop_API.service.userprofie;
 
+import com.example.MyShop_API.Enum.Role;
 import com.example.MyShop_API.dto.request.UserProfileRequest;
 import com.example.MyShop_API.dto.response.UserProfileResponse;
 import com.example.MyShop_API.entity.Cart;
@@ -40,47 +41,39 @@ public class UserProfileService implements IUserProfileService {
     }
 
     @Transactional
-    public UserProfileResponse createUserProfile(Long userId, UserProfileRequest userProfileRequest) {
+    public UserProfileResponse createOrUpdateProfile(Long userId, UserProfileRequest userProfileRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
+        //        check role
         boolean isUser = user.getRoles().stream()
                 .anyMatch(role -> "USER".equals(role.getRoleName()));
 
-        if (!isUser) {
-            throw new AppException(ErrorCode.ROLE_NOT_ALLOWED);
+        if (!isUser) throw new AppException(ErrorCode.ROLE_NOT_ALLOWED);
+
+        UserProfile userProfile = user.getProfile();
+        if (userProfile == null) {
+            // Nếu user chưa có profile tạo mới
+            userProfile = UserProfile.builder()
+                    .firstName(userProfileRequest.getFirstName())
+                    .lastName(userProfileRequest.getLastName())
+                    .mobileNumber(userProfileRequest.getMobileNumber())
+                    .user(user)
+                    .build();
+
+            // Tạo cart kèm theo
+            Cart cart = new Cart();
+            cart.setProfile(userProfile);
+            userProfile.setCart(cart);
+            user.setProfile(userProfile);
+
+            userProfile = userProfileRepository.save(userProfile);
+        } else {
+            // nếu user đã có profile ->  cập nhật
+            userProfileMapper.UpdateUserProfile(userProfileRequest, userProfile);
+            userProfile = userProfileRepository.save(userProfile);
         }
-
-        if (user.getUserProfile() != null) {
-            throw new AppException(ErrorCode.PROFILE_EXISTED);
-        }
-
-        UserProfile userProfile = UserProfile.builder()
-                .firstName(userProfileRequest.getFirstName())
-                .lastName(userProfileRequest.getLastName())
-                .mobileNumber(userProfileRequest.getMobileNumber())
-                .user(user)
-                .build();
-
-        // Tạo cart kèm theo
-        Cart cart = new Cart();
-        cart.setUserProfile(userProfile);
-        userProfile.setCart(cart);
-
-        user.setUserProfile(userProfile);
-        userProfile = userProfileRepository.save(userProfile);
 
         return userProfileMapper.toResponse(userProfile);
-    }
-
-    public UserProfileResponse updateUserProfile(Long account_id, UserProfileRequest userProfileRequest) throws AppException {
-        UserProfile findUserProfile = userProfileRepository.findById(account_id).orElseThrow(
-                () -> new AppException(ErrorCode.USER_NOT_EXISTED)
-        );
-
-        userProfileMapper.UpdateUserProfile(userProfileRequest, findUserProfile);
-        findUserProfile = userProfileRepository.save(findUserProfile);
-
-        return userProfileMapper.toResponse(findUserProfile);
     }
 }

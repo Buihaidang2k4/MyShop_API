@@ -5,9 +5,9 @@ import com.example.MyShop_API.entity.CartItem;
 public interface ICartItemService {
     void addItemToCart(Long cartId, Long productId, int quantity);
 
-    void removeItemFromCart(Long cartId, Long productId);
+    void removeItemFromCart(Long cartId, Long cartItemId);
 
-    void updateItemQuantity(Long cartId, Long productId, int quantity);
+    void updateItemQuantity(Long cartId, Long cartItemId, int quantity);
 
-    CartItem getCartItem(Long cartId, Long productId);
+    CartItem getCartItem(Long cartId, Long cartItemId);
 }

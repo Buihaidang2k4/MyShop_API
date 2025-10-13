@@ -47,11 +47,11 @@ public class CartController {
         Page<Cart> carts = cartService.getAllCarts(pageable);
 
         Map<String, Object> res = new HashMap<>();
-        res.put("content", carts.getContent());
+        res.put("content", carts.getContent()); // data
         res.put("currentPage", carts.getNumber());
         res.put("totalItems", carts.getTotalElements());
         res.put("totalPages", carts.getTotalPages());
-        res.put("size", carts.getSize());
+        res.put("size", carts.getSize()); // number one page
         res.put("sortBy", sortBy);
 
         return ResponseEntity.ok(new ApiResponse(200, "success", res));
@@ -62,42 +62,25 @@ public class CartController {
         return ResponseEntity.ok(new ApiResponse<>(200, "success", cartService.getCartById(cardId)));
     }
 
-    @GetMapping("/cart/user-profile/{userProfileId}")
-    ResponseEntity<ApiResponse> getCartByUserProfile(@PathVariable Long userProfileId) {
-        return ResponseEntity.ok(new ApiResponse<>(200, "success", cartService.getCartByUserProfileId(userProfileId)));
+    @GetMapping("/cart/user-profile/{profileId}")
+    ResponseEntity<ApiResponse> getCartByUserProfile(@PathVariable Long profileId) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "success", cartService.getCartByUserProfileId(profileId)));
     }
 
-    @PostMapping("/userProfile/{userProfileId}/add")
-    ApiResponse<CartResponse> createCart(@PathVariable Long userProfileId, @RequestBody CartRequest cartRequest) {
-        return ApiResponse.<CartResponse>builder()
-                .code(200)
-                .message("Success")
-                .data(cartService.addCartForUserProfile(cartRequest, userProfileId))
-                .build();
-    }
-
-    @PutMapping("/cart/{id}/update")
-    ApiResponse<CartResponse> updateCart(@RequestBody CartRequest cartRequest, @PathVariable Long id) {
-        return ApiResponse.<CartResponse>builder()
-                .code(200)
-                .message("Success")
-                .data(cartService.updateCart(id, cartRequest))
-                .build();
+    @PostMapping("/userProfile/{profileId}/cart/{cartId}/addCartToUserProfile")
+    ResponseEntity<ApiResponse> addCartToUserProfile(@PathVariable Long profileId, @PathVariable Long cartId) {
+        return ResponseEntity.ok(new ApiResponse(200, "add cart to user-profile success", cartService.addCartForUserProfile(profileId, cartId)));
     }
 
     @DeleteMapping("/cart/{cartId}/clear")
     ResponseEntity<ApiResponse> clearCart(@PathVariable Long cartId) {
         cartService.clearCart(cartId);
-        return ResponseEntity.status(200).build();
+        return ResponseEntity.ok(new ApiResponse(200, "Delete cart success ", null));
     }
 
-    @GetMapping("/cart/{cardId}/total-price")
+    @GetMapping("/cart/{cartId}/total-price")
     ResponseEntity<ApiResponse> getTotalPrice(@PathVariable Long cartId) {
-        try {
-            BigDecimal totalPrice = cartService.getTotalPrice(cartId);
-            return ResponseEntity.ok(new ApiResponse(200, "Total Price", totalPrice));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(500, "Error", e.getMessage()));
-        }
+        BigDecimal totalPrice = cartService.getTotalPrice(cartId);
+        return ResponseEntity.ok(new ApiResponse(200, "Total Price", totalPrice));
     }
 }

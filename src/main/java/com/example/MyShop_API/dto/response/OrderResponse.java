@@ -1,6 +1,7 @@
 package com.example.MyShop_API.dto.response;
 
 
+import com.example.MyShop_API.Enum.OrderStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,6 +18,7 @@ import java.util.List;
 public class OrderResponse {
     Long orderId;
     Long paymentId;
+    Long userProfileId;
     String email;
     LocalDate orderDate;
     Double totalAmount;

@@ -28,6 +28,7 @@ public class CartItemService implements ICartItemService {
     ICartService cartService;
     IProductService productService;
 
+    @Transactional
     @Override
     public void addItemToCart(Long cartId, Long productId, int quantity) {
         Cart cart = cartService.getCartById(cartId);
@@ -55,11 +56,12 @@ public class CartItemService implements ICartItemService {
         cartItem.setCart(cart);
         cartItem.setTotalPrice();
         cart.addItem(cartItem);
-        cartItemRepository.save(cartItem);
+//        cartItemRepository.save(cartItem);
         cartRepository.save(cart);
     }
 
 
+    @Transactional
     @Override
     public void updateItemQuantity(Long cartId, Long cartItemId, int quantity) {
         Cart cart = cartService.getCartById(cartId);
@@ -86,14 +88,8 @@ public class CartItemService implements ICartItemService {
     public void removeItemFromCart(Long cartId, Long cartItemId) {
         Cart cart = cartService.getCartById(cartId);
         CartItem itemToRemove = getCartItem(cartId, cartItemId);
-
-        // Remove from cart collection
         cart.removeItem(itemToRemove);
-        
-        // Delete from database
         cartItemRepository.delete(itemToRemove);
-        
-        // Save cart to update total price
         cartRepository.save(cart);
     }
 

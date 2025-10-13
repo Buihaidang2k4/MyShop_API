@@ -10,7 +10,5 @@ public interface IUserProfileService {
 
     UserProfileResponse getUserProfileById(Long userProfileId);
 
-    UserProfileResponse createUserProfile(Long userId, UserProfileRequest userProfileRequest);
-
-    UserProfileResponse updateUserProfile(Long account_id, UserProfileRequest userProfileRequest);
+    UserProfileResponse createOrUpdateProfile(Long userId, UserProfileRequest userProfileRequest);
 }

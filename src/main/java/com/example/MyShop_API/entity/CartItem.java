@@ -21,8 +21,9 @@ public class CartItem {
     Long cartItemId;
 
     @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "cart_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "cart_id", nullable = false)
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     Cart cart;
 
     @ManyToOne

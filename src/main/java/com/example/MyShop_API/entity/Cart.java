@@ -1,5 +1,6 @@
 package com.example.MyShop_API.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -20,9 +21,10 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long cartId;
 
+    @JsonIgnore
     @OneToOne
-    @JoinColumn(name = "account_id")
-    UserProfile userProfile;
+    @JoinColumn(name = "profile_id")
+    UserProfile profile;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CartItem> cartItems = new ArrayList<>();
@@ -32,16 +34,16 @@ public class Cart {
     public void addItem(CartItem item) {
         this.cartItems.add(item);
         item.setCart(this);
-        updateTotalAmout();
+        updateTotalAount();
     }
 
     public void removeItem(CartItem item) {
         this.cartItems.remove(item);
         item.setCart(null);
-        updateTotalAmout();
+        updateTotalAount();
     }
 
-    public void updateTotalAmout() {
+    public void updateTotalAount() {
         this.totalPrice = cartItems.stream().map(item ->
         {
             BigDecimal unitPrice = item.getUnitPrice();

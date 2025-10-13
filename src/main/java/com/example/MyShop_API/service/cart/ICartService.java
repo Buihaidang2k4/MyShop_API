@@ -22,10 +22,7 @@ public interface ICartService {
 
     Long initializeNewCart();
 
-    CartResponse addCartForUserProfile(CartRequest cartRequest, Long userProfileId);
-
-    CartResponse updateCart(Long cartId, CartRequest cartRequest);
-
+    Cart addCartForUserProfile(Long userProfileId, Long cartId);
 
     void clearCart(Long cartId);
 }
