@@ -79,7 +79,6 @@ public class ProductService implements IProductService {
         productRepository.deleteById(productId);
     }
 
-    @AllAccess
     @Override
     public List<Product> getProducts() {
         log.info("getProducts ");

@@ -67,6 +67,7 @@ public class CartService implements ICartService {
      * @param cartId
      * @return cart
      */
+    @Transactional
     @Override
     public Cart getCartById(Long cartId) {
         return cartRepository.findByIdWithItems(cartId)

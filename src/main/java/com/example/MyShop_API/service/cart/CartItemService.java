@@ -7,13 +7,13 @@ import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.repo.CartItemRepository;
 import com.example.MyShop_API.repo.CartRepository;
-import com.example.MyShop_API.repo.ProductRepository;
 import com.example.MyShop_API.service.product.IProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -59,14 +59,6 @@ public class CartItemService implements ICartItemService {
         cartRepository.save(cart);
     }
 
-    @Override
-    public void removeItemFromCart(Long cartId, Long cartItemId) {
-        Cart cart = cartService.getCartById(cartId);
-        CartItem itemToRemove = getCartItem(cartId, cartItemId);
-
-        cart.removeItem(itemToRemove);
-        cartRepository.save(cart);
-    }
 
     @Override
     public void updateItemQuantity(Long cartId, Long cartItemId, int quantity) {
@@ -86,6 +78,22 @@ public class CartItemService implements ICartItemService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         cart.setTotalPrice(totalPrice);
+        cartRepository.save(cart);
+    }
+
+    @Transactional
+    @Override
+    public void removeItemFromCart(Long cartId, Long cartItemId) {
+        Cart cart = cartService.getCartById(cartId);
+        CartItem itemToRemove = getCartItem(cartId, cartItemId);
+
+        // Remove from cart collection
+        cart.removeItem(itemToRemove);
+        
+        // Delete from database
+        cartItemRepository.delete(itemToRemove);
+        
+        // Save cart to update total price
         cartRepository.save(cart);
     }
 
