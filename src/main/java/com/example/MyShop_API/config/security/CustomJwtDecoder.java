@@ -1,4 +1,4 @@
-package com.example.MyShop_API.config;
+package com.example.MyShop_API.config.security;
 
 import com.example.MyShop_API.dto.request.IntrospectRequest;
 import com.example.MyShop_API.service.authentication.AuthenticationService;

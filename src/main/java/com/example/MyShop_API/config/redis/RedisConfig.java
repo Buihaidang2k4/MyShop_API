@@ -1,4 +1,4 @@
-package com.example.MyShop_API.config;
+package com.example.MyShop_API.config.redis;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

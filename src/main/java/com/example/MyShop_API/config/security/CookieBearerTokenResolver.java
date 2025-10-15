@@ -1,10 +1,8 @@
-package com.example.MyShop_API.config;
+package com.example.MyShop_API.config.security;
 
-import com.ctc.wstx.util.StringUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.util.StringUtils;
 

@@ -1,8 +1,8 @@
 package com.example.MyShop_API.entity;
 
+import com.example.MyShop_API.Enum.PaymentMethod;
+import com.example.MyShop_API.Enum.PaymentStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -24,10 +24,11 @@ public class Payment {
     Order order;
 
     // Phương thức thanh toán (VD: "VNPAY", "COD", "MOMO", ...)
-    @NotBlank
-    @Size(min = 4, message = "Payment method must contain at least 4 characters")
-    @Column(unique = true, nullable = false)
-    String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    PaymentStatus paymentStatus;
 
     // Mã giao dịch VNPay (vnp_TxnRef)
     @Column(unique = true)
@@ -50,4 +51,11 @@ public class Payment {
 
     // Thời gian thanh toán (vnp_PayDate)
     LocalDateTime paymentDate;
+
+    // mã giao dịch VnPay
+    String transactionNo;
+
+    // vnp_CardType
+    String cardType;
+
 }

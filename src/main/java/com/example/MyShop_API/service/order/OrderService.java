@@ -63,6 +63,7 @@ public class OrderService implements IOrderService {
     @Override
     public Order placeOrder(Long profileId) {
         log.info("placeOrder().........");
+
         Cart cart = cartService.getCartByUserProfileId(profileId);
         Order order = createOrder(cart);
         List<OrderItem> orderItems = createOrderItem(order, cart);
@@ -70,6 +71,10 @@ public class OrderService implements IOrderService {
         order.setTotalAmount(calculateTotalAmount(orderItems));
         Order saveOrder = orderRepository.save(order);
         cartService.clearCart(cart.getCartId());
+
+        // Thanh toan
+        
+
         return saveOrder;
     }
 

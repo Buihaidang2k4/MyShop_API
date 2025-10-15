@@ -37,7 +37,6 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<OrderItem> orderItems = new HashSet<>();
 
-
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "profile_id")
