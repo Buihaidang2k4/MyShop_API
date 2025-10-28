@@ -38,6 +38,14 @@ public class ImageService implements IImageService {
     }
 
     @Override
+    public List<ImageDTO> getImageByProductId(Long productId) {
+        List<Image> ds = imageRepository.findImageByProductId(productId);
+        if (ds.isEmpty()) throw new AppException(ErrorCode.IMAGE_NOT_FOUND);
+
+        return ds.stream().map(imageMapper::toImageDTO).toList();
+    }
+
+    @Override
     public void deleteImageById(Long id) {
         imageRepository.findById(id).ifPresentOrElse(imageRepository::delete, () -> {
             throw new AppException(ErrorCode.IMAGE_NOT_FOUND, id);

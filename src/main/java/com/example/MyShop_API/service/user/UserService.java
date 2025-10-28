@@ -30,7 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@AdminOnly
+@AdminOnly // chỉ role admin truy cập được
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -127,13 +127,20 @@ public class UserService implements IUserService {
         userRepository.deleteById(id);
     }
 
-    @PostAuthorize("returnObject.username == authentication.name")
-    public UserResponse getMyInfor() {
-        var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-        User user = userRepository.findByUsername(name).orElseThrow(()
-                -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        return userMapper.toResponse(user);
+    @AllAccess // Tất cả role đều truy cập được
+    @PostAuthorize("returnObject.email.toLowerCase() == authentication.name.toLowerCase()")
+    public UserResponse getMyInfor() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        log.info("Auth name = {}", auth.getName());
+
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        UserResponse response = userMapper.toResponse(user);
+        log.info("Return email = {}", response.getEmail());
+
+        return response;
     }
 }

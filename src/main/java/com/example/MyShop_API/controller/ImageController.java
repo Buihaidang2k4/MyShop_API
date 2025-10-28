@@ -42,12 +42,18 @@ public class ImageController {
     }
 
     @GetMapping("/image/download/{imageId}")
-    ResponseEntity<Resource> dowloadImage(@PathVariable Long imageId) throws SQLException {
+    ResponseEntity<Resource> downloadImage(@PathVariable Long imageId) throws SQLException {
         Image image = imageService.getImageById(imageId);
         ByteArrayResource resource = new ByteArrayResource(image.getImage().getBytes(1, (int) image.getImage().length()));
         return ResponseEntity.ok().contentType(MediaType.parseMediaType(image.getFileType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + image.getFileName() + "\"")
                 .body(resource);
+    }
+
+    @GetMapping("/product/{productId}/images")
+    ResponseEntity<ApiResponse> getImagesByProductId(@PathVariable Long productId) {
+        List<ImageDTO> ds = imageService.getImageByProductId(productId);
+        return ResponseEntity.ok(new ApiResponse(200, "Get success!", ds));
     }
 
     @PutMapping("/image/{imageId}/update")

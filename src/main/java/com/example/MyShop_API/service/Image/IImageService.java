@@ -11,6 +11,8 @@ import java.util.List;
 public interface IImageService {
     Image getImageById(Long id);
 
+    List<ImageDTO> getImageByProductId(Long productId);
+
     void deleteImageById(Long id);
 
     List<ImageDTO> saveImage(Long productId, List<MultipartFile> files);

@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,10 +50,10 @@ public class AuthenticationController {
         response.addHeader(HttpHeaders.SET_COOKIE, cookieAccess.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, cookieRefresh.toString());
 
+
         return ResponseEntity.ok(new ApiResponse(200, "Login jwt successful", null));
     }
 
-    @AllAccess
     @PostMapping("/google")
     ResponseEntity<ApiResponse> handleGoogleLogin(@RequestBody IntrospectRequest request
             , HttpServletResponse response
@@ -71,7 +72,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
+    ResponseEntity<?> refreshToken(HttpServletRequest request) throws ParseException, JOSEException {
         log.info("Refresh Token");
 
         String refreshToken = authenticationService.getTokenFromCookie(request, REFRESH_COOKIE_NAME);
@@ -89,16 +90,23 @@ public class AuthenticationController {
     }
 
     @PostMapping("/introspect")
-    ResponseEntity<IntrospectResponse> introspect(HttpServletRequest request
+    ResponseEntity<ApiResponse<IntrospectResponse>> introspect(HttpServletRequest request
     ) throws ParseException, JOSEException {
-        String refreshToken = authenticationService.getTokenFromCookie(request, ACCESS_COOKIE_NAME);
+        String accessToken = authenticationService.getTokenFromCookie(request, ACCESS_COOKIE_NAME);
 
-        if (refreshToken == null) {
-            return ResponseEntity.ok(IntrospectResponse.builder().valid(false).build());
+        if (accessToken == null) {
+            return ResponseEntity.ok(ApiResponse.<IntrospectResponse>builder().data(IntrospectResponse
+                    .builder()
+                    .valid(false)
+                    .build()).build());
         }
 
-        IntrospectResponse response = authenticationService.introspect(IntrospectRequest.builder().token(refreshToken).build());
-        return ResponseEntity.ok(response);
+        IntrospectResponse response = authenticationService
+                .introspect(IntrospectRequest.builder()
+                        .token(accessToken).build());
+
+        
+        return ResponseEntity.ok(new ApiResponse<>(200, "Introspect successful", response));
     }
 
     @PostMapping("/logout")

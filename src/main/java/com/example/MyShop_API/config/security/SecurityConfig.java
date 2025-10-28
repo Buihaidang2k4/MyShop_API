@@ -28,11 +28,14 @@ public class SecurityConfig {
     private static final String[] PUBLIC_ENPOINT = {
             // Auth
             "/api/v1/auth/**", "/api/v1/auth/google",
+            // User
+            "/api/v1/users/all", "/api/v1/users/add",
             // product
             "/api/v1/products/all",
-            // paymet
-            "/api/v1/payment/**"
-
+            // payment
+            "/api/v1/payment/**",
+            // Image
+            "/api/v1/images/**"
     };
     private static final String ACCESS_TOKEN_NAME = "access_token";
 

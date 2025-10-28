@@ -5,6 +5,9 @@ import com.example.MyShop_API.dto.request.UserCreationRequest;
 import com.example.MyShop_API.dto.request.UserUpdateRequest;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.response.UserResponse;
+import com.example.MyShop_API.entity.User;
+import com.example.MyShop_API.exception.AppException;
+import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.service.user.IUserService;
 import com.example.MyShop_API.service.user.UserService;
 import lombok.AccessLevel;
@@ -13,7 +16,9 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -30,15 +35,12 @@ public class UserController {
     IUserService userService;
 
     @GetMapping("/all")
-    ApiResponse<List<UserResponse>> getUsers() {
+    ResponseEntity<ApiResponse> getUsers() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info("Username: {}", authentication.getName());
         authentication.getAuthorities().forEach(authority -> log.info(authority.getAuthority()));
-
-        return ApiResponse.<List<UserResponse>>builder()
-                .code(200)
-                .data(userService.getUsers())
-                .build();
+        List<UserResponse> ds = userService.getUsers();
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "list users", ds));
     }
 
     @GetMapping("/{id}")
@@ -87,4 +89,5 @@ public class UserController {
                 .data(userService.getMyInfor())
                 .build();
     }
+
 }

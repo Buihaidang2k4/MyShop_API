@@ -77,7 +77,6 @@ public class AuthenticationService implements IAuthenticationService {
      * @return
      */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        log.info("GOOGLE_CLIENT_ID = {}", GOOGLE_CLIENT_ID);
 
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
                 () -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED)
@@ -170,8 +169,12 @@ public class AuthenticationService implements IAuthenticationService {
 
     public IntrospectResponse introspect(IntrospectRequest request)
             throws JOSEException, ParseException {
-        var token = request.getToken();
         boolean isValid = true;
+        String token = request.getToken();
+
+        JWTClaimsSet claimsSet = decodeToken(token);
+        Date expiration = claimsSet.getExpirationTime();
+        Instant exp = expiration.toInstant();
 
         try {
             verifyToken(token, false);
@@ -182,6 +185,7 @@ public class AuthenticationService implements IAuthenticationService {
 
         return IntrospectResponse.builder()
                 .valid(isValid)
+                .exp(exp)
                 .build();
     }
 
@@ -297,6 +301,12 @@ public class AuthenticationService implements IAuthenticationService {
                 .map(Cookie::getValue)
                 .findFirst()
                 .orElse(null);
+    }
+
+    @Override
+    public JWTClaimsSet decodeToken(String token) throws ParseException {
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        return signedJWT.getJWTClaimsSet();
     }
 }
 

@@ -5,6 +5,7 @@ import com.example.MyShop_API.dto.request.IntrospectRequest;
 import com.example.MyShop_API.dto.response.AuthenticationResponse;
 import com.example.MyShop_API.dto.response.IntrospectResponse;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseCookie;
 
@@ -30,4 +31,5 @@ public interface IAuthenticationService {
 
     String getTokenFromCookie(HttpServletRequest request, String cookieName);
 
+    JWTClaimsSet decodeToken(String token) throws ParseException;
 }
