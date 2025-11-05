@@ -30,7 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@AdminOnly // chỉ role admin truy cập được
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -41,18 +40,19 @@ public class UserService implements IUserService {
     PasswordEncoder passwordEncoder;
     RoleRepository roleRepository;
 
+    @AdminOnly
     public List<UserResponse> getUsers() {
         log.info("getUsers().........");
         return userRepository.findAll().stream().map(userMapper::toResponse).collect(Collectors.toList());
     }
 
+    @AdminOnly
     public UserResponse getUserById(Long id) {
         log.info("getUserById().........");
         User user = userRepository.findById(id).orElse(null);
         return userMapper.toResponse(user);
     }
 
-    @AllAccess
     @Transactional
     public UserResponse createUser(UserCreationRequest request) {
         log.info("createUser().........");
@@ -83,6 +83,7 @@ public class UserService implements IUserService {
         return userMapper.toResponse(user);
     }
 
+    @AllAccess
     public void changePassword(ChangePasswordRequest request, Long id) {
         log.info("changePassword().........");
         User user = userRepository.findById(id).orElseThrow(() ->
@@ -102,6 +103,7 @@ public class UserService implements IUserService {
         new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @AllAccess
     public UserResponse updateUser(UserUpdateRequest request, Long id) {
         log.info("updateUser().........");
         User findUser = userRepository.findById(id)

@@ -34,7 +34,7 @@ public class ApplicationInitConfig {
     ApplicationRunner initApplicationRunner(UserRepository userRepository, RoleRepository roleRepository) {
 
         return args -> {
-            if (userRepository.findByUsername("admin").isEmpty()) {
+            if (userRepository.findByEmail("admin@gmail.com").isEmpty()) {
                 Role role = roleRepository.findById("ADMIN").orElseGet(
                         () -> roleRepository.save(
                                 Role.builder()

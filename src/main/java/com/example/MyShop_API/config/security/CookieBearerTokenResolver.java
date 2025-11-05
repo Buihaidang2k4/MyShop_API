@@ -6,15 +6,27 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+
 /**
  * Conver bearer token -> cookies
  */
 @RequiredArgsConstructor
 public class CookieBearerTokenResolver implements BearerTokenResolver {
+    private static final List<String> PUBLIC_ENDPOINTS = List.of(
+            "/api/v1/auth/login"
+    );
+
     private final String cookieName;
 
     @Override
     public String resolve(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        // if public endpoint -> pass
+        if (PUBLIC_ENDPOINTS.stream().anyMatch(path::startsWith)) {
+            return null;
+        }
+
         // get token from cookies
         if (request.getCookies() == null) return null;
 

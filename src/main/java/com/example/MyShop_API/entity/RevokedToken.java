@@ -20,7 +20,7 @@ public class RevokedToken {
     private Long id;
 
     @Lob
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", unique = true)
     private String token;
 
     private Instant revokedAt;

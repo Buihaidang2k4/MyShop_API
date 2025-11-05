@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -13,10 +14,12 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import java.io.IOException;
 
 //Xử lý lỗi khi chưa đăng nhập (401)
+@Slf4j
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     //     Convert khi callapi sai không trả về login mà trả về JSON tùy chỉnh Custom
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+        log.warn("Unauthorized access attempt: {}", authException.getMessage());
         ErrorCode errorCode = ErrorCode.UNAUTHENTICATED;
 
         // set
