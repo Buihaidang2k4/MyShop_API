@@ -10,7 +10,7 @@ services:
     networks:
       - app-network
     env_file:
-      - .env                            
+      - .env
     depends_on:
       mysql:
         condition: service_healthy
@@ -23,35 +23,35 @@ services:
     container_name: mysql
     command: --explicit_defaults_for_timestamp=1
     environment:
-      MYSQL_ROOT_PASSWORD: ${DBMS_PASSWORD}     
+      MYSQL_ROOT_PASSWORD: ${DBMS_PASSWORD}
       MYSQL_DATABASE: ${DBMS_NAME}
-      MYSQL_USER: shopuser                    
-      MYSQL_PASSWORD: shop123                
+    #      MYSQL_USER: root
+    #      MYSQL_PASSWORD: ${DBMS_PASSWORD}
     ports:
-      - "${DBMS_PORT}:${DBMS_PORT}"           
+      - "${DBMS_PORT}:${DBMS_PORT}"
     networks:
       - app-network
     volumes:
       - db_mysql:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u${DBMS_USERNAME} -p${DBMS_PASSWORD} | grep 'mysqld is alive'"]
-      interval: 5s
-      timeout: 3s
+      test: [ "CMD-SHELL", "mysqladmin ping -uroot -p${DBMS_PASSWORD} -h 127.0.0.1" ]
+      interval: 10s
+      timeout: 5s
       retries: 10
-      start_period: 40s
+      start_period: 60s
     restart: always
 
   redis-cache:
     image: redis:latest
     container_name: redis-cache
     ports:
-      - "${SPRING_DATA_REDIS_PORT}:${SPRING_DATA_REDIS_PORT}" 
+      - "${SPRING_DATA_REDIS_PORT}:${SPRING_DATA_REDIS_PORT}"
     networks:
       - app-network
     volumes:
       - db_redis:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5

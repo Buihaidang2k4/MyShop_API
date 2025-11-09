@@ -51,7 +51,7 @@ public class UserController {
                 .build();
     }
 
-    @PostMapping("/add")
+    @PostMapping("/registration")
     @ResponseStatus(HttpStatus.CREATED)
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
         return ApiResponse.<UserResponse>builder()
