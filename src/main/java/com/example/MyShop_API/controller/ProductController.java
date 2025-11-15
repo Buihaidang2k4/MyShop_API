@@ -69,14 +69,15 @@ public class ProductController {
     ) {
         Sort sort = direction.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Product> carts = productService.getProducts(pageable);
+        Page<Product> products = productService.getProducts(pageable);
+        Page<ProductResponse> productRes = products.map(productMapper::toResponse);
 
         Map<String, Object> res = new HashMap<>();
-        res.put("content", carts.getContent());
-        res.put("size", carts.getSize());
-        res.put("currentPage", carts.getNumber());
-        res.put("totalItems", carts.getTotalElements());
-        res.put("totalPages", carts.getTotalPages());
+        res.put("content", productRes.getContent());
+        res.put("size", productRes.getSize());
+        res.put("currentPage", productRes.getNumber());
+        res.put("totalItems", productRes.getTotalElements());
+        res.put("totalPages", productRes.getTotalPages());
         res.put("sortBy", sortBy);
 
         return ResponseEntity.ok(new ApiResponse(200, "success", res));

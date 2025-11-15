@@ -12,6 +12,7 @@ import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.UserMapper;
 import com.example.MyShop_API.repo.*;
+import com.example.MyShop_API.service.userprofie.UserProfileService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -39,6 +40,7 @@ public class UserService implements IUserService {
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
     RoleRepository roleRepository;
+    UserProfileService profileService;
 
     @AdminOnly
     public List<UserResponse> getUsers() {
@@ -74,6 +76,12 @@ public class UserService implements IUserService {
                 });
 
         user.setRoles(roles);
+
+
+        // Tạo profile mặc định
+        UserProfile profile = profileService.createEmptyUserProfile();
+        user.setProfile(profile);
+        
         try {
             user = userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
@@ -129,7 +137,6 @@ public class UserService implements IUserService {
         userRepository.deleteById(id);
     }
 
-
     @AllAccess // Tất cả role đều truy cập được
     @PostAuthorize("returnObject.email.toLowerCase() == authentication.name.toLowerCase()")
     public UserResponse getMyInfor() {
@@ -140,6 +147,7 @@ public class UserService implements IUserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
+        log.info("user = {}", user.getProfile());
         UserResponse response = userMapper.toResponse(user);
         log.info("Return email = {}", response.getEmail());
 

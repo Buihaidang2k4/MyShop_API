@@ -45,4 +45,16 @@ public class Order {
     @OneToOne
     @JoinColumn(name = "payment_id")
     Payment payment;
+
+    @ManyToMany
+    @JoinTable(
+            name = "order_coupons",
+            joinColumns = @JoinColumn(name = "order_id")
+            , inverseJoinColumns = @JoinColumn(name = "coupon_id")
+    )
+    Set<Coupon> coupons = new HashSet<>();
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<OrderStatusHistory> statusHistory = new ArrayList<>();
+
 }

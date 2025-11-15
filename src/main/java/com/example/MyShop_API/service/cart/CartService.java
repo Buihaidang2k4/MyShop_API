@@ -81,7 +81,11 @@ public class CartService implements ICartService {
      */
     @Override
     public Cart getCartByUserProfileId(Long userProfileId) {
-        return cartRepository.findByUserProfileId(userProfileId);
+        Cart cart = cartRepository.findByUserProfileId(userProfileId);
+        if (cart == null) {
+            throw new AppException(ErrorCode.CART_NOT_EXISTED);
+        }
+        return cart;
     }
 
     /**
@@ -126,7 +130,6 @@ public class CartService implements ICartService {
         return cartRepository.save(cart);
     }
 
-
     /**
      * clear cart
      *
@@ -143,6 +146,4 @@ public class CartService implements ICartService {
         cartRepository.deleteById(cartId);
         cartRepository.flush();
     }
-
-
 }

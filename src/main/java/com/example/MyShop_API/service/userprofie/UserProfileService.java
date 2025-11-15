@@ -3,6 +3,7 @@ package com.example.MyShop_API.service.userprofie;
 import com.example.MyShop_API.Enum.Role;
 import com.example.MyShop_API.dto.request.UserProfileRequest;
 import com.example.MyShop_API.dto.response.UserProfileResponse;
+import com.example.MyShop_API.entity.Address;
 import com.example.MyShop_API.entity.Cart;
 import com.example.MyShop_API.entity.User;
 import com.example.MyShop_API.entity.UserProfile;
@@ -45,7 +46,7 @@ public class UserProfileService implements IUserProfileService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        //        check role
+        // check role
         boolean isUser = user.getRoles().stream()
                 .anyMatch(role -> "USER".equals(role.getRoleName()));
 
@@ -58,7 +59,9 @@ public class UserProfileService implements IUserProfileService {
                     .firstName(userProfileRequest.getFirstName())
                     .lastName(userProfileRequest.getLastName())
                     .mobileNumber(userProfileRequest.getMobileNumber())
-                    .user(user)
+                    .gender(userProfileRequest.getGender())
+                    .birthDate(userProfileRequest.getBirthDate())
+//                    .user(user)
                     .build();
 
             // Tạo cart kèm theo
@@ -75,5 +78,30 @@ public class UserProfileService implements IUserProfileService {
         }
 
         return userProfileMapper.toResponse(userProfile);
+    }
+
+    @Override
+    public UserProfile createEmptyUserProfile() {
+        UserProfile userProfile = UserProfile.builder()
+                .firstName(null)
+                .lastName(null)
+                .gender(null)
+                .mobileNumber(null)
+                .birthDate(null)
+                .address(null)
+                .cart(null)
+                .orders(List.of())
+                .build();
+
+        // initializeNewCart
+        Cart newCart = new Cart();
+        newCart.setProfile(userProfile);
+        userProfile.setCart(newCart);
+
+        // initializeNewAddress
+        Address newAddress = new Address();
+        userProfile.setAddress(newAddress);
+
+        return userProfileRepository.save(userProfile);
     }
 }

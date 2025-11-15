@@ -2,6 +2,7 @@ package com.example.MyShop_API.controller;
 
 
 import com.example.MyShop_API.dto.response.ApiResponse;
+import com.example.MyShop_API.entity.Cart;
 import com.example.MyShop_API.service.cart.ICartItemService;
 import com.example.MyShop_API.service.cart.ICartService;
 import lombok.AccessLevel;
@@ -29,16 +30,18 @@ public class CartItemController {
     }
 
     @PostMapping("/cartItem/addItemToCart")
-    ResponseEntity<ApiResponse> addItemToCart(@RequestParam(required = false) Optional<Long> cartId,
-                                              @RequestParam Long productId,
-                                              @RequestParam Integer quantity) {
+    ResponseEntity<ApiResponse<Cart>> addItemToCart(@RequestParam(required = false) Optional<Long> cartId,
+                                                    @RequestParam Long productId,
+                                                    @RequestParam Integer quantity) {
         try {
+            // check cartId
             Long checkCartId = cartId
                     .map(id -> cartService.getCartById(id) != null ? id : cartService.initializeNewCart())
                     .orElseGet(() -> cartService.initializeNewCart());
 
             cartItemService.addItemToCart(checkCartId, productId, quantity);
-            return ResponseEntity.ok(new ApiResponse(200, "add cartItem success", null));
+            Cart cart = cartService.getCartById(checkCartId);
+            return ResponseEntity.ok(new ApiResponse(200, "add cartItem success", cart));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(500, "add cartItem failed " + e.getMessage(), null));
         }

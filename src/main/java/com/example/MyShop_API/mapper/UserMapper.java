@@ -10,11 +10,12 @@ import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {UserProfileMapper.class})
 public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     User toEntity(UserCreationRequest request);
 
+    @Mapping(source = "profile", target = "userProfile")
     UserResponse toResponse(User user);
 
     User toEntity(UserResponse userResponse);

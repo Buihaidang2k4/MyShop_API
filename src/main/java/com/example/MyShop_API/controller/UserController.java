@@ -38,7 +38,6 @@ public class UserController {
     ResponseEntity<ApiResponse> getUsers() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info("Username: {}", authentication.getName());
-        authentication.getAuthorities().forEach(authority -> log.info(authority.getAuthority()));
         List<UserResponse> ds = userService.getUsers();
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "list users", ds));
     }
@@ -86,6 +85,7 @@ public class UserController {
     @GetMapping("/myInfo")
     ApiResponse<UserResponse> getMyInfo() {
         return ApiResponse.<UserResponse>builder()
+                .code(1000)
                 .data(userService.getMyInfor())
                 .build();
     }

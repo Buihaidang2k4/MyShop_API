@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -19,16 +20,12 @@ public class UserProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "profile_id")
-    Long profile_id;
+    Long profileId;
 
-    @Size(min = 5, max = 20, message = "First Name must be between 5 and 30 characters long")
     String firstName;
-
-    @Size(min = 5, max = 20, message = "Last Name must be between 5 and 30 characters long")
     String lastName;
-
-    @Size(min = 10, max = 10, message = "Mobile Number must be exactly 10 digits long")
-    @Pattern(regexp = "^\\d{10}$", message = "Mobile Number must contain only Numbers")
+    Boolean gender;
+    LocalDate birthDate;
     String mobileNumber;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -37,9 +34,6 @@ public class UserProfile {
 
     @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     Cart cart;
-
-    @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
-    User user;
 
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Order> orders;

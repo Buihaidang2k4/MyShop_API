@@ -4,6 +4,7 @@ import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.request.CartRequest;
 import com.example.MyShop_API.dto.response.CartResponse;
 import com.example.MyShop_API.entity.Cart;
+import com.example.MyShop_API.mapper.CartMapper;
 import com.example.MyShop_API.service.cart.CartService;
 import com.example.MyShop_API.service.cart.ICartService;
 import lombok.AccessLevel;
@@ -28,11 +29,13 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CartController {
     ICartService cartService;
+    CartMapper cartMapper;
 
     @GetMapping("/all")
     ResponseEntity<ApiResponse> getCarts() {
         List<Cart> carts = cartService.getCarts();
-        return ResponseEntity.ok(new ApiResponse<>(200, "success", carts));
+
+        return ResponseEntity.ok(new ApiResponse<>(200, "success", cartMapper.toResponseList(carts)));
     }
 
     @GetMapping("/page")
@@ -58,13 +61,14 @@ public class CartController {
     }
 
     @GetMapping("/cart/{cardId}")
-    ResponseEntity<ApiResponse> getCart(@PathVariable Long cardId) {
+    ResponseEntity<ApiResponse<Cart>> getCart(@PathVariable Long cardId) {
         return ResponseEntity.ok(new ApiResponse<>(200, "success", cartService.getCartById(cardId)));
     }
 
     @GetMapping("/cart/user-profile/{profileId}")
-    ResponseEntity<ApiResponse> getCartByUserProfile(@PathVariable Long profileId) {
-        return ResponseEntity.ok(new ApiResponse<>(200, "success", cartService.getCartByUserProfileId(profileId)));
+    ResponseEntity<ApiResponse<CartResponse>> getCartByUserProfile(@PathVariable Long profileId) {
+        CartResponse response = cartMapper.toResponse(cartService.getCartByUserProfileId(profileId));
+        return ResponseEntity.ok(new ApiResponse<>(200, "success", response));
     }
 
     @PostMapping("/userProfile/{profileId}/cart/{cartId}/addCartToUserProfile")

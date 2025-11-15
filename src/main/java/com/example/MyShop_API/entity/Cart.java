@@ -12,6 +12,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "carts")
@@ -32,18 +33,21 @@ public class Cart {
     BigDecimal totalPrice = BigDecimal.ZERO;
 
     public void addItem(CartItem item) {
-        this.cartItems.add(item);
+        Product product = item.getProduct();
+        item.setUnitPrice(product.getSpecialPrice() != null ?
+                product.getSpecialPrice() : product.getPrice());
         item.setCart(this);
-        updateTotalAount();
+        this.cartItems.add(item);
+        updateTotalAmount();
     }
 
     public void removeItem(CartItem item) {
         this.cartItems.remove(item);
         item.setCart(null);
-        updateTotalAount();
+        updateTotalAmount();
     }
 
-    public void updateTotalAount() {
+    public void updateTotalAmount() {
         this.totalPrice = cartItems.stream().map(item ->
         {
             BigDecimal unitPrice = item.getUnitPrice();

@@ -73,8 +73,6 @@ public class OrderService implements IOrderService {
         cartService.clearCart(cart.getCartId());
 
         // Thanh toan
-        
-
         return saveOrder;
     }
 
@@ -89,7 +87,7 @@ public class OrderService implements IOrderService {
         // Hoàn kho
         order.getOrderItems().forEach(orderItem -> {
             Product product = orderItem.getProduct();
-            product.setQuantity(product.getQuantity() + orderItem.getQuantity());
+//            product.setQuantity(product.getQuantity() + orderItem.getQuantity());
             productRepository.save(product);
         });
 
@@ -117,7 +115,7 @@ public class OrderService implements IOrderService {
     private List<OrderItem> createOrderItem(Order order, Cart cart) {
         return cart.getCartItems().stream().map(cartItem -> {
             Product product = cartItem.getProduct();
-            product.setQuantity(product.getQuantity() - cartItem.getQuantity());
+//            product.setQuantity(product.getQuantity() - cartItem.getQuantity());
 
             return OrderItem.builder()
                     .order(order)

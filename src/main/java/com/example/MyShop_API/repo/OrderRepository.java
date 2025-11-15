@@ -12,8 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    @Query("SELECT o FROM Order o WHERE o.profile.profile_id =:profileId")
+    @Query("SELECT o FROM Order o WHERE o.profile.profileId =:profileId")
     List<Order> findByProfileProfile_id(@Param("profileId") Long profileId);
 
     List<Order> findByOrderStatus(OrderStatus orderStatus);
+
 }

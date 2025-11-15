@@ -1,13 +1,9 @@
 package com.example.MyShop_API.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Data
@@ -26,8 +22,12 @@ public class Address {
     String city;
     String state;
     String country;
-    @Column(name = "pin_code", nullable = false)
-    String pinCode;
+
+    // Mã bưu điện
+    @Column(name = "pin_code", nullable = true)
+    String pinCode = "1000";
+
     @OneToOne(mappedBy = "address")
-    UserProfile userProfiles;
+    @JsonIgnore
+    UserProfile userProfile;
 }

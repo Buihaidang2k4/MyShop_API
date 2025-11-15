@@ -5,16 +5,20 @@ import com.example.MyShop_API.entity.Address;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Data // Auto create getter setter constructor toString
+import java.time.LocalDate;
+
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserProfileResponse {
-    Long profile_id;
+    Long profileId;
     String firstName;
     String lastName;
     String mobileNumber;
+    Boolean gender;
+    LocalDate birthDate;
     Address addressResponse;
     CartResponse cartResponse;
 }

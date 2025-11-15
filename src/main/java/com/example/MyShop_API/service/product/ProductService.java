@@ -1,24 +1,21 @@
 package com.example.MyShop_API.service.product;
 
-import com.example.MyShop_API.anotation.AllAccess;
 import com.example.MyShop_API.dto.request.AddProductRequest;
 import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.entity.Product;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.ProductMapper;
-import com.example.MyShop_API.repo.CartItemRepository;
-import com.example.MyShop_API.repo.CategoryRepository;
-import com.example.MyShop_API.repo.ProductRepository;
+import com.example.MyShop_API.repo.*;
+import com.example.MyShop_API.service.inventory.IInventoryService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,9 +30,13 @@ public class ProductService implements IProductService {
     ProductMapper productMapper;
     CategoryRepository categoryRepository;
     CartItemRepository cartItemRepository;
+    IInventoryService inventoryService;
+    OrderItemRepository orderItemRepository;
 
-
+    @Transactional
     public Product addProduct(AddProductRequest request) {
+
+        // Tìm danh mục , nếu không có tạo mới
         Category category = Optional.ofNullable(categoryRepository.findByCategoryName(request.getCategory().getCategoryName()))
                 .orElseGet(() -> {
                     Category newCategory = Category.builder()
@@ -43,38 +44,56 @@ public class ProductService implements IProductService {
                             .build();
                     return categoryRepository.save(newCategory);
                 });
-        request.setCategory(category);
 
-        // Chuyen doi
+        // mapper
         Product product = productMapper.toEntity(request);
         product.setCategory(category);
-        product.setSpecialPrice(
-                request.getPrice()
-                        .multiply(BigDecimal.ONE.subtract(request.getDiscount().divide(BigDecimal.valueOf(100)))));
 
-        return productRepository.save(product);
+
+        product.setSpecialPrice(calculateSpecialPrice(request.getPrice(), request.getDiscount()));
+
+        // Lưu khởi tạo id
+        product = productRepository.save(product);
+
+        // Khởi tạo tồn kho cho product
+        inventoryService.initializeInventory(product, request.getQuantity());
+
+        return product;
     }
 
-    public Product updateProduct(AddProductRequest addProductRequest, Long productId) {
+    @Transactional
+    public Product updateProduct(AddProductRequest request, Long productId) {
         Product findProduct = productRepository.findById(productId).orElseThrow(
                 () -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
 
-        productMapper.update(addProductRequest, findProduct);
-
-        Category category = categoryRepository.findByCategoryName(addProductRequest.getCategory().getCategoryName());
-        if (category == null) {
+        // Check category
+        Category category = categoryRepository.findByCategoryName(request.getCategory().getCategoryName());
+        if (category == null)
             throw new AppException(ErrorCode.CATEGORY_NOT_EXISTED);
-        }
+
         findProduct.setCategory(category);
 
-        Product updatedProduct = productRepository.save(findProduct);
-        return updatedProduct;
+        productMapper.update(request, findProduct);
+
+        // Cập nhật tồn kho
+        inventoryService.updateStock(productId, request.getQuantity());
+
+        // Tính lại giá sản phẩm đặc biệt nếu có mã giảm giá
+        findProduct.setSpecialPrice(calculateSpecialPrice(request.getPrice(), request.getDiscount()));
+
+        return productRepository.save(findProduct);
     }
 
+    @Transactional
     public void deleteProductById(Long productId) {
         Product product = productRepository.findById(productId).orElseThrow(
                 () -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED)
         );
+
+        if (orderItemRepository.existsByProductProductId(productId)) {
+            throw new AppException(ErrorCode.PRODUCT_HAS_ORDERS);
+        }
+
         cartItemRepository.deleteCartItemByProductProductId(productId);
         productRepository.deleteById(productId);
     }
@@ -117,4 +136,7 @@ public class ProductService implements IProductService {
     }
 
 
+    private BigDecimal calculateSpecialPrice(BigDecimal price, BigDecimal discount) {
+        return price.multiply(BigDecimal.ONE.subtract(discount.divide(BigDecimal.valueOf(100))));
+    }
 }

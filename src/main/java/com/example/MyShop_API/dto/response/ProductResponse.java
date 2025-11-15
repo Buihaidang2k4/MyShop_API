@@ -1,6 +1,7 @@
 package com.example.MyShop_API.dto.response;
 
 import com.example.MyShop_API.dto.request.ImageDTO;
+import com.example.MyShop_API.dto.request.InventoryDTO;
 import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.entity.Image;
 import lombok.AccessLevel;
@@ -20,10 +21,11 @@ public class ProductResponse {
     Long productId;
     String productName;
     String description;
-    Integer quantity;
+    //    Integer quantity;
     BigDecimal price;
     BigDecimal discount;
     BigDecimal specialPrice;
     Category category;
+    InventoryDTO inventory;
     List<ImageDTO> images;
 }

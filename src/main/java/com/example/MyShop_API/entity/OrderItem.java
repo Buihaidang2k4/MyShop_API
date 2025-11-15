@@ -1,7 +1,6 @@
 package com.example.MyShop_API.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -20,7 +19,7 @@ public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long oderItemId;
+    Long orderItemId;
     Integer quantity;
     BigDecimal price;
 

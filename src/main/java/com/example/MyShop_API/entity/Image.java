@@ -18,7 +18,6 @@ public class Image {
     Long id;
     String fileName;
     String fileType;
-
     @Lob
     Blob image;
     String downloadUrl;

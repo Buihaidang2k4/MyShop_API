@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CartResponse {
     Long cartId;
+    //    Long profileId;
     List<CartItem> cartItems = new ArrayList<>();
-    Double totalPrice = 0.0;
+    BigDecimal totalPrice = BigDecimal.ZERO;
 }

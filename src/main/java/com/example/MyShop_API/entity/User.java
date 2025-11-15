@@ -1,5 +1,6 @@
 package com.example.MyShop_API.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
@@ -33,13 +34,14 @@ public class User {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "user_role", // tên bảng trung gian
-            joinColumns = @JoinColumn(name = "user_id"), // khóa ngoại tham chiếu User
-            inverseJoinColumns = @JoinColumn(name = "role_name") // khóa ngoại tham chiếu Role
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_name")
     )
     Set<Role> roles;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "profile_id", referencedColumnName = "profile_id")
+    @JsonIgnore
     UserProfile profile;
 }

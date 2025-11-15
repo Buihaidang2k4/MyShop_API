@@ -3,7 +3,6 @@ package com.example.MyShop_API.exception;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
-
 import org.springframework.http.HttpStatus;
 
 import static org.springframework.http.HttpStatus.*;
@@ -11,62 +10,72 @@ import static org.springframework.http.HttpStatus.*;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public enum ErrorCode {
+
+    // ========== SYSTEM ==========
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", INTERNAL_SERVER_ERROR),
-
     INVALID_KEY(1000, "Invalid key", BAD_REQUEST),
-
-    USER_EXISTED(1001, "User already exists", BAD_REQUEST),
-    USER_NOT_EXISTED(1002, "User not found", NOT_FOUND),
-    USER_INVALID(1003, "Username must be at least {min} characters", BAD_REQUEST),
-    INVALID_PASSWORD(1004, "Password must be at least {min} characters", BAD_REQUEST),
-
-    UNAUTHORIZED(1005, "You do not have permission", FORBIDDEN),
-    UNAUTHENTICATED(1006, "Authentication required", HttpStatus.UNAUTHORIZED),
-
-    ADDRESS_NOT_EXISTED(1007, "Address not found", NOT_FOUND),
-    ADDRESS_EXISTED(1008, "Address already exists", BAD_REQUEST),
-
-    CART_NOT_EXISTED(1009, "Cart not found", NOT_FOUND),
-    CART_EXISTED(1010, "Cart already exists", BAD_REQUEST),
-
-    ROLE_NOT_ALLOWED(1011, "Role not allowed", FORBIDDEN),
-
-    PROFILE_EXISTED(1012, "Profile already exists", BAD_REQUEST),
-
-    PRODUCT_NOT_EXISTED(1013, "Product not found", NOT_FOUND),
-    PRODUCT_OUT_OF_STOCK(1014, "Product is out of stock", BAD_REQUEST),
-    PRODUCT_IS_NOT_ENOUGH(1015, "Requested: %d, Available: %d", BAD_REQUEST),
-
-    CATEGORY_NOT_EXISTED(1016, "Category not found", NOT_FOUND),
-    CATEGORY_EXISTED(1017, "Category already exists", BAD_REQUEST),
-
-    PAYMENT_EXISTED(1018, "Payment already exists", BAD_REQUEST),
-    PAYMENT_NOT_EXISTED(1019, "Payment not found", NOT_FOUND),
-
-    ORDER_ITEM_NOT_EXISTED(1020, "Order item not found", NOT_FOUND),
-    ORDER_ITEM_EXISTED(1021, "Order item already exists", BAD_REQUEST),
-
-    ORDER_EXISTED(1022, "Order already exists", BAD_REQUEST),
-    ORDER_NOT_EXISTED(1023, "Order not found", NOT_FOUND),
-
-    CART_ITEM_NOT_EXISTED(1024, "CartItem not found", NOT_FOUND),
-    CART_ITEM_EXISTED(1025, "CartItem already exists", BAD_REQUEST),
-
-    TOKEN_EXPIRED(1026, "Token expired", BAD_REQUEST),
-
-    IMAGE_NOT_FOUND(1027, "Image not found id: %d", NOT_FOUND),
     REDIS_ERROR(1028, "Redis error", INTERNAL_SERVER_ERROR),
-    TOKEN_REVOKED(1029, "Token has been revoked or is no longer valid", UNAUTHORIZED.getHttpStatus()),
 
-    VALIDATION_ERROR(1030, "Input data is not valid", BAD_REQUEST),
+    // ========== AUTH ==========
+    UNAUTHENTICATED(1001, "Authentication required", HttpStatus.UNAUTHORIZED),           // 401
+    UNAUTHORIZED(1002, "You do not have permission", FORBIDDEN),              // 403
+    TOKEN_EXPIRED(1003, "Token expired", HttpStatus.UNAUTHORIZED),
+    TOKEN_REVOKED(1004, "Token has been revoked or is no longer valid", HttpStatus.UNAUTHORIZED),
+    ROLE_NOT_ALLOWED(1005, "Role is not allowed for this action", FORBIDDEN),
 
-    ACCOUNT_NOT_EXISTED(1031, "incorrect password account", BAD_REQUEST),
+    // ========== USER ==========
+    USER_EXISTED(1100, "User already exists", BAD_REQUEST),
+    USER_NOT_EXISTED(1101, "User not found", NOT_FOUND),
+    USER_INVALID(1102, "Username must be at least {min} characters", BAD_REQUEST),
+    INVALID_PASSWORD(1103, "Password must be at least {min} characters", BAD_REQUEST),
+    INVALID_CREDENTIALS(1104, "Incorrect username or password", HttpStatus.UNAUTHORIZED),
 
-    CART_NOT_MATCH(1032, "Cart not match with cartItem", BAD_REQUEST),
+    // ========== PROFILE ==========
+    PROFILE_EXISTED(1200, "Profile already exists", BAD_REQUEST),
 
-    ORDER_CANCEL_FAILED(1033, "Cannot cancel shipped or delivered orders", BAD_REQUEST),
-    ;
+    // ========== ADDRESS ==========
+    ADDRESS_NOT_EXISTED(1300, "Address not found", NOT_FOUND),
+    ADDRESS_EXISTED(1301, "Address already exists", BAD_REQUEST),
 
+    // ========== PRODUCT ==========
+    PRODUCT_NOT_EXISTED(1400, "Product not found", NOT_FOUND),
+    PRODUCT_OUT_OF_STOCK(1401, "Product is out of stock", BAD_REQUEST),
+    PRODUCT_NOT_ENOUGH(1402, "Requested: %d, Available: %d", BAD_REQUEST),
+    PRODUCT_HAS_ORDERS(1403, "Product has orders and cannot be deleted", CONFLICT),
+
+    // ========== CATEGORY ==========
+    CATEGORY_NOT_EXISTED(1500, "Category not found", NOT_FOUND),
+    CATEGORY_EXISTED(1501, "Category already exists", BAD_REQUEST),
+
+    // ========== PAYMENT ==========
+    PAYMENT_EXISTED(1600, "Payment already exists", BAD_REQUEST),
+    PAYMENT_NOT_EXISTED(1601, "Payment not found", NOT_FOUND),
+
+    // ========== CART ==========
+    CART_NOT_EXISTED(1700, "Cart not found", NOT_FOUND),
+    CART_EXISTED(1701, "Cart already exists", BAD_REQUEST),
+    CART_ITEM_NOT_EXISTED(1702, "Cart item not found", NOT_FOUND),
+    CART_ITEM_EXISTED(1703, "Cart item already exists", BAD_REQUEST),
+    CART_NOT_MATCH(1704, "Cart does not match with cart item", BAD_REQUEST),
+
+    // ========== ORDER ==========
+    ORDER_EXISTED(1800, "Order already exists", BAD_REQUEST),
+    ORDER_NOT_EXISTED(1801, "Order not found", NOT_FOUND),
+    ORDER_ITEM_NOT_EXISTED(1802, "Order item not found", NOT_FOUND),
+    ORDER_ITEM_EXISTED(1803, "Order item already exists", BAD_REQUEST),
+    ORDER_CANCEL_FAILED(1804, "Cannot cancel shipped or delivered orders", BAD_REQUEST),
+
+    // ========== INVENTORY ==========
+    INVENTORY_DOES_NOT_EXIST(1900, "Inventory does not exist", NOT_FOUND),
+    INVENTORY_NOT_ENOUGH(1901, "Not enough stock:  available: %d  , requestQuantity: %d", BAD_REQUEST),
+    CANNOT_CANCEL_RESERVATION(1902, "Cannot cancel this reservation", BAD_REQUEST),
+    NOT_ENOUGH_RESERVED_STOCK(1903, "Not enough reserved stock", BAD_REQUEST),
+
+    // ========== IMAGE ==========
+    IMAGE_NOT_FOUND(2000, "Image not found id: %d", NOT_FOUND),
+
+    // ========== VALIDATION ==========
+    VALIDATION_ERROR(2100, "Input data is not valid", BAD_REQUEST);
 
     final int code;
     final String messageTemplate;

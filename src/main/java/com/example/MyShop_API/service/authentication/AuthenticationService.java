@@ -79,7 +79,7 @@ public class AuthenticationService implements IAuthenticationService {
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
-                () -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED)
+                () -> new AppException(ErrorCode.INVALID_CREDENTIALS)
         );
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
