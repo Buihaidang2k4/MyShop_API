@@ -29,7 +29,7 @@ public class SecurityConfig {
             // Auth
             "/api/v1/auth/**", "/api/v1/auth/google",
             // User
-            "/api/v1/users/all", "/api/v1/users/add",
+            "/api/v1/users/registration",
             // product
             "/api/v1/products/all",
             // payment

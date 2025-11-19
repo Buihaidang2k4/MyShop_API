@@ -32,6 +32,7 @@ public enum ErrorCode {
 
     // ========== PROFILE ==========
     PROFILE_EXISTED(1200, "Profile already exists", BAD_REQUEST),
+    PROFILE_NOT_EXISTED(1201, "Profile not exists", BAD_REQUEST),
 
     // ========== ADDRESS ==========
     ADDRESS_NOT_EXISTED(1300, "Address not found", NOT_FOUND),
@@ -50,6 +51,9 @@ public enum ErrorCode {
     // ========== PAYMENT ==========
     PAYMENT_EXISTED(1600, "Payment already exists", BAD_REQUEST),
     PAYMENT_NOT_EXISTED(1601, "Payment not found", NOT_FOUND),
+    PAYMENT_METHOD_NOT_SUPPORT(1602, "Payment method not support", NOT_FOUND),
+    PAYMENT_FAILED(1602, "Process payment failed", NOT_FOUND),
+    PAYMENT_DECLINED(1602, "Payment declined", NOT_FOUND),
 
     // ========== CART ==========
     CART_NOT_EXISTED(1700, "Cart not found", NOT_FOUND),
@@ -57,6 +61,7 @@ public enum ErrorCode {
     CART_ITEM_NOT_EXISTED(1702, "Cart item not found", NOT_FOUND),
     CART_ITEM_EXISTED(1703, "Cart item already exists", BAD_REQUEST),
     CART_NOT_MATCH(1704, "Cart does not match with cart item", BAD_REQUEST),
+    CART_EMPTY(1704, "Your cart is empty", BAD_REQUEST),
 
     // ========== ORDER ==========
     ORDER_EXISTED(1800, "Order already exists", BAD_REQUEST),
@@ -64,6 +69,10 @@ public enum ErrorCode {
     ORDER_ITEM_NOT_EXISTED(1802, "Order item not found", NOT_FOUND),
     ORDER_ITEM_EXISTED(1803, "Order item already exists", BAD_REQUEST),
     ORDER_CANCEL_FAILED(1804, "Cannot cancel shipped or delivered orders", BAD_REQUEST),
+    ORDER_ITEM_EMPTY(1805, "Order item is empty", BAD_REQUEST),
+    ORDER_ALREADY_DELIVERED(1806, "The order has been delivered but cannot be confirmed.", BAD_REQUEST),
+    ORDER_ALREADY_CANCELLED(1807, "The order has been cancelled but cannot be update status.", BAD_REQUEST),
+    ORDER_STATUS_FINAL(1808, "Unable to change completed order", BAD_REQUEST),
 
     // ========== INVENTORY ==========
     INVENTORY_DOES_NOT_EXIST(1900, "Inventory does not exist", NOT_FOUND),
@@ -75,7 +84,11 @@ public enum ErrorCode {
     IMAGE_NOT_FOUND(2000, "Image not found id: %d", NOT_FOUND),
 
     // ========== VALIDATION ==========
-    VALIDATION_ERROR(2100, "Input data is not valid", BAD_REQUEST);
+    VALIDATION_ERROR(2100, "Input data is not valid", BAD_REQUEST),
+
+    // ========== COUPON ==========
+    COUPON_INVALID(2200, "This coupon is invalid or cannot be applied to your order.", BAD_REQUEST),
+    COUPON_LIMIT_PER_USER_EXCEEDED(2200, "Coupon limit per user exceeded", BAD_REQUEST);
 
     final int code;
     final String messageTemplate;

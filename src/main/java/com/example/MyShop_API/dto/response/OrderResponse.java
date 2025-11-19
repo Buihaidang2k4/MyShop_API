@@ -1,13 +1,14 @@
 package com.example.MyShop_API.dto.response;
 
 
-import com.example.MyShop_API.Enum.OrderStatus;
+import com.example.MyShop_API.entity.Coupon;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -18,10 +19,10 @@ import java.util.List;
 public class OrderResponse {
     Long orderId;
     Long paymentId;
-    Long userProfileId;
-    String email;
+    Long profileId;
     LocalDate orderDate;
-    Double totalAmount;
+    BigDecimal totalAmount;
     String orderStatus;
     List<OrderItemResponse> orderItemResponses;
+    CouponResponse couponResponse;
 }

@@ -19,6 +19,6 @@ public class UserProfileResponse {
     String mobileNumber;
     Boolean gender;
     LocalDate birthDate;
-    Address addressResponse;
+    AddressResponse addressResponse;
     CartResponse cartResponse;
 }

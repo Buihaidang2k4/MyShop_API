@@ -11,7 +11,6 @@ import org.mapstruct.MappingTarget;
 public interface AddressMapper {
     Address toEntity(AddressRequest addressRequest);
 
-    //    @Mapping(source = "userProfile.profileId", target = "profileId")
     AddressResponse toResponse(Address address);
 
     void updateAddress(AddressRequest addressRequest, @MappingTarget Address address);

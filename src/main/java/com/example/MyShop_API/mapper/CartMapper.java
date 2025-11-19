@@ -13,7 +13,6 @@ import java.util.List;
 public interface CartMapper {
     Cart toEntity(CartRequest cartRequest);
 
-    //    @Mapping(source = "profile.profileId", target = "profileId")
     CartResponse toResponse(Cart cart);
 
     List<CartResponse> toResponseList(List<Cart> cartList);

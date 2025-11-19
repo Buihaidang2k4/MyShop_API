@@ -45,9 +45,9 @@ public class AddressService implements IAddressService {
         log.info("Creating address");
         Address address = addressMapper.toEntity(addressRequest);
         // Gan hai chieu
-        address.setUserProfile(userProfile);
         userProfile.setAddress(address);
-
+        address.setProfile(userProfile);
+        
         // luu
         address = addressRepository.save(address);
         return addressMapper.toResponse(address);

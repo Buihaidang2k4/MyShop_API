@@ -16,6 +16,7 @@ import java.io.IOException;
 //Xử lý lỗi khi chưa đăng nhập (401)
 @Slf4j
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
     //     Convert khi callapi sai không trả về login mà trả về JSON tùy chỉnh Custom
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
@@ -32,7 +33,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 .message(errorCode.getMessageTemplate())
                 .build();
 
-        // Convert sang JSOn
+        // Convert sang JSON
         ObjectMapper mapper = new ObjectMapper();
         response.getWriter().write(mapper.writer().writeValueAsString(apiResponse));
         response.flushBuffer();

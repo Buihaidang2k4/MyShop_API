@@ -24,6 +24,7 @@ public class Category {
     @NotBlank
     @Size(min = 5, message = "Category name must contain at least 5 characters")
     String categoryName;
+    String description;
 
     @JsonIgnore
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)

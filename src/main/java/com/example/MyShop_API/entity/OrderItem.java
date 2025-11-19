@@ -1,6 +1,7 @@
 package com.example.MyShop_API.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -24,12 +25,11 @@ public class OrderItem {
     BigDecimal price;
 
     @ManyToOne
-    @JsonBackReference
+    @JsonIgnore
     @JoinColumn(name = "order_id")
     Order order;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
     Product product;
-
 }

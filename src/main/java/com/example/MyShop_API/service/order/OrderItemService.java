@@ -35,7 +35,6 @@ public class OrderItemService implements IOrderItemService {
         return orderItemMapper.toResponse(findOrderItem);
     }
 
-
     public OrderItemResponse updateOrderItem(Long orderItemId, OrderItemRequest orderItemRequest) {
         OrderItem findOrderItem = orderItemRepository.findById(orderItemId).orElseThrow(() -> new AppException(ErrorCode.ORDER_ITEM_NOT_EXISTED));
         orderItemMapper.updateOrder(orderItemRequest, findOrderItem);
@@ -43,7 +42,6 @@ public class OrderItemService implements IOrderItemService {
         findOrderItem = orderItemRepository.save(findOrderItem);
         return orderItemMapper.toResponse(findOrderItem);
     }
-
 
     public void deleteOrderItem(Long orderItemId) {
         OrderItem findOrderItem = orderItemRepository.findById(orderItemId).orElseThrow(() -> new AppException(ErrorCode.ORDER_ITEM_NOT_EXISTED));

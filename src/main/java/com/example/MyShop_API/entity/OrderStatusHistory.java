@@ -20,7 +20,7 @@ public class OrderStatusHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long historyId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     Order order;
 
@@ -29,7 +29,7 @@ public class OrderStatusHistory {
 
     LocalDateTime changedAt = LocalDateTime.now();
 
-    @ManyToOne
-    @JoinColumn(name = "changed_by")
-    User changedBy; // nullable nếu hệ thống tự động
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "changed_by_user_id")
+    User changedBy;
 }

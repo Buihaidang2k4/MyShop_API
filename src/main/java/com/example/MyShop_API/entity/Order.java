@@ -2,9 +2,7 @@ package com.example.MyShop_API.entity;
 
 import com.example.MyShop_API.Enum.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -33,26 +31,23 @@ public class Order {
     @Enumerated(EnumType.STRING)
     OrderStatus orderStatus;
 
-    @JsonManagedReference
+    @JsonIgnore
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<OrderItem> orderItems = new HashSet<>();
 
-    @JsonIgnore
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "profile_id")
     UserProfile profile;
 
     @OneToOne
+    @JsonIgnore
     @JoinColumn(name = "payment_id")
     Payment payment;
 
-    @ManyToMany
-    @JoinTable(
-            name = "order_coupons",
-            joinColumns = @JoinColumn(name = "order_id")
-            , inverseJoinColumns = @JoinColumn(name = "coupon_id")
-    )
-    Set<Coupon> coupons = new HashSet<>();
+    @ManyToOne
+    @JoinColumn(name = "coupon_id", unique = false)
+    Coupon coupon;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     List<OrderStatusHistory> statusHistory = new ArrayList<>();

@@ -40,8 +40,7 @@ public class User {
     )
     Set<Role> roles;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "profile_id", referencedColumnName = "profile_id")
     @JsonIgnore
+    @OneToOne(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     UserProfile profile;
 }

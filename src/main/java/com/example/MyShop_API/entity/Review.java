@@ -8,10 +8,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reviews",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"product_id", "user_id"}),
+        uniqueConstraints = @UniqueConstraint(columnNames = {"product_id", "profile_id"}),
         indexes = {
                 @Index(columnList = "product_id"),
-                @Index(columnList = "user_id")
+                @Index(columnList = "profile_id")
         })
 @Getter
 @Setter
@@ -29,8 +29,8 @@ public class Review {
     Product product;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    User user;
+    @JoinColumn(name = "profile_id", nullable = false)
+    UserProfile profile;
 
     int rating;
     String comment;

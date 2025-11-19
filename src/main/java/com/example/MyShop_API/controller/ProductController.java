@@ -51,7 +51,7 @@ public class ProductController {
     }
 
     @GetMapping("/all")
-    ResponseEntity<ApiResponse> getAllProducts() {
+    ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
         try {
             List<ProductResponse> products = productMapper.toResponseList(productService.getProducts());
             return ResponseEntity.ok(new ApiResponse(200, "Get all products successfully!", products));
@@ -104,7 +104,7 @@ public class ProductController {
     }
 
     @PostMapping("/product/add")
-    ResponseEntity<ApiResponse> addProduct(@RequestBody AddProductRequest addProductRequest) {
+    ResponseEntity<ApiResponse<ProductResponse>> addProduct(@RequestBody AddProductRequest addProductRequest) {
         try {
             Product product = productService.addProduct(addProductRequest);
             return ResponseEntity.status(CREATED).body(new ApiResponse(201, "Add product successfully!", productMapper.toResponse(product)));

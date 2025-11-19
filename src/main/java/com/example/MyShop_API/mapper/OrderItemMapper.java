@@ -13,7 +13,7 @@ public interface OrderItemMapper {
     OrderItem toEntity(OrderItemRequest orderItemRequest);
 
 
-    @Mapping(source = "order.orderId", target = "orderId")
+    //    @Mapping(source = "order.orderId", target = "orderId")
     @Mapping(source = "product.productId", target = "productId")
     OrderItemResponse toResponse(OrderItem orderItem);
 

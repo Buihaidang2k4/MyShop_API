@@ -4,6 +4,7 @@ import com.example.MyShop_API.dto.request.PaymentRequest;
 import com.example.MyShop_API.dto.response.PaymentResponse;
 import com.example.MyShop_API.entity.Payment;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")

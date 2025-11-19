@@ -1,5 +1,6 @@
 package com.example.MyShop_API.service.payment;
 
+import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.Enum.PaymentMethod;
 import com.example.MyShop_API.Enum.PaymentStatus;
 import com.example.MyShop_API.config.payment.VnpayConfig;
@@ -7,12 +8,14 @@ import com.example.MyShop_API.dto.request.PaymentRequest;
 import com.example.MyShop_API.dto.response.PaymentResponse;
 import com.example.MyShop_API.dto.response.VnpayResponse;
 import com.example.MyShop_API.entity.Order;
+import com.example.MyShop_API.entity.OrderItem;
 import com.example.MyShop_API.entity.Payment;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.PaymentMapper;
 import com.example.MyShop_API.repo.OrderRepository;
 import com.example.MyShop_API.repo.PaymentRepository;
+import com.example.MyShop_API.service.inventory.IInventoryService;
 import com.example.MyShop_API.utils.VnpayUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
@@ -20,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,19 +39,45 @@ public class PaymentService implements IPaymentService {
     VnpayConfig vnpayConfig;
     OrderRepository orderRepository;
     PaymentRepository paymentRepository;
+    IInventoryService inventoryService;
 
+
+    // ======================== COD =========================================
     @Override
-    public String createVnPayPayment(HttpServletRequest request, long orderId) {
+    public boolean processCashPayment(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(
+                () -> new AppException(ErrorCode.ORDER_NOT_EXISTED)
+        );
+
+        Payment payment = Payment.builder()
+                .order(order)
+                .status("PENDING")
+                .paymentDate(LocalDateTime.now())
+                .paymentMethod(PaymentMethod.CASH)
+                .paymentStatus(PaymentStatus.UNPAID)
+                .amount(order.getTotalAmount().longValue())
+                .vnpTxnRef(order.getOrderId().toString())
+                .build();
+
+        paymentRepository.save(payment);
+        order.setPayment(payment);
+        orderRepository.save(order);
+        return true;
+    }
+
+
+    // ================================== VnPay =======================================
+    @Override
+    public String createVnPayPayment(HttpServletRequest request, Long orderId, String bankCode) {
         long amount = getTotalAmountFromOrder(orderId) * 100L;
 
-        String bankCode = request.getParameter("bankCode");
         Map<String, String> vnParamsMap = vnpayConfig.getVNPayConfig();
         vnParamsMap.put("vnp_Amount", String.valueOf(amount));
         if (bankCode != null && !bankCode.isEmpty()) {
             vnParamsMap.put("vnp_BankCode", bankCode);
         }
         vnParamsMap.put("vnp_IpAddr", VnpayUtil.getIpAddress(request));
-        // set orderId
+        // set orderId - mã đơn hàng
         vnParamsMap.put("vnp_TxnRef", String.valueOf(orderId));
 
         // query url
@@ -60,6 +90,7 @@ public class PaymentService implements IPaymentService {
         return paymentUrl;
     }
 
+    // ============== response payment vnpay ================
     @Override
     public VnpayResponse handleVnPayCallback(HttpServletRequest request) {
         String responseCode = request.getParameter("vnp_ResponseCode");
@@ -78,7 +109,7 @@ public class PaymentService implements IPaymentService {
             String cardType = request.getParameter("vnp_CardType");
 
             // Số tiền trả về từ VNPay là *100 (VNPay quy định), nên chia lại
-            long amount = Long.parseLong(amountStr) / 100;
+            Long amount = Long.parseLong(amountStr) / 100;
 
             //  Tạo mới bản ghi Payment
             Payment payment = Payment.builder()
@@ -101,12 +132,22 @@ public class PaymentService implements IPaymentService {
             // Luu thanh toan vao dơn hang
             order.setPayment(payment);
             orderRepository.save(order);
-            return new VnpayResponse("00", "Payment Success", vnpTxnRef);
+            return new VnpayResponse(
+                    "00",
+                    "Payment order: " + vnpTxnRef + " Success",
+                    vnpTxnRef,
+                    orderInfo,
+                    PaymentStatus.PAID,
+                    PaymentMethod.VNPAY
+            );
         }
-
         // Nếu thanh toán thất bại
-        return new VnpayResponse(responseCode, "Payment Failed", null);
-
+        return new VnpayResponse(responseCode,
+                "Payment Failed",
+                request.getParameter("vnp_TxnRef"),
+                request.getParameter("vnp_OrderInfo"),
+                PaymentStatus.UNPAID,
+                PaymentMethod.VNPAY);
     }
 
     private long getTotalAmountFromOrder(long orderId) {

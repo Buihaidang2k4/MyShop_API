@@ -77,11 +77,11 @@ public class UserService implements IUserService {
 
         user.setRoles(roles);
 
-
         // Tạo profile mặc định
         UserProfile profile = profileService.createEmptyUserProfile();
+        profile.setUser(user);
         user.setProfile(profile);
-        
+
         try {
             user = userRepository.save(user);
         } catch (DataIntegrityViolationException e) {

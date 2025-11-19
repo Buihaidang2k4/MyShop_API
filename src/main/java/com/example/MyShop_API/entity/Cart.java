@@ -22,8 +22,8 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long cartId;
 
-    @JsonIgnore
     @OneToOne
+    @JsonIgnore
     @JoinColumn(name = "profile_id")
     UserProfile profile;
 

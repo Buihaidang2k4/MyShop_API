@@ -21,15 +21,13 @@ public class UserProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "profile_id")
     Long profileId;
-
     String firstName;
     String lastName;
     Boolean gender;
     LocalDate birthDate;
     String mobileNumber;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JoinColumn(name = "address_id", referencedColumnName = "address_id")
+    @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     Address address;
 
     @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -38,4 +36,7 @@ public class UserProfile {
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Order> orders;
 
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    User user;
 }

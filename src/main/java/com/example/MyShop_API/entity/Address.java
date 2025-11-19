@@ -27,7 +27,8 @@ public class Address {
     @Column(name = "pin_code", nullable = true)
     String pinCode = "1000";
 
-    @OneToOne(mappedBy = "address")
+    @OneToOne
     @JsonIgnore
-    UserProfile userProfile;
+    @JoinColumn(name = "profile_id")
+    UserProfile profile;
 }

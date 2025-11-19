@@ -1,5 +1,6 @@
 package com.example.MyShop_API.entity;
 
+import com.example.MyShop_API.Enum.DiscountType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,24 +24,35 @@ public class Coupon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long couponId;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, length = 50, nullable = false)
     String code;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    DiscountType discountType;
     BigDecimal discountPercent; // 10.00 = 10%
-    BigDecimal maxDiscountAmount;
-    BigDecimal minOrderValue;
-
+    BigDecimal discountAmount; // 5000VNĐ
+    BigDecimal maxDiscountAmount; // maximum discount limit
+    BigDecimal minOrderValue; // Minimum conditions for discount
+    LocalDateTime startDate;
     LocalDateTime expiryDate;
     boolean enabled = true;
+    Integer usageLimit;
+    Integer usedCount;
+    boolean limitPerUser = true;
+    @Column(name = "max_uses_per_user")
+    Integer maxUsesPerUser = 1;
 
-    @ManyToMany(mappedBy = "coupons")
-    Set<Order> orders = new HashSet<>();
+    public boolean isUsable() {
+        LocalDateTime now = LocalDateTime.now();
+        if (!enabled) return false;
+        if (startDate != null && now.isBefore(startDate)) return false;
+        if (expiryDate != null && now.isAfter(expiryDate)) return false;
+        if (usageLimit != null && usedCount >= usageLimit) return false;
+        return true;
+    }
 
-    @PrePersist
-    public void generateCode() {
-        if (this.code == null || this.code.isEmpty()) {
-            String prefix = "COUPON_";
-            this.code = prefix + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 12);
-        }
+    public void incrementUsedCount() {
+        this.usedCount++;
     }
 }

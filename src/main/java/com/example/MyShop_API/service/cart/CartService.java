@@ -138,6 +138,8 @@ public class CartService implements ICartService {
     @Transactional
     @Override
     public void clearCart(Long cartId) {
+        Cart cart = getCartById(cartId);
+        cart.setTotalPrice(BigDecimal.ZERO);
         // Hard delete all items first to avoid leaving rows with null cart_id
         cartItemRepository.hardDeleteByCartId(cartId);
         cartItemRepository.flush();
