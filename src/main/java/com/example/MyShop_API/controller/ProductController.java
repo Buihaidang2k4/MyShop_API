@@ -1,12 +1,9 @@
 package com.example.MyShop_API.controller;
 
 
-import com.example.MyShop_API.anotation.AllAccess;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.request.AddProductRequest;
 import com.example.MyShop_API.dto.response.ProductResponse;
-import com.example.MyShop_API.entity.Cart;
-import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.entity.Product;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.mapper.ProductMapper;
@@ -19,12 +16,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +35,7 @@ public class ProductController {
     ProductMapper productMapper;
 
     @GetMapping("/category/by-category")
-    ResponseEntity<ApiResponse> getProductByCategory(@RequestParam String category) {
+    ResponseEntity<ApiResponse<?>> getProductByCategory(@RequestParam String category) {
         try {
             List<Product> products = productService.searchProductByCategory(category);
             return ResponseEntity.ok(new ApiResponse<>(200, "GetProductByCategory", productMapper.toResponseList(products)));
@@ -61,7 +55,7 @@ public class ProductController {
     }
 
     @GetMapping("/page")
-    ResponseEntity<ApiResponse> getCarts(
+    ResponseEntity<ApiResponse<?>> getCarts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "productId") String sortBy,
@@ -84,7 +78,7 @@ public class ProductController {
     }
 
     @GetMapping("/product/{productId}")
-    ResponseEntity<ApiResponse> getProductById(@PathVariable Long productId) {
+    ResponseEntity<ApiResponse<?>> getProductById(@PathVariable Long productId) {
         try {
             Product product = productService.getProductById(productId);
             return ResponseEntity.ok(new ApiResponse(200, "Get product successfully!", productMapper.toResponse(product)));
@@ -94,7 +88,7 @@ public class ProductController {
     }
 
     @GetMapping("/product/by-productName")
-    ResponseEntity<ApiResponse> getProductByName(@RequestParam String productName) {
+    ResponseEntity<ApiResponse<ProductResponse>> getProductByName(@RequestParam String productName) {
         try {
             Product product = productService.getProductByName(productName);
             return ResponseEntity.ok(new ApiResponse(200, "Get product successfully!", productMapper.toResponse(product)));
@@ -114,7 +108,7 @@ public class ProductController {
     }
 
     @PutMapping("/product/{productId}/update")
-    ResponseEntity<ApiResponse> updateProduct(@PathVariable Long productId, @RequestBody AddProductRequest addProductRequest) {
+    ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long productId, @RequestBody AddProductRequest addProductRequest) {
         try {
             Product product = productService.updateProduct(addProductRequest, productId);
             return ResponseEntity.status(ACCEPTED).body(new ApiResponse(200, "Update product successfully!", productMapper.toResponse(product)));
@@ -124,7 +118,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/product/{productId}/delete")
-    ResponseEntity<ApiResponse> deleteProduct(@PathVariable Long productId) {
+    ResponseEntity<ApiResponse<?>> deleteProduct(@PathVariable Long productId) {
         try {
             productService.deleteProductById(productId);
             return ResponseEntity.ok(new ApiResponse(200, "Delete product successfully!", productId));

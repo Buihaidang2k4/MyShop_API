@@ -153,7 +153,18 @@ public class PaymentService implements IPaymentService {
     private long getTotalAmountFromOrder(long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
         BigDecimal totalAmount = order.getTotalAmount();
-        return totalAmount.setScale(2, BigDecimal.ROUND_HALF_UP).longValue();
+
+        long rawAmount = totalAmount.setScale(2, BigDecimal.ROUND_HALF_UP).longValue();
+
+        // =============== GIOI HAN SANDBOX ===============
+        if (vnpayConfig.getVnp_PayUrl().contains("sandbox")) {
+            if (rawAmount > 2_000_000) {
+                rawAmount = 2_000_000; // lớn hơn 2tr → cố định 2tr
+                log.warn("VNPAY SANDBOX: Amount capped to 2.000.000đ for testing");
+            }
+        }
+
+        return rawAmount * 100L;
     }
 
 

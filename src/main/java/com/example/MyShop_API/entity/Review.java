@@ -24,17 +24,18 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long reviewId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     Product product;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = false)
     UserProfile profile;
 
     int rating;
     String comment;
     LocalDateTime createdAt = LocalDateTime.now();
+    boolean deleted = false;
 
     @PrePersist
     public void setCreatedAt() {

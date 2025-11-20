@@ -88,7 +88,11 @@ public enum ErrorCode {
 
     // ========== COUPON ==========
     COUPON_INVALID(2200, "This coupon is invalid or cannot be applied to your order.", BAD_REQUEST),
-    COUPON_LIMIT_PER_USER_EXCEEDED(2200, "Coupon limit per user exceeded", BAD_REQUEST);
+    COUPON_LIMIT_PER_USER_EXCEEDED(2200, "Coupon limit per user exceeded", BAD_REQUEST),
+
+    // =========== REVIEW =================
+    REVIEW_NOT_PURCHASED(2300, "You cannot review this item because you haven’t purchased it.", BAD_REQUEST),
+    REVIEW_ALREADY_EXISTS(2301, "Review already exists", BAD_REQUEST);
 
     final int code;
     final String messageTemplate;

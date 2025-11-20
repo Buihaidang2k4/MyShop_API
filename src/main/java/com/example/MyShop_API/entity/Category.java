@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -25,6 +26,8 @@ public class Category {
     @Size(min = 5, message = "Category name must contain at least 5 characters")
     String categoryName;
     String description;
+    LocalDate createAt;
+    LocalDate updateAt;
 
     @JsonIgnore
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)

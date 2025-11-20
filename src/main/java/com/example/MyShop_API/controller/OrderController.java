@@ -7,7 +7,10 @@ import com.example.MyShop_API.dto.request.OrderRequest;
 import com.example.MyShop_API.dto.response.OrderResponse;
 import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.entity.User;
+import com.example.MyShop_API.exception.AppException;
+import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.OrderMapper;
+import com.example.MyShop_API.repo.UserRepository;
 import com.example.MyShop_API.service.order.IOrderService;
 import com.example.MyShop_API.service.order.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -28,6 +32,7 @@ import java.util.List;
 public class OrderController {
     IOrderService orderService;
     OrderMapper orderMapper;
+    UserRepository userRepository;
 
     @GetMapping("/all")
     ResponseEntity<ApiResponse<List<OrderResponse>>> getOrders() {
@@ -81,8 +86,11 @@ public class OrderController {
     // ============== CONFIRM PAYMENT CASH =================
     @PutMapping("order/{orderId}/confirm-cash-payment")
     ResponseEntity<ApiResponse<Void>> confirmCashPayment(@PathVariable Long orderId,
-                                                         @AuthenticationPrincipal User admin
+                                                         Principal principal
     ) {
+        String email = principal.getName();
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         orderService.confirmCashOrder(orderId, admin);
         return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", null));
     }
@@ -96,9 +104,13 @@ public class OrderController {
     @PutMapping("/order/updateStatus")
     ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(@RequestParam("orderStatus") OrderStatus orderStatus
             , @RequestParam("orderId") Long orderId
-            , @AuthenticationPrincipal User admin
+            , Principal principal
 
     ) {
+        String email = principal.getName();
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
         OrderResponse orderResponse = orderMapper.toResponse(orderService.updateOrderStatus(orderId, orderStatus, admin));
         return ResponseEntity.ok(
                 new ApiResponse(200, "Update order status success", orderResponse)

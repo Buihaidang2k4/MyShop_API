@@ -112,11 +112,15 @@ public class OrderService implements IOrderService {
 
             log.info("discount: {}", discount);
             order.setTotalAmount(order.getTotalAmount().subtract(discount));
-
+            BigDecimal newTotal = order.getTotalAmount();
+            if (newTotal.compareTo(BigDecimal.ZERO) < 0) {
+                newTotal = BigDecimal.ZERO;
+            }
+            order.setTotalAmount(newTotal);
         }
         Order savedOrder = orderRepository.save(order);
         // log audit status (system)
-        historyService.logStatusChange(order, OrderStatus.PENDING, null);
+        historyService.logStatusChange(savedOrder, OrderStatus.PENDING, null);
 
         try {
             // payment
@@ -158,6 +162,11 @@ public class OrderService implements IOrderService {
                             saveOrder,
                             saveOrder.getProfile());
             saveOrder.setTotalAmount(saveOrder.getTotalAmount().subtract(discount));
+            BigDecimal newTotal = saveOrder.getTotalAmount();
+            if (newTotal.compareTo(BigDecimal.ZERO) < 0) {
+                newTotal = BigDecimal.ZERO;
+            }
+            order.setTotalAmount(newTotal);
             orderRepository.save(saveOrder);
         }
         try {

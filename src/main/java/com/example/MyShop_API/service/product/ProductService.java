@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +42,8 @@ public class ProductService implements IProductService {
                 .orElseGet(() -> {
                     Category newCategory = Category.builder()
                             .categoryName(request.getCategory().getCategoryName())
+                            .description(request.getCategory().getDescription())
+                            .createAt(LocalDate.now())
                             .build();
                     return categoryRepository.save(newCategory);
                 });
@@ -48,8 +51,7 @@ public class ProductService implements IProductService {
         // mapper
         Product product = productMapper.toEntity(request);
         product.setCategory(category);
-
-
+        product.setCreateAt(LocalDate.now());
         product.setSpecialPrice(calculateSpecialPrice(request.getPrice(), request.getDiscount()));
 
         // Lưu khởi tạo id
@@ -72,6 +74,7 @@ public class ProductService implements IProductService {
             throw new AppException(ErrorCode.CATEGORY_NOT_EXISTED);
 
         findProduct.setCategory(category);
+        findProduct.setUpdateAt(LocalDate.now());
 
         productMapper.update(request, findProduct);
 

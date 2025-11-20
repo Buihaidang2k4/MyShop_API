@@ -13,6 +13,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,17 +41,22 @@ public class CategoryService implements ICategoryService {
     }
 
     public Category addCategory(Category category) {
-        return Optional.of(category).filter(c -> !categoryRepository.existsCategoriesByCategoryName(category.getCategoryName()))
-                .map(categoryRepository::save)
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_EXISTED));
+        if (categoryRepository.existsCategoriesByCategoryName(category.getCategoryName())) {
+            throw new AppException(ErrorCode.CATEGORY_EXISTED);
+        }
+        category.setCreateAt(LocalDate.now());
+        return categoryRepository.save(category);
     }
 
     public Category updateCategory(Category category, Long id) {
-        return Optional.ofNullable(getCategoryById(id)).map(oldCategory -> {
-            oldCategory.setCategoryName(category.getCategoryName());
-            return categoryRepository.save(oldCategory);
-        }).orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
+        Category oldCategory = getCategoryById(id);
+        if (oldCategory == null) {
+            throw new AppException(ErrorCode.CATEGORY_NOT_EXISTED);
+        }
 
+        oldCategory.setCategoryName(category.getCategoryName());
+        oldCategory.setUpdateAt(LocalDate.now());
+        return categoryRepository.save(oldCategory);
     }
 
     public void deleteCategoryById(Long id) {

@@ -45,7 +45,7 @@ public class PaymentController {
 //    }
 
     @GetMapping("/vn-pay-callback")
-    public ResponseEntity<ApiResponse<VnpayResponse>> vnpayCallback(HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<VnpayResponse>> payVnpayCallback(HttpServletRequest request) {
         VnpayResponse response = orderService.finalizeVnPayCallback(request);
         return ResponseEntity.ok(
                 new ApiResponse<>(
@@ -59,7 +59,7 @@ public class PaymentController {
     // ===================== PAYMENT CASH ======================
     @PostMapping("/cod/{orderId}")
     @Operation(summary = "test")
-    ResponseEntity<ApiResponse> payWithCash(@PathVariable Long orderId) {
+    ResponseEntity<ApiResponse<?>> payWithCash(@PathVariable Long orderId) {
         return ResponseEntity.ok(new ApiResponse(200, "pay success", paymentService.processCashPayment(orderId)));
     }
 

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -21,10 +22,11 @@ public class ProductResponse {
     Long productId;
     String productName;
     String description;
-    //    Integer quantity;
     BigDecimal price;
     BigDecimal discount;
     BigDecimal specialPrice;
+    LocalDate createAt;
+    LocalDate updateAt;
     Category category;
     InventoryDTO inventory;
     List<ImageDTO> images;

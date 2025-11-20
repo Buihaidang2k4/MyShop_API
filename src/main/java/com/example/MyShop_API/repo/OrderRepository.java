@@ -19,4 +19,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByOrderStatus(OrderStatus orderStatus);
 
     int countByProfile_ProfileIdAndCoupon_CouponId(Long profileProfileId, Long couponCouponId);
+
+    @Query("""
+            SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END
+            FROM Order o
+            JOIN o.orderItems oi
+            WHERE o.profile.profileId = :profileId
+              AND oi.product.productId = :productId
+              AND o.orderStatus IN :statuses
+            """)
+    boolean existsByProfileProfileIdAndOrderItemsProductProductIdAndOrderStatusIn(
+            @Param("profileId") Long profileId,
+            @Param("productId") Long productId,
+            @Param("statuses") List<OrderStatus> statuses);
 }
