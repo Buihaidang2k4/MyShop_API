@@ -2,11 +2,14 @@ package com.example.MyShop_API.controller;
 
 import com.example.MyShop_API.anotation.AllAccess;
 import com.example.MyShop_API.dto.request.AuthenticationRequest;
+import com.example.MyShop_API.dto.request.ForgotPasswordRequest;
 import com.example.MyShop_API.dto.request.IntrospectRequest;
+import com.example.MyShop_API.dto.request.ResetPasswordRequest;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.response.AuthenticationResponse;
 import com.example.MyShop_API.dto.response.IntrospectResponse;
 import com.example.MyShop_API.service.authentication.IAuthenticationService;
+import com.example.MyShop_API.service.password_reset_otp.IPasswordResetOtpService;
 import com.nimbusds.jose.JOSEException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,10 +37,11 @@ import java.text.ParseException;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("${api.prefix}/auth")
 public class AuthenticationController {
-    private final static String REFRESH_COOKIE_NAME = "refresh_token";
+    private static final String REFRESH_COOKIE_NAME = "refresh_token";
     private static final String ACCESS_COOKIE_NAME = "access_token";
 
     IAuthenticationService authenticationService;
+    IPasswordResetOtpService resetOtpService;
 
     @PostMapping("/login")
     ResponseEntity<ApiResponse> login(@Valid @RequestBody AuthenticationRequest request,
@@ -105,7 +109,7 @@ public class AuthenticationController {
                 .introspect(IntrospectRequest.builder()
                         .token(accessToken).build());
 
-        
+
         return ResponseEntity.ok(new ApiResponse<>(200, "Introspect successful", response));
     }
 
@@ -129,5 +133,17 @@ public class AuthenticationController {
         response.addHeader(HttpHeaders.SET_COOKIE, clearRefreshToken.toString());
 
         return ResponseEntity.ok(new ApiResponse(200, "Logout successful", null));
+    }
+
+    @PostMapping("/forgot-password")
+    ResponseEntity<ApiResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        resetOtpService.sendOtp(request.getEmail());
+        return ResponseEntity.ok(new ApiResponse(200, "OTP has been sent to your email", true));
+    }
+
+    @PutMapping("/reset-password")
+    ResponseEntity<ApiResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        resetOtpService.resetPassword(request);
+        return ResponseEntity.ok(new ApiResponse(200, "Password reset successful! You can log in now", true));
     }
 }

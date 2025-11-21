@@ -92,7 +92,12 @@ public enum ErrorCode {
 
     // =========== REVIEW =================
     REVIEW_NOT_PURCHASED(2300, "You cannot review this item because you haven’t purchased it.", BAD_REQUEST),
-    REVIEW_ALREADY_EXISTS(2301, "Review already exists", BAD_REQUEST);
+    REVIEW_ALREADY_EXISTS(2301, "Review already exists", BAD_REQUEST),
+
+    // ============ EMAIL ===============
+    EMAIL_NOT_FOUND(2400, "Email not found", HttpStatus.NOT_FOUND),
+    OTP_INVALID(2401, "OTP is invalid", HttpStatus.BAD_REQUEST),
+    OTP_EXPIRED(2402, "OTP has expired", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String messageTemplate;
