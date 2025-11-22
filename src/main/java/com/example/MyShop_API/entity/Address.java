@@ -17,15 +17,19 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "address_id")
     Long addressId;
-    String buildingName;
+    // số nhà tên đường
     String street;
-    String city;
-    String state;
-    String country;
-
+    // xa phuong
+    String ward;
+    // Quận huyện
+    String district;
+    // Tỉnh thành phố
+    String province;
     // Mã bưu điện
-    @Column(name = "pin_code", nullable = true)
-    String pinCode = "1000";
+    String postalCode = "1000";
+
+    @Column(name = "additional_info")
+    String additionalInfo;
 
     @OneToOne
     @JsonIgnore

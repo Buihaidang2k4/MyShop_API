@@ -83,7 +83,7 @@ public class AuthenticationService implements IAuthenticationService {
         );
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCHES);
         }
 
         // Thu hồi toàn bộ token cũ trước khi sinh token mới
@@ -130,7 +130,6 @@ public class AuthenticationService implements IAuthenticationService {
             // neu chua co tao moi
             UserCreationRequest userCreationRequest = UserCreationRequest.builder()
                     .email(email)
-                    .username(userName)
                     .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                     .build();
             return userMapper.toEntity(userService.createUser(userCreationRequest));

@@ -12,9 +12,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AddressRequest {
     String street;
-    String buildingName;
-    String state;
-    String city;
-    String country;
-    String pinCode;
+    String ward;
+    String district;
+    String province;
+    String postalCode;
+    String additionalInfo;
 }

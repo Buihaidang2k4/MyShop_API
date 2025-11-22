@@ -29,7 +29,9 @@ public enum ErrorCode {
     USER_INVALID(1102, "Username must be at least {min} characters", BAD_REQUEST),
     INVALID_PASSWORD(1103, "Password must be at least {min} characters", BAD_REQUEST),
     INVALID_CREDENTIALS(1104, "Incorrect username or password", HttpStatus.UNAUTHORIZED),
-
+    PASSWORD_NOT_MATCHES(1105, "Current password is incorrect", BAD_REQUEST),
+    PASSWORD_CONFIRM_NOT_MATCHES(1106, "New password and confirm password do not match", HttpStatus.BAD_REQUEST),
+    
     // ========== PROFILE ==========
     PROFILE_EXISTED(1200, "Profile already exists", BAD_REQUEST),
     PROFILE_NOT_EXISTED(1201, "Profile not exists", BAD_REQUEST),

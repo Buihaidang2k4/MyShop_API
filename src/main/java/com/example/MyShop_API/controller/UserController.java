@@ -69,12 +69,12 @@ public class UserController {
                 .build();
     }
 
-    @PutMapping("/{id}/change-password")
-    ResponseEntity<Void> changePassword(
-            @PathVariable(name = "id") Long id
+    @PutMapping("/{userId}/change-password")
+    ResponseEntity<ApiResponse<?>> changePassword(
+            @PathVariable(name = "userId") Long userId
             , @RequestBody @Valid ChangePasswordRequest request) {
-        userService.changePassword(request, id);
-        return ResponseEntity.noContent().build();
+        userService.changePassword(request, userId);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Change password successful", HttpStatus.OK));
     }
 
     @DeleteMapping("/{id}/delete")

@@ -93,22 +93,24 @@ public class UserService implements IUserService {
 
     @AllAccess
     public void changePassword(ChangePasswordRequest request, Long id) {
-        log.info("changePassword().........");
         User user = userRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (!user.getPassword().equals(request.getOldPassword())) {
-            new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-            return;
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCHES);
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_CONFIRM_NOT_MATCHES);
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         try {
             userRepository.save(user);
+            log.info("================== CHANGE PASSWORD ===================");
         } catch (DataIntegrityViolationException e) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
-        new ResponseEntity<>(HttpStatus.OK);
     }
 
     @AllAccess
@@ -141,7 +143,6 @@ public class UserService implements IUserService {
     @PostAuthorize("returnObject.email.toLowerCase() == authentication.name.toLowerCase()")
     public UserResponse getMyInfor() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        log.info("Auth name = {}", auth.getName());
 
         String email = auth.getName();
         User user = userRepository.findByEmail(email)
@@ -149,8 +150,7 @@ public class UserService implements IUserService {
 
         log.info("user = {}", user.getProfile());
         UserResponse response = userMapper.toResponse(user);
-        log.info("Return email = {}", response.getEmail());
-
+        log.info("=========== Get Info ===============");
         return response;
     }
 }

@@ -12,7 +12,6 @@ import java.util.Set;
 @AllArgsConstructor
 public class UserResponse {
     Integer id;
-    String username;
     String email;
     Set<RoleResponse> roles;
     UserProfileResponse userProfile;

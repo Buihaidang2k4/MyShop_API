@@ -55,7 +55,7 @@ public class AuthenticationController {
         response.addHeader(HttpHeaders.SET_COOKIE, cookieRefresh.toString());
 
 
-        return ResponseEntity.ok(new ApiResponse(200, "Login jwt successful", null));
+        return ResponseEntity.ok(new ApiResponse(200, "Login successfull", null));
     }
 
     @PostMapping("/google")

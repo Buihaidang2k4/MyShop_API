@@ -13,10 +13,9 @@ import lombok.experimental.FieldDefaults;
 public class AddressResponse {
     Long addressId;
     String street;
-    String buildingName;
-    String city;
-    String state;
-    String country;
-    String pinCode;
-//    Long profileId;
+    String ward;
+    String district;
+    String province;
+    String postalCode;
+    String additionalInfo;
 }
