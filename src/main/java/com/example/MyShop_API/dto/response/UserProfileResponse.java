@@ -14,8 +14,7 @@ import java.time.LocalDate;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserProfileResponse {
     Long profileId;
-    String firstName;
-    String lastName;
+    String username;
     String mobileNumber;
     Boolean gender;
     LocalDate birthDate;

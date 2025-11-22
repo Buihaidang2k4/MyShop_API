@@ -38,7 +38,7 @@ public class AddressController {
                 .build();
     }
 
-    @PostMapping("/usersProfile/{userProfileId}/add")
+    @PostMapping("/user-profile/{userProfileId}/add")
     ApiResponse<AddressResponse> createAddress(@RequestBody AddressRequest addressRequest, @PathVariable Long userProfileId) {
         return ApiResponse.<AddressResponse>builder()
                 .data(addressService.createAddress(addressRequest, userProfileId))

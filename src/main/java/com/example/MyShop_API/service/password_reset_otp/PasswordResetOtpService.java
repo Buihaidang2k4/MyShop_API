@@ -52,7 +52,7 @@ public class PasswordResetOtpService implements IPasswordResetOtpService {
 
         // send email
         try {
-            emailService.sendOtpMail(user.getEmail(), otp, user.getUsername());
+            emailService.sendOtpMail(user.getEmail(), otp, user.getEmail());
         } catch (MessagingException e) {
             log.error("Failed to send OTP email to {}", email, e);
             throw new RuntimeException(e);

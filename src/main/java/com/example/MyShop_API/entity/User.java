@@ -21,8 +21,6 @@ public class User {
     @Column(name = "id")
     Long id;
 
-    @Column(name = "username", columnDefinition = "VARCHAR(255) COLLATE utf8mb4_unicode_ci")
-    String username;
 
     @Column(name = "password")
     String password;

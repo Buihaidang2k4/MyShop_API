@@ -10,7 +10,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,8 +22,10 @@ public class UserProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "profile_id")
     Long profileId;
-    String firstName;
-    String lastName;
+    @Column(name = "username", columnDefinition = "VARCHAR(255) COLLATE utf8mb4_unicode_ci")
+    String username;
+    //    String firstName;
+//    String lastName;
     Boolean gender;
     LocalDate birthDate;
     String mobileNumber;

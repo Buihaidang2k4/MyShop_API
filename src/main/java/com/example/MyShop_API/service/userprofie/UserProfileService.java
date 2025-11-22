@@ -56,8 +56,7 @@ public class UserProfileService implements IUserProfileService {
         if (userProfile == null) {
             // Nếu user chưa có profile tạo mới
             userProfile = UserProfile.builder()
-                    .firstName(userProfileRequest.getFirstName())
-                    .lastName(userProfileRequest.getLastName())
+                    .username(userProfileRequest.getUsername())
                     .mobileNumber(userProfileRequest.getMobileNumber())
                     .gender(userProfileRequest.getGender())
                     .birthDate(userProfileRequest.getBirthDate())
@@ -83,8 +82,7 @@ public class UserProfileService implements IUserProfileService {
     @Override
     public UserProfile createEmptyUserProfile() {
         UserProfile userProfile = UserProfile.builder()
-                .firstName(null)
-                .lastName(null)
+                .username(null)
                 .gender(null)
                 .mobileNumber(null)
                 .birthDate(null)

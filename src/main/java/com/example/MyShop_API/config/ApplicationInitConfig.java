@@ -47,9 +47,9 @@ public class ApplicationInitConfig {
                 roleRepository.save(role);
 
                 User user = User.builder()
-                        .username("admin")
-                        .password(passwordEncoder.encode("Admin@123"))
+//                        .username("admin")
                         .email("admin@gmail.com")
+                        .password(passwordEncoder.encode("Admin@123"))
                         .roles((Set.of(role)))
                         .build();
 
