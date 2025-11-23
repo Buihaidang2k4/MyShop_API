@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -11,12 +9,14 @@ services:
       - app-network
     env_file:
       - .env
+      - .env.${SPRING_PROFILES_ACTIVE}
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
     depends_on:
       mysql:
         condition: service_healthy
       redis-cache:
         condition: service_started
-    restart: always
 
   mysql:
     image: mysql:8.0
@@ -25,8 +25,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DBMS_PASSWORD}
       MYSQL_DATABASE: ${DBMS_NAME}
-    #      MYSQL_USER: root
-    #      MYSQL_PASSWORD: ${DBMS_PASSWORD}
     ports:
       - "${DBMS_PORT}:${DBMS_PORT}"
     networks:
