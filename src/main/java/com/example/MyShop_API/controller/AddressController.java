@@ -52,9 +52,13 @@ public class AddressController {
                 .build();
     }
 
-    @DeleteMapping("/{addressId}/delete")
-    ApiResponse<Void> deleteAddress(@PathVariable Long addressId) {
-        addressService.deleteAddress(addressId);
+    @DeleteMapping("/delete")
+    ApiResponse<Void> deleteAddress(
+            @RequestParam Long addressId,
+            @RequestParam Long profileId
+
+    ) {
+        addressService.deleteAddress(addressId, profileId);
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Success")

@@ -14,5 +14,5 @@ public interface IAddressService {
 
     AddressResponse updateAddress(Long id, AddressRequest addressRequest);
 
-    void deleteAddress(Long addressId);
+    void deleteAddress(Long addressId, Long profileId);
 }

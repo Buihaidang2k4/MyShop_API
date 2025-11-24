@@ -24,14 +24,12 @@ public class UserProfile {
     Long profileId;
     @Column(name = "username", columnDefinition = "VARCHAR(255) COLLATE utf8mb4_unicode_ci")
     String username;
-    //    String firstName;
-//    String lastName;
     Boolean gender;
     LocalDate birthDate;
     String mobileNumber;
 
-    @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
-    Address address;
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Address> address;
 
     @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     Cart cart;

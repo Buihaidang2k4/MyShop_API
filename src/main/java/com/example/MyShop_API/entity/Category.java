@@ -23,7 +23,6 @@ public class Category {
     Long categoryId;
 
     @NotBlank
-    @Size(min = 5, message = "Category name must contain at least 5 characters")
     String categoryName;
     String description;
     LocalDate createAt;

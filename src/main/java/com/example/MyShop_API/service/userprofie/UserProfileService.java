@@ -96,12 +96,6 @@ public class UserProfileService implements IUserProfileService {
         newCart.setProfile(userProfile);
         userProfile.setCart(newCart);
 
-        // initializeNewAddress
-        Address newAddress = new Address();
-        newAddress.setProfile(userProfile);
-        userProfile.setAddress(newAddress);
-
-
         return userProfileRepository.save(userProfile);
     }
 }

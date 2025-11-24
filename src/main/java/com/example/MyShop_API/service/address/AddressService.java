@@ -38,39 +38,47 @@ public class AddressService implements IAddressService {
         return addressMapper.toResponse(address);
     }
 
-    public AddressResponse createAddress(AddressRequest addressRequest, Long userProfileId) {
-        UserProfile userProfile = userProfileRepository.findById(userProfileId).orElseThrow(() ->
+    public AddressResponse createAddress(AddressRequest addressRequest, Long profileId) {
+        UserProfile userProfile = userProfileRepository.findById(profileId).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        log.info("Creating address");
         Address address = addressMapper.toEntity(addressRequest);
+
         // Gan hai chieu
-        userProfile.setAddress(address);
         address.setProfile(userProfile);
-        
+        userProfile.getAddress().add(address);
+
         // luu
         address = addressRepository.save(address);
+        log.info("=============Creating address=========================");
         return addressMapper.toResponse(address);
     }
 
-    public AddressResponse updateAddress(Long id, AddressRequest addressRequest) {
-        log.info("Updating address");
-        Address findAddress = addressRepository.findById(id).orElseThrow(() ->
+    public AddressResponse updateAddress(Long addressId, AddressRequest addressRequest) {
+        Address findAddress = addressRepository.findById(addressId).orElseThrow(() ->
                 new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
 
         addressMapper.updateAddress(addressRequest, findAddress);
 
         try {
             findAddress = addressRepository.save(findAddress);
+            log.info("=====================Updating address==============");
         } catch (AppException e) {
             new AppException(ErrorCode.ADDRESS_EXISTED);
         }
         return addressMapper.toResponse(findAddress);
     }
 
-    public void deleteAddress(Long addressId) {
-        log.info("Deleting address");
-        addressRepository.deleteById(addressId);
+    public void deleteAddress(Long addressId, Long profileId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
+
+        if (!address.getProfile().getProfileId().equals(profileId)) {
+            throw new AppException(ErrorCode.FORBIDDEN);
+        }
+
+        addressRepository.delete(address);
+        log.info("=====================Deleting address==============");
     }
 
 

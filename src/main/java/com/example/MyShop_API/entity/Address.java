@@ -27,11 +27,10 @@ public class Address {
     String province;
     // Mã bưu điện
     String postalCode = "1000";
-
     @Column(name = "additional_info")
     String additionalInfo;
 
-    @OneToOne
+    @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "profile_id")
     UserProfile profile;

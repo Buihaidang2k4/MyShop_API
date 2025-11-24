@@ -15,13 +15,14 @@ public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", INTERNAL_SERVER_ERROR),
     INVALID_KEY(1000, "Invalid key", BAD_REQUEST),
     REDIS_ERROR(1028, "Redis error", INTERNAL_SERVER_ERROR),
+    FORBIDDEN(1029, "You do not have permission to perform this action", HttpStatus.FORBIDDEN),
 
     // ========== AUTH ==========
     UNAUTHENTICATED(1001, "Authentication required", HttpStatus.UNAUTHORIZED),           // 401
-    UNAUTHORIZED(1002, "You do not have permission", FORBIDDEN),              // 403
+    UNAUTHORIZED(1002, "You do not have permission", HttpStatus.FORBIDDEN),              // 403
     TOKEN_EXPIRED(1003, "Token expired", HttpStatus.UNAUTHORIZED),
     TOKEN_REVOKED(1004, "Token has been revoked or is no longer valid", HttpStatus.UNAUTHORIZED),
-    ROLE_NOT_ALLOWED(1005, "Role is not allowed for this action", FORBIDDEN),
+    ROLE_NOT_ALLOWED(1005, "Role is not allowed for this action", HttpStatus.FORBIDDEN),
 
     // ========== USER ==========
     USER_EXISTED(1100, "User already exists", BAD_REQUEST),
@@ -31,7 +32,7 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(1104, "Incorrect username or password", HttpStatus.UNAUTHORIZED),
     PASSWORD_NOT_MATCHES(1105, "Current password is incorrect", BAD_REQUEST),
     PASSWORD_CONFIRM_NOT_MATCHES(1106, "New password and confirm password do not match", HttpStatus.BAD_REQUEST),
-    
+
     // ========== PROFILE ==========
     PROFILE_EXISTED(1200, "Profile already exists", BAD_REQUEST),
     PROFILE_NOT_EXISTED(1201, "Profile not exists", BAD_REQUEST),

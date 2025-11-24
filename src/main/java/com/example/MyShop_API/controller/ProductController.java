@@ -55,7 +55,7 @@ public class ProductController {
     }
 
     @GetMapping("/page")
-    ResponseEntity<ApiResponse<?>> getCarts(
+    ResponseEntity<ApiResponse<?>> getProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "productId") String sortBy,
@@ -68,7 +68,8 @@ public class ProductController {
 
         Map<String, Object> res = new HashMap<>();
         res.put("content", productRes.getContent());
-        res.put("size", productRes.getSize());
+        res.put("size", productRes.getNumberOfElements());
+        res.put("direction", direction);
         res.put("currentPage", productRes.getNumber());
         res.put("totalItems", productRes.getTotalElements());
         res.put("totalPages", productRes.getTotalPages());

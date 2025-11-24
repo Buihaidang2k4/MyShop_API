@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Builder
@@ -18,6 +19,6 @@ public class UserProfileResponse {
     String mobileNumber;
     Boolean gender;
     LocalDate birthDate;
-    AddressResponse addressResponse;
+    List<AddressResponse> addressResponse;
     CartResponse cartResponse;
 }
