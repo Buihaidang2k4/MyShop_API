@@ -34,18 +34,38 @@ public class ProductController {
     IProductService productService;
     ProductMapper productMapper;
 
-    @GetMapping("/category/by-category")
-    ResponseEntity<ApiResponse<?>> getProductByCategory(@RequestParam String category) {
+    @GetMapping("/category/by-category-name")
+    ResponseEntity<ApiResponse<?>> getProductByCategoryName(
+            @RequestParam String categoryName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "productId") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
+    ) {
         try {
-            List<Product> products = productService.searchProductByCategory(category);
-            return ResponseEntity.ok(new ApiResponse<>(200, "GetProductByCategory", productMapper.toResponseList(products)));
+            Sort sort = direction.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Product> products = productService.searchProductByCategory(categoryName, pageable);
+            Page<ProductResponse> productRes = products.map(productMapper::toResponse);
+
+            Map<String, Object> res = new HashMap<>();
+            res.put("content", productRes.getContent());
+            res.put("size", productRes.getNumberOfElements());
+            res.put("direction", direction);
+            res.put("currentPage", productRes.getNumber());
+            res.put("totalItems", productRes.getTotalElements());
+            res.put("totalPages", productRes.getTotalPages());
+            res.put("sortBy", sortBy);
+
+
+            return ResponseEntity.ok(new ApiResponse<>(200, "Get products by category name successfully!", res));
         } catch (AppException e) {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(404, e.getMessage(), null));
         }
     }
 
     @GetMapping("/all")
-    ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
+    ResponseEntity<ApiResponse<List<ProductResponse>>> getProducts() {
         try {
             List<ProductResponse> products = productMapper.toResponseList(productService.getProducts());
             return ResponseEntity.ok(new ApiResponse(200, "Get all products successfully!", products));
@@ -88,7 +108,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/product/by-productName")
+    @GetMapping("/product/by-product-name")
     ResponseEntity<ApiResponse<ProductResponse>> getProductByName(@RequestParam String productName) {
         try {
             Product product = productService.getProductByName(productName);

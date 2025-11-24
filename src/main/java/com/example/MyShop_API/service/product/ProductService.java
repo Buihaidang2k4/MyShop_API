@@ -103,10 +103,11 @@ public class ProductService implements IProductService {
 
     @Override
     public List<Product> getProducts() {
-        log.info("getProducts ");
+        log.info("=======getProducts======== ");
         return productRepository.findAll();
     }
 
+    // ============== GET ALL ===================
     @Override
     public Page<Product> getProducts(Pageable pageable) {
         return productRepository.findAll(pageable);
@@ -119,6 +120,7 @@ public class ProductService implements IProductService {
         return product;
     }
 
+    // ============ GET ALL BY PRODUCT NAME =============
     @Override
     public Product getProductByName(String productName) {
         Product product = productRepository.getProductByProductName(productName);
@@ -128,14 +130,16 @@ public class ProductService implements IProductService {
         return product;
     }
 
+    // ============== GET ALL BY CATEGORY NAME ============
     @Override
-    public List<Product> searchProductByCategory(String category) {
+    public Page<Product> searchProductByCategory(String categoryName, Pageable pageable) {
         log.info("searchByCategory ");
-        Category findCategory = categoryRepository.getCategoriesByCategoryName(category);
+
+        Category findCategory = categoryRepository.getCategoriesByCategoryName(categoryName);
         if (findCategory == null)
             throw new AppException(ErrorCode.CATEGORY_NOT_EXISTED);
 
-        return productRepository.findAllByCategory((findCategory));
+        return productRepository.findByCategory_CategoryName(categoryName, pageable);
     }
 
 

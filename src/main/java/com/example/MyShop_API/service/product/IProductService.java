@@ -14,13 +14,13 @@ import java.util.List;
 public interface IProductService {
     List<Product> getProducts();
 
-    Page<Product> getProducts(Pageable pageable);
-
     Product getProductById(Long id);
 
     Product getProductByName(String productName);
 
-    List<Product> searchProductByCategory(String category);
+    Page<Product> getProducts(Pageable pageable);
+
+    Page<Product> searchProductByCategory(String categoryName, Pageable pageable);
 
     Product addProduct(AddProductRequest addProductRequest);
 
