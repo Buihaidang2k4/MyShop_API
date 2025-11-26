@@ -109,7 +109,7 @@ public class AddressServiceTest {
         verify(addressMapper).toResponse(address);
 
         assertNotNull(response);
-        assertTrue(address.isDefault());
+        assertTrue(address.getIsDefault());
         assertEquals(profile, address.getProfile());
     }
 
