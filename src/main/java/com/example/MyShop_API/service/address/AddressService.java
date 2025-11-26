@@ -55,12 +55,13 @@ public class AddressService implements IAddressService {
 
         Address address = addressMapper.toEntity(request);
         address.setCreatedAt(LocalDateTime.now());
+
         if (request.getIsDefault() != null) {
             if (request.getIsDefault()) {
                 addressRepository.clearDefaultAddressForProfile(profileId);
-                address.setDefault(true);
+                address.setIsDefault(true);
             } else {
-                address.setDefault(false);
+                address.setIsDefault(false);
             }
         }
         // Gan hai chieu
@@ -84,9 +85,9 @@ public class AddressService implements IAddressService {
         if (request.getIsDefault() != null) {
             if (request.getIsDefault()) {
                 addressRepository.clearDefaultAddressForProfile(profileId);
-                findAddress.setDefault(true);
+                findAddress.setIsDefault(true);
             } else {
-                findAddress.setDefault(false);
+                findAddress.setIsDefault(false);
             }
         }
 

@@ -18,7 +18,7 @@ public class AddressResponse {
     String province;          // Tỉnh/Thành phố
     String postalCode;        // Mã bưu điện (có thể null)
     String additionalInfo;
-    boolean isDefault;        // Có phải địa chỉ mặc định không
+    Boolean isDefault;        // Có phải địa chỉ mặc định không
     String type;              // "HOME", "WORK", "OTHER" → frontend hiển thị icon
     String label;             // Tên do người dùng tự đặt: "Nhà riêng", "Công ty", "Nhà bố mẹ"
     String shortAddress;      // Ví dụ: "123 Đường Láng, Đống Đa, Hà Nội"

@@ -35,7 +35,7 @@ public class Address {
     String additionalInfo; // note
 
     @Column(name = "is_default")
-    boolean isDefault = false;
+    Boolean isDefault = false;
 
     @Enumerated(EnumType.STRING)
     AddressType type = AddressType.HOME;
