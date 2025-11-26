@@ -3,9 +3,7 @@ package com.example.MyShop_API.mapper;
 import com.example.MyShop_API.dto.request.OrderItemRequest;
 import com.example.MyShop_API.dto.response.OrderItemResponse;
 import com.example.MyShop_API.entity.OrderItem;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface OrderItemMapper {
@@ -17,5 +15,6 @@ public interface OrderItemMapper {
     @Mapping(source = "product.productId", target = "productId")
     OrderItemResponse toResponse(OrderItem orderItem);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateOrder(OrderItemRequest orderItemRequest, @MappingTarget OrderItem orderItem);
 }

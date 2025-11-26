@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CookieBearerTokenResolver implements BearerTokenResolver {
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
-            "/api/v1/auth/login"
+            "/api/v1/auth/login", "/api/v1/products/*", "/api/v1/categories/*"
     );
 
     private final String cookieName;

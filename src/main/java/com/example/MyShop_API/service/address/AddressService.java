@@ -1,6 +1,7 @@
 package com.example.MyShop_API.service.address;
 
 import com.example.MyShop_API.dto.request.AddressRequest;
+import com.example.MyShop_API.dto.request.AddressUpdateRequest;
 import com.example.MyShop_API.dto.response.AddressResponse;
 import com.example.MyShop_API.entity.Address;
 import com.example.MyShop_API.entity.UserProfile;
@@ -13,8 +14,11 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +35,12 @@ public class AddressService implements IAddressService {
         return addressRepository.findAll().stream().map(addressMapper::toResponse).collect(Collectors.toList());
     }
 
+    public List<Address> getAddressByProfileId(Long profileId) {
+        return addressRepository.findAll().stream()
+                .filter(address -> address.getProfile().getProfileId().equals(profileId))
+                .collect(Collectors.toList());
+    }
+
     public AddressResponse getAddressById(Long addressId) {
         Address address = addressRepository.findById(addressId).orElseThrow(() ->
                 new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
@@ -38,12 +48,21 @@ public class AddressService implements IAddressService {
         return addressMapper.toResponse(address);
     }
 
-    public AddressResponse createAddress(AddressRequest addressRequest, Long profileId) {
+    @Transactional
+    public AddressResponse createAddress(AddressRequest request, Long profileId) {
         UserProfile userProfile = userProfileRepository.findById(profileId).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        Address address = addressMapper.toEntity(addressRequest);
-
+        Address address = addressMapper.toEntity(request);
+        address.setCreatedAt(LocalDateTime.now());
+        if (request.getIsDefault() != null) {
+            if (request.getIsDefault()) {
+                addressRepository.clearDefaultAddressForProfile(profileId);
+                address.setDefault(true);
+            } else {
+                address.setDefault(false);
+            }
+        }
         // Gan hai chieu
         address.setProfile(userProfile);
         userProfile.getAddress().add(address);
@@ -54,16 +73,27 @@ public class AddressService implements IAddressService {
         return addressMapper.toResponse(address);
     }
 
-    public AddressResponse updateAddress(Long addressId, AddressRequest addressRequest) {
+    @Transactional
+    public AddressResponse updateAddress(Long addressId, Long profileId, AddressUpdateRequest request) {
         Address findAddress = addressRepository.findById(addressId).orElseThrow(() ->
                 new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
 
-        addressMapper.updateAddress(addressRequest, findAddress);
+        addressMapper.updateAddress(request, findAddress);
+        findAddress.setUpdatedAt(LocalDateTime.now());
+
+        if (request.getIsDefault() != null) {
+            if (request.getIsDefault()) {
+                addressRepository.clearDefaultAddressForProfile(profileId);
+                findAddress.setDefault(true);
+            } else {
+                findAddress.setDefault(false);
+            }
+        }
 
         try {
             findAddress = addressRepository.save(findAddress);
             log.info("=====================Updating address==============");
-        } catch (AppException e) {
+        } catch (DataIntegrityViolationException e) {
             new AppException(ErrorCode.ADDRESS_EXISTED);
         }
         return addressMapper.toResponse(findAddress);

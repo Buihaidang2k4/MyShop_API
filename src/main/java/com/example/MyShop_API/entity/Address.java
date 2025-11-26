@@ -1,37 +1,54 @@
 package com.example.MyShop_API.entity;
 
+import com.example.MyShop_API.Enum.AddressType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "addresses")
 public class Address {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "address_id")
     Long addressId;
-    // số nhà tên đường
+
+    String fullName;
+    String phone;
     String street;
-    // xa phuong
     String ward;
-    // Quận huyện
     String district;
-    // Tỉnh thành phố
     String province;
-    // Mã bưu điện
-    String postalCode = "1000";
-    @Column(name = "additional_info")
+    String postalCode;
+
+    @Column(name = "additional_info", columnDefinition = "TEXT")
     String additionalInfo;
 
-    @ManyToOne
+    @Column(name = "is_default")
+    boolean isDefault = false;
+
+    @Enumerated(EnumType.STRING)
+    AddressType type = AddressType.HOME;
+    String label;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
-    @JoinColumn(name = "profile_id")
+    @JoinColumn(name = "profile_id", nullable = false)
     UserProfile profile;
+
+    @Column(name = "created_at", updatable = false)
+    LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    LocalDateTime updatedAt = LocalDateTime.now();
 }

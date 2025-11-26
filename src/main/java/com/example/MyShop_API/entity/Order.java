@@ -52,4 +52,6 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     List<OrderStatusHistory> statusHistory = new ArrayList<>();
 
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    OrderDeliveryAddress deliveryAddress;
 }

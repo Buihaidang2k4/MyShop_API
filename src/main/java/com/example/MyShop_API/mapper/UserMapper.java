@@ -20,8 +20,8 @@ public interface UserMapper {
 
     User toEntity(UserResponse userResponse);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "roles", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void update(UserUpdateRequest request, @MappingTarget User user);
 }

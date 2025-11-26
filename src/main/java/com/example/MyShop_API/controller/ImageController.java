@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -35,6 +36,8 @@ public class ImageController {
     ResponseEntity<ApiResponse> saveImages(@RequestPart("files") List<MultipartFile> files, @PathVariable("productId") Long productId) {
         try {
             List<ImageDTO> imageDTOs = imageService.saveImage(productId, files);
+
+
             return ResponseEntity.ok(new ApiResponse(200, "Upload success!", imageDTOs));
         } catch (AppException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(500, "Upload failed!", null));
@@ -53,6 +56,7 @@ public class ImageController {
     @GetMapping("/product/{productId}/images")
     ResponseEntity<ApiResponse> getImagesByProductId(@PathVariable Long productId) {
         List<ImageDTO> ds = imageService.getImageByProductId(productId);
+       
         return ResponseEntity.ok(new ApiResponse(200, "Get success!", ds));
     }
 

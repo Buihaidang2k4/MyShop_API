@@ -17,7 +17,7 @@ import java.io.IOException;
 @Slf4j
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    //     Convert khi callapi sai không trả về login mà trả về JSON tùy chỉnh Custom
+    //  Convert khi callapi sai không trả về login mà trả về JSON tùy chỉnh Custom
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         log.warn("Unauthorized access attempt: {}", authException.getMessage());

@@ -3,9 +3,7 @@ package com.example.MyShop_API.mapper;
 import com.example.MyShop_API.dto.request.UserProfileRequest;
 import com.example.MyShop_API.dto.response.UserProfileResponse;
 import com.example.MyShop_API.entity.UserProfile;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring", uses = {AddressMapper.class})
 public interface UserProfileMapper {
@@ -15,5 +13,6 @@ public interface UserProfileMapper {
     @Mapping(source = "cart", target = "cartResponse")
     UserProfileResponse toResponse(UserProfile userProfile);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void UpdateUserProfile(UserProfileRequest userProfileRequest, @MappingTarget UserProfile userProfile);
 }

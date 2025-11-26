@@ -3,9 +3,7 @@ package com.example.MyShop_API.mapper;
 import com.example.MyShop_API.dto.request.PaymentRequest;
 import com.example.MyShop_API.dto.response.PaymentResponse;
 import com.example.MyShop_API.entity.Payment;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface PaymentMapper {
@@ -13,5 +11,6 @@ public interface PaymentMapper {
 
     PaymentResponse toResponse(Payment payment);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void update(PaymentRequest paymentRequest, @MappingTarget Payment payment);
 }

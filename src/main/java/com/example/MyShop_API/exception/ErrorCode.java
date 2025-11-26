@@ -84,7 +84,7 @@ public enum ErrorCode {
     NOT_ENOUGH_RESERVED_STOCK(1903, "Not enough reserved stock", BAD_REQUEST),
 
     // ========== IMAGE ==========
-    IMAGE_NOT_FOUND(2000, "Image not found id: %d", NOT_FOUND),
+    IMAGE_NOT_FOUND(2000, "Image not found", NOT_FOUND),
 
     // ========== VALIDATION ==========
     VALIDATION_ERROR(2100, "Input data is not valid", BAD_REQUEST),

@@ -15,6 +15,8 @@ quản lý người dùng, sản phẩm, đơn hàng, giỏ hàng, thanh toán v
 - Swagger (SpringDoc OpenAPI)
 - Dotenv (quản lý biến môi trường)
 
+ <!-- JUnit + Spring Test + MockMvc -->
+
 ## 📦 Cài đặt
 
 ```bash

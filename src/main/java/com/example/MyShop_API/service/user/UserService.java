@@ -134,6 +134,7 @@ public class UserService implements IUserService {
         return userMapper.toResponse(findUser);
     }
 
+    @AdminOnly
     public void deleteUserById(Long id) {
         log.info("deleteUserById().........");
         userRepository.deleteById(id);

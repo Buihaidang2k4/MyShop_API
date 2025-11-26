@@ -3,9 +3,7 @@ package com.example.MyShop_API.mapper;
 import com.example.MyShop_API.dto.request.OrderRequest;
 import com.example.MyShop_API.dto.response.OrderResponse;
 import com.example.MyShop_API.entity.Order;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 import java.util.List;
 
@@ -22,5 +20,6 @@ public interface OrderMapper {
 
     List<OrderResponse> toResponse(List<Order> orders);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void update(OrderRequest orderRequest, @MappingTarget Order order);
 }
