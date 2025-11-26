@@ -92,6 +92,7 @@ public class UserService implements IUserService {
     }
 
     @AllAccess
+    @Transactional
     public void changePassword(ChangePasswordRequest request, Long id) {
         User user = userRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -114,12 +115,12 @@ public class UserService implements IUserService {
     }
 
     @AllAccess
-    public UserResponse updateUser(UserUpdateRequest request, Long id) {
+    @Transactional
+    public UserResponse updateRoleUser(UserUpdateRequest request, Long id) {
         log.info("updateUser().........");
         User findUser = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         userMapper.update(request, findUser);
-        findUser.setPassword(passwordEncoder.encode(findUser.getPassword()));
         var roles = roleRepository.findAllById(request.getRoles());
 
         findUser.setRoles(new HashSet<>(roles));
@@ -135,6 +136,7 @@ public class UserService implements IUserService {
     }
 
     @AdminOnly
+    @Transactional
     public void deleteUserById(Long id) {
         log.info("deleteUserById().........");
         userRepository.deleteById(id);

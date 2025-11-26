@@ -16,7 +16,7 @@ public interface IUserService {
 
     void changePassword(ChangePasswordRequest request, Long id);
 
-    UserResponse updateUser(UserUpdateRequest request, Long id);
+    UserResponse updateRoleUser(UserUpdateRequest request, Long id);
 
     void deleteUserById(Long id);
 

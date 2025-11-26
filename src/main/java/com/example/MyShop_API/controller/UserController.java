@@ -59,13 +59,13 @@ public class UserController {
                 .build();
     }
 
-    @PutMapping("/{id}/update")
+    @PutMapping("/{id}/update-role-user")
     ApiResponse<UserResponse> updateUser(
             @Valid @RequestBody UserUpdateRequest request
             , @PathVariable Long id) {
         return ApiResponse.<UserResponse>builder()
                 .code(200)
-                .data(userService.updateUser(request, id))
+                .data(userService.updateRoleUser(request, id))
                 .build();
     }
 
