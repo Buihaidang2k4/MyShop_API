@@ -20,6 +20,7 @@ public class OrderResponse {
     Long orderId;
     Long paymentId;
     Long profileId;
+    Long deliveryAddressId;
     LocalDate orderDate;
     BigDecimal totalAmount;
     String orderStatus;

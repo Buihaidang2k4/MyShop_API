@@ -3,6 +3,7 @@ package com.example.MyShop_API.controller;
 import com.example.MyShop_API.dto.request.CreateCouponRequest;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.service.coupon.ICouponService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -29,7 +30,7 @@ public class CouponController {
     }
 
     @PostMapping("/coupon/create")
-    ResponseEntity<ApiResponse> createCoupon(@RequestBody CreateCouponRequest request) {
+    ResponseEntity<ApiResponse> createCoupon(@Valid @RequestBody CreateCouponRequest request) {
         return ResponseEntity.ok(new ApiResponse<>(200, "create coupon success", couponService.createCoupon(request)));
     }
 

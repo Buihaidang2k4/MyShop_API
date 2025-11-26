@@ -13,6 +13,7 @@ public interface OrderMapper {
     Order toEntity(OrderRequest orderRequest);
 
     @Mapping(source = "payment.paymentId", target = "paymentId")
+    @Mapping(source = "deliveryAddress.id", target = "deliveryAddressId")
     @Mapping(source = "orderItems", target = "orderItemResponses")
     @Mapping(source = "profile.profileId", target = "profileId")
     @Mapping(source = "coupon", target = "couponResponse")

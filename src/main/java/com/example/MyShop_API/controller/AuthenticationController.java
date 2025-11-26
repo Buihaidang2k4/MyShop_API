@@ -59,7 +59,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/google")
-    ResponseEntity<ApiResponse> handleGoogleLogin(@RequestBody IntrospectRequest request
+    ResponseEntity<ApiResponse> handleGoogleLogin(@Valid @RequestBody IntrospectRequest request
             , HttpServletResponse response
     ) throws GeneralSecurityException, IOException {
 

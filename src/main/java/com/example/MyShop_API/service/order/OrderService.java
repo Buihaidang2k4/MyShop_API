@@ -15,6 +15,7 @@ import com.example.MyShop_API.repo.UserProfileRepository;
 import com.example.MyShop_API.service.cart.ICartService;
 import com.example.MyShop_API.service.coupon.ICouponService;
 import com.example.MyShop_API.service.inventory.IInventoryService;
+import com.example.MyShop_API.service.order_delivery_address.IOrderDeliveryAddressService;
 import com.example.MyShop_API.service.order_status_history.IOrderStatusHistoryService;
 import com.example.MyShop_API.service.payment.IPaymentService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,6 +47,7 @@ public class OrderService implements IOrderService {
     ICouponService couponService;
     IOrderStatusHistoryService historyService;
     PaymentRepository paymentRepository;
+    IOrderDeliveryAddressService deliveryAddressService;
 
     @Override
     public List<Order> getOrders() {
@@ -115,7 +117,17 @@ public class OrderService implements IOrderService {
             }
             order.setTotalAmount(newTotal);
         }
+
+
         Order savedOrder = orderRepository.save(order);
+
+        // set address shipping
+        OrderDeliveryAddress deliveryAddress = deliveryAddressService
+                .createDeliveryAddressFromAddressId(orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
+        deliveryAddress.setOrder(savedOrder);
+        order.setDeliveryAddress(deliveryAddress);
+
+
         // log audit status (system)
         historyService.logStatusChange(savedOrder, OrderStatus.PENDING, null);
 
@@ -163,9 +175,20 @@ public class OrderService implements IOrderService {
             if (newTotal.compareTo(BigDecimal.ZERO) < 0) {
                 newTotal = BigDecimal.ZERO;
             }
-            order.setTotalAmount(newTotal);
-            orderRepository.save(saveOrder);
+            saveOrder.setTotalAmount(newTotal);
         }
+
+        // set address shipping from address profile
+        OrderDeliveryAddress deliveryAddress = deliveryAddressService.createDeliveryAddressFromAddressId(
+                orderRequest.getAddressId(),
+                orderRequest.getProfileId(),
+                orderRequest.getOrderNote()
+        );
+
+        deliveryAddress.setOrder(saveOrder);
+        saveOrder.setDeliveryAddress(deliveryAddress);
+
+        saveOrder = orderRepository.save(saveOrder);
         try {
             // Process payment
             Object paymentResult = processPayment(saveOrder, orderRequest.getPaymentMethod(), request, orderRequest.getBankCode());

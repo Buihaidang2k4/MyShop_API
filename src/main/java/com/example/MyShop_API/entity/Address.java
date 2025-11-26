@@ -32,7 +32,7 @@ public class Address {
     String postalCode;
 
     @Column(name = "additional_info", columnDefinition = "TEXT")
-    String additionalInfo;
+    String additionalInfo; // note
 
     @Column(name = "is_default")
     boolean isDefault = false;

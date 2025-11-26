@@ -5,6 +5,7 @@ import com.example.MyShop_API.dto.request.UserProfileRequest;
 import com.example.MyShop_API.dto.response.UserProfileResponse;
 import com.example.MyShop_API.service.userprofie.IUserProfileService;
 import com.example.MyShop_API.service.userprofie.UserProfileService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,7 +32,7 @@ public class UserProfileController {
     }
 
     @PostMapping("/user/{userId}/createOrUpdateProfile")
-    ResponseEntity<ApiResponse> addUserProfile(@RequestBody UserProfileRequest userProfileRequest, @PathVariable Long userId) {
+    ResponseEntity<ApiResponse> addUserProfile(@Valid @RequestBody UserProfileRequest userProfileRequest, @PathVariable Long userId) {
         UserProfileResponse response = userProfileService.createOrUpdateProfile(userId, userProfileRequest);
         return ResponseEntity.ok(new ApiResponse(200, "profile created", response));
     }

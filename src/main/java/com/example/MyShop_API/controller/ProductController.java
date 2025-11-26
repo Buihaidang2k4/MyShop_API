@@ -8,6 +8,7 @@ import com.example.MyShop_API.entity.Product;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.mapper.ProductMapper;
 import com.example.MyShop_API.service.product.IProductService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -119,7 +120,7 @@ public class ProductController {
     }
 
     @PostMapping("/product/add")
-    ResponseEntity<ApiResponse<ProductResponse>> addProduct(@RequestBody AddProductRequest addProductRequest) {
+    ResponseEntity<ApiResponse<ProductResponse>> addProduct(@Valid @RequestBody AddProductRequest addProductRequest) {
         try {
             Product product = productService.addProduct(addProductRequest);
             return ResponseEntity.status(CREATED).body(new ApiResponse(201, "Add product successfully!", productMapper.toResponse(product)));
@@ -129,7 +130,7 @@ public class ProductController {
     }
 
     @PutMapping("/product/{productId}/update")
-    ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long productId, @RequestBody AddProductRequest addProductRequest) {
+    ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long productId, @Valid @RequestBody AddProductRequest addProductRequest) {
         try {
             Product product = productService.updateProduct(addProductRequest, productId);
             return ResponseEntity.status(ACCEPTED).body(new ApiResponse(200, "Update product successfully!", productMapper.toResponse(product)));

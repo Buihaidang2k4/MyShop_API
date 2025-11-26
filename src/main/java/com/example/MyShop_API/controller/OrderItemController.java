@@ -5,6 +5,7 @@ import com.example.MyShop_API.dto.request.OrderItemRequest;
 import com.example.MyShop_API.dto.response.OrderItemResponse;
 import com.example.MyShop_API.service.order.IOrderItemService;
 import com.example.MyShop_API.service.order.OrderItemService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -38,7 +39,7 @@ public class OrderItemController {
     }
 
     @PutMapping
-    ApiResponse<OrderItemResponse> updateOrderItem(@RequestBody OrderItemRequest orderItemRequest, @RequestParam Long orderItemId) {
+    ApiResponse<OrderItemResponse> updateOrderItem(@Valid @RequestBody OrderItemRequest orderItemRequest, @RequestParam Long orderItemId) {
         return ApiResponse.<OrderItemResponse>builder()
                 .code(200)
                 .message("OK")

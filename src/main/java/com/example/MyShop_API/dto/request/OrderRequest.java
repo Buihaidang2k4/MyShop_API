@@ -1,9 +1,7 @@
 package com.example.MyShop_API.dto.request;
 
 
-import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.Enum.PaymentMethod;
-import com.example.MyShop_API.entity.UserProfile;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -20,6 +18,7 @@ import lombok.experimental.FieldDefaults;
 public class OrderRequest {
     Long profileId;
     Long productId;
+    Long addressId;
 
     @Min(value = 1, message = "Quantity must be at least 1")
     int quantity; // Use Buy Now
@@ -28,4 +27,5 @@ public class OrderRequest {
     PaymentMethod paymentMethod; // VNPAY : CASH
     String bankCode = "NCB"; // VNPAY
     String couponCode;
+    String orderNote; // có thể null
 }
