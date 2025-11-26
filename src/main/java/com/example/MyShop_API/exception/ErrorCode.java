@@ -76,6 +76,8 @@ public enum ErrorCode {
     ORDER_ALREADY_DELIVERED(1806, "The order has been delivered but cannot be confirmed.", BAD_REQUEST),
     ORDER_ALREADY_CANCELLED(1807, "The order has been cancelled but cannot be update status.", BAD_REQUEST),
     ORDER_STATUS_FINAL(1808, "Unable to change completed order", BAD_REQUEST),
+    ORDER_NOT_DELIVERED(1809, "he order has not been delivered.", BAD_REQUEST),
+    ORDER_NOT_BELONG_TO_USER(1809, "You did not place this order.", BAD_REQUEST),
 
     // ========== INVENTORY ==========
     INVENTORY_DOES_NOT_EXIST(1900, "Inventory does not exist", NOT_FOUND),
@@ -96,6 +98,7 @@ public enum ErrorCode {
     // =========== REVIEW =================
     REVIEW_NOT_PURCHASED(2300, "You cannot review this item because you haven’t purchased it.", BAD_REQUEST),
     REVIEW_ALREADY_EXISTS(2301, "Review already exists", BAD_REQUEST),
+    REVIEW_ALREADY_EXISTS_FOR_THIS_ORDER(2301, "Review already exists for this order", BAD_REQUEST),
 
     // ============ EMAIL ===============
     EMAIL_NOT_FOUND(2400, "Email not found", HttpStatus.NOT_FOUND),

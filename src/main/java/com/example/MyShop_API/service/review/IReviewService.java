@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface IReviewService {
-    Review createReview(CreateReviewRequest request, Long profileId);
+    Review createReview(CreateReviewRequest request, Long profileId, Long orderId, Long productId);
 
     Page<ReviewResponse> findByProductId(Long productId, Pageable pageable);
 }

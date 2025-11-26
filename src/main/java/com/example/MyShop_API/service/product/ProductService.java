@@ -102,6 +102,7 @@ public class ProductService implements IProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getProducts() {
         log.info("=======getProducts======== ");
         return productRepository.findAll();
@@ -109,6 +110,7 @@ public class ProductService implements IProductService {
 
     // ============== GET ALL ===================
     @Override
+    @Transactional(readOnly = true)
     public Page<Product> getProducts(Pageable pageable) {
         return productRepository.findAll(pageable);
     }
@@ -122,6 +124,7 @@ public class ProductService implements IProductService {
 
     // ============ GET ALL BY PRODUCT NAME =============
     @Override
+    @Transactional(readOnly = true)
     public Product getProductByName(String productName) {
         Product product = productRepository.getProductByProductName(productName);
         if (product == null) {
@@ -132,6 +135,7 @@ public class ProductService implements IProductService {
 
     // ============== GET ALL BY CATEGORY NAME ============
     @Override
+    @Transactional(readOnly = true)
     public Page<Product> searchProductByCategory(String categoryName, Pageable pageable) {
         log.info("searchByCategory ");
 

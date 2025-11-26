@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -27,6 +28,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Slf4j
 @RestController
@@ -38,26 +44,61 @@ public class ReviewController {
     ReviewMapper reviewMapper;
     UserRepository userRepository;
 
-    @GetMapping("/product/{productId}")
-    public ResponseEntity<Page<ReviewResponse>> getReviewsByProduct(
-            @PathVariable Long productId,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+//    @GetMapping("/product/{productId}")
+//    public ResponseEntity<Page<ReviewResponse>> getReviewsByProduct(
+//            @PathVariable Long productId,
+//            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+//
+//        Page<ReviewResponse> reviews = reviewService.findByProductId(productId, pageable);
+//        return ResponseEntity.ok(reviews);
+//    }
 
-        Page<ReviewResponse> reviews = reviewService.findByProductId(productId, pageable);
-        return ResponseEntity.ok(reviews);
+    @GetMapping("/product/{productId}/reviews")
+    public ResponseEntity<ApiResponse<?>> getReviewsByProduct(
+            @PathVariable Long productId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction
+    ) {
+        try {
+            Sort sort = direction.equalsIgnoreCase("desc")
+                    ? Sort.by(sortBy).descending()
+                    : Sort.by(sortBy).ascending();
+
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<ReviewResponse> reviewRes = reviewService.findByProductId(productId, pageable);
+
+            Map<String, Object> res = new HashMap<>();
+            res.put("content", reviewRes.getContent());
+            res.put("size", reviewRes.getNumberOfElements());
+            res.put("direction", direction);
+            res.put("currentPage", reviewRes.getNumber());
+            res.put("totalItems", reviewRes.getTotalElements());
+            res.put("totalPages", reviewRes.getTotalPages());
+            res.put("sortBy", sortBy);
+
+            return ResponseEntity.ok(
+                    new ApiResponse<>(200, "Lấy đánh giá sản phẩm thành công!", res)
+            );
+        } catch (AppException e) {
+            return ResponseEntity.status(NOT_FOUND)
+                    .body(new ApiResponse<>(404, e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(500, "Lỗi hệ thống khi lấy đánh giá!", null));
+        }
     }
 
     @PostMapping("/create-review")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ReviewResponse> createReview(
             @Valid @RequestBody CreateReviewRequest request,
-            Principal principal) {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        UserProfile profile = user.getProfile();
-        if (profile == null) throw new AppException(ErrorCode.PROFILE_NOT_EXISTED);
-        Review review = reviewService.createReview(request, profile.getProfileId());
+            @RequestParam("profileId") Long profileId,
+            @RequestParam("orderId") Long orderId,
+            @RequestParam("productId") Long productId
+    ) {
+        Review review = reviewService.createReview(request, profileId, orderId, productId);
         ReviewResponse response = reviewMapper.toResponse(review);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

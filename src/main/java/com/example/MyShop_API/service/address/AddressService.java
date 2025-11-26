@@ -82,21 +82,16 @@ public class AddressService implements IAddressService {
         addressMapper.updateAddress(request, findAddress);
         findAddress.setUpdatedAt(LocalDateTime.now());
 
-        if (request.getIsDefault() != null) {
-            if (request.getIsDefault()) {
-                addressRepository.clearDefaultAddressForProfile(profileId);
-                findAddress.setIsDefault(true);
-            } else {
-                findAddress.setIsDefault(false);
-            }
+        if (request.getIsDefault() != null && request.getIsDefault()) {
+            List<Address> addresses = getAddressByProfileId(profileId);
+            addresses.forEach(addr -> addr.setIsDefault(false));
+            findAddress.setIsDefault(true);
         }
 
-        try {
-            findAddress = addressRepository.save(findAddress);
-            log.info("=====================Updating address==============");
-        } catch (DataIntegrityViolationException e) {
-            new AppException(ErrorCode.ADDRESS_EXISTED);
-        }
+
+        findAddress = addressRepository.save(findAddress);
+        log.info("=====================Updating address==============");
+
         return addressMapper.toResponse(findAddress);
     }
 

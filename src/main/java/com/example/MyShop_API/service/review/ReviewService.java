@@ -3,6 +3,7 @@ package com.example.MyShop_API.service.review;
 import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.dto.request.CreateReviewRequest;
 import com.example.MyShop_API.dto.response.ReviewResponse;
+import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.entity.Product;
 import com.example.MyShop_API.entity.Review;
 import com.example.MyShop_API.entity.UserProfile;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -35,25 +37,37 @@ public class ReviewService implements IReviewService {
     ReviewMapper reviewMapper;
 
     @Override
-    public Review createReview(CreateReviewRequest request, Long profileId) {
-        boolean purchased = orderRepository.existsByProfileProfileIdAndOrderItemsProductProductIdAndOrderStatusIn(profileId, request.getProductId(), List.of(OrderStatus.DELIVERED));
+    public Review createReview(CreateReviewRequest request, Long profileId, Long orderId, Long productId) {
+        log.info("====================== START CREATE REVIEW =======================");
 
-        if (!purchased) throw new AppException(ErrorCode.REVIEW_NOT_PURCHASED);
+        Product product = productRepository.findById(productId).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
+        UserProfile profile = profileRepository.findById(profileId).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
-        if (reviewRepository.existsByProfileProfileIdAndProductProductIdAndDeletedFalse(profileId, request.getProductId())) {
-            throw new AppException(ErrorCode.REVIEW_ALREADY_EXISTS);
+        boolean purchased = orderRepository.hasPurchasedProductInOrder(profile.getProfileId(), product.getProductId(), order.getOrderId(), List.of(OrderStatus.DELIVERED));
+
+        // 1. Kiểm tra đơn hàng có thuộc về user không
+        if (!order.getProfile().getProfileId().equals(profileId)) {
+            throw new AppException(ErrorCode.ORDER_NOT_BELONG_TO_USER);
         }
 
-        Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
-        UserProfile profile = profileRepository.findById(profileId).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
-        Review review = Review.builder()
-                .product(product)
-                .profile(profile)
-                .rating(request.getRating())
-                .comment(request.getComment())
-                .build();
+        // 2. Kiểm tra đơn đã giao thành công chưa
+        if (order.getOrderStatus() != OrderStatus.DELIVERED) {
+            throw new AppException(ErrorCode.ORDER_NOT_DELIVERED);
+        }
+        if (!purchased) throw new AppException(ErrorCode.REVIEW_NOT_PURCHASED);
 
-        log.info("Profile {} reviewed product {}", profile.getProfileId(), request.getProductId());
+        // 4. QUAN TRỌNG NHẤT: Chỉ cho đánh giá 1 lần cho 1 ĐƠN HÀNG + 1 SẢN PHẨM
+        boolean alreadyReviewed = reviewRepository.existsReviewForOrderAndProduct(profileId, orderId, productId);
+
+        if (alreadyReviewed) {
+            throw new AppException(ErrorCode.REVIEW_ALREADY_EXISTS_FOR_THIS_ORDER);
+        }
+        Review review = Review.builder().product(product).profile(profile)
+                .order(order).customerName(profile.getUsername()).rating(request.getRating()).comment(request.getComment()).createdAt(LocalDateTime.now()).build();
+
+        log.info("Profile {} reviewed product {}", profileId, productId);
+        log.info("====================== END CREATE REVIEW =======================");
         return reviewRepository.save(review);
     }
 

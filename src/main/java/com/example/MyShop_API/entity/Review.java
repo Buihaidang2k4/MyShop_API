@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reviews",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"product_id", "profile_id"}),
         indexes = {
                 @Index(columnList = "product_id"),
+                @Index(columnList = "order_id"),
                 @Index(columnList = "profile_id")
         })
 @Getter
@@ -32,6 +32,12 @@ public class Review {
     @JoinColumn(name = "profile_id", nullable = false)
     UserProfile profile;
 
+    // THÊM DÒNG NÀY – BẮT BUỘC!
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    Order order;
+
+    String customerName;
     int rating;
     String comment;
     LocalDateTime createdAt = LocalDateTime.now();

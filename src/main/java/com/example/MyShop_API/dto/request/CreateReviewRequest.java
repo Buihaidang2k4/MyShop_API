@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Builder
 public class CreateReviewRequest {
-    private Long productId;
+
     @Min(1)
     @Max(5)
     private int rating;
