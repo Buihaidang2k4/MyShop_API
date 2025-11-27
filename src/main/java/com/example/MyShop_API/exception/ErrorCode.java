@@ -96,8 +96,8 @@ public enum ErrorCode {
     COUPON_LIMIT_PER_USER_EXCEEDED(2200, "Coupon limit per user exceeded", BAD_REQUEST),
 
     // =========== REVIEW =================
-    REVIEW_NOT_PURCHASED(2300, "You cannot review this item because you haven’t purchased it.", BAD_REQUEST),
-    REVIEW_ALREADY_EXISTS(2301, "Review already exists", BAD_REQUEST),
+    REVIEW_NOT_PURCHASED(2300, "You cannot review this item because you haven’t purchased it or it has not been delivered yet.", BAD_REQUEST),
+    REVIEW_ALREADY_EXISTS(2301, "Review already exists in this order.", BAD_REQUEST),
     REVIEW_ALREADY_EXISTS_FOR_THIS_ORDER(2301, "Review already exists for this order", BAD_REQUEST),
 
     // ============ EMAIL ===============

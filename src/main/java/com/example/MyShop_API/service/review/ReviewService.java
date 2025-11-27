@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -44,7 +45,15 @@ public class ReviewService implements IReviewService {
         UserProfile profile = profileRepository.findById(profileId).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
-        boolean purchased = orderRepository.hasPurchasedProductInOrder(profile.getProfileId(), product.getProductId(), order.getOrderId(), List.of(OrderStatus.DELIVERED));
+        boolean purchased = orderRepository
+                .hasPurchasedProductInOrder(
+                        profile.getProfileId(),
+                        product.getProductId(),
+                        order.getOrderId(),
+                        List.of(OrderStatus.DELIVERED)
+                );
+
+        if (!purchased) throw new AppException(ErrorCode.REVIEW_NOT_PURCHASED);
 
         // 1. Kiểm tra đơn hàng có thuộc về user không
         if (!order.getProfile().getProfileId().equals(profileId)) {
@@ -55,16 +64,26 @@ public class ReviewService implements IReviewService {
         if (order.getOrderStatus() != OrderStatus.DELIVERED) {
             throw new AppException(ErrorCode.ORDER_NOT_DELIVERED);
         }
-        if (!purchased) throw new AppException(ErrorCode.REVIEW_NOT_PURCHASED);
 
-        // 4. QUAN TRỌNG NHẤT: Chỉ cho đánh giá 1 lần cho 1 ĐƠN HÀNG + 1 SẢN PHẨM
+
+        // Chỉ cho đánh giá 1 lần cho 1 ĐƠN HÀNG + 1 SẢN PHẨM
         boolean alreadyReviewed = reviewRepository.existsReviewForOrderAndProduct(profileId, orderId, productId);
 
         if (alreadyReviewed) {
             throw new AppException(ErrorCode.REVIEW_ALREADY_EXISTS_FOR_THIS_ORDER);
         }
-        Review review = Review.builder().product(product).profile(profile)
-                .order(order).customerName(profile.getUsername()).rating(request.getRating()).comment(request.getComment()).createdAt(LocalDateTime.now()).build();
+
+        String usernameRating = profile.getUsername() != null ? profile.getUsername() : "anonymous" + UUID.randomUUID().toString().substring(0, 5).toUpperCase();
+
+        Review review = Review.builder()
+                .product(product)
+                .profile(profile)
+                .order(order)
+                .customerName(usernameRating)
+                .rating(request.getRating())
+                .comment(request.getComment())
+                .createdAt(LocalDateTime.now())
+                .build();
 
         log.info("Profile {} reviewed product {}", profileId, productId);
         log.info("====================== END CREATE REVIEW =======================");

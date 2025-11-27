@@ -24,6 +24,7 @@ public class UserProfile {
     Long profileId;
     @Column(name = "username", columnDefinition = "VARCHAR(255) COLLATE utf8mb4_unicode_ci")
     String username;
+
     Boolean gender;
     LocalDate birthDate;
     String mobileNumber;
