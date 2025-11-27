@@ -26,6 +26,8 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long orderId;
     LocalDate orderDate;
+    BigDecimal shippingFee = BigDecimal.ZERO;
+    BigDecimal discountAmount = BigDecimal.ZERO;
     BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)

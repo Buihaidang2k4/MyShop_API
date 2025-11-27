@@ -43,10 +43,19 @@ public class CouponService implements ICouponService {
     @AdminOnly
     @Override
     public Coupon createCoupon(CreateCouponRequest request) {
+        validateCreateCoupon(request);
+
         Coupon coupon = couponMapper.toCoupon(request);
+        if (request.getStartDate() == null) {
+            coupon.setStartDate(LocalDateTime.now());
+        }
         String couponCodeRandom = generateCode(request.getCode());
         coupon.setCode(couponCodeRandom);
 
+        // check couponCode duplicate
+        if (couponRepository.existsByCode(coupon.getCode())) {
+            throw new AppException(ErrorCode.COUPON_CODE_IS_EXISTED);
+        }
         return couponRepository.save(coupon);
     }
 
@@ -63,7 +72,7 @@ public class CouponService implements ICouponService {
                                          BigDecimal orderTotal,
                                          Order order,
                                          UserProfile profile) {
-
+        log.info("================== START APPLY COUPON ==================");
         Coupon coupon = couponRepository.findByCodeIgnoreCaseAndEnabledTrue(couponCode)
                 .filter(Coupon::isUsable)
                 .filter(c -> c.getMinOrderValue() == null || orderTotal.compareTo(c.getMinOrderValue()) >= 0)
@@ -95,6 +104,7 @@ public class CouponService implements ICouponService {
         coupon.incrementUsedCount();
         couponRepository.save(coupon); // ← BẮT BUỘC
 
+        log.info("================= END APPLY COUPON ================");
         log.info("Coupon {} applied to order {}. Discount: {}", couponCode, order.getOrderId(), discount);
         return discount;
     }
@@ -104,4 +114,43 @@ public class CouponService implements ICouponService {
         return prefix.toUpperCase() + "-" + random;
     }
 
+    private void validateCreateCoupon(CreateCouponRequest request) {
+        // 1. Validate discount type + value
+        if (request.getDiscountType() == DiscountType.PERCENTAGE) {
+            if (request.getDiscountPercent() == null) {
+                throw new AppException(ErrorCode.COUPON_INVALID_PERCENTAGE);
+            }
+            if (request.getDiscountAmount() != null) {
+                throw new AppException(ErrorCode.COUPON_INVALID_FIXED_AMOUNT);
+            }
+        } else if (request.getDiscountType() == DiscountType.FIXED_AMOUNT) {
+            if (request.getDiscountAmount() == null) {
+                throw new AppException(ErrorCode.COUPON_INVALID_FIXED_AMOUNT);
+            }
+            if (request.getDiscountPercent() != null) {
+                throw new AppException(ErrorCode.COUPON_INVALID_PERCENTAGE);
+            }
+        } else {
+            throw new AppException(ErrorCode.COUPON_INVALID_TYPE);
+        }
+
+        // 2. Validate date range
+        if (request.getStartDate() != null && request.getExpiryDate() != null &&
+                request.getStartDate().isAfter(request.getExpiryDate())) {
+            throw new AppException(ErrorCode.COUPON_INVALID_DATE_RANGE);
+        }
+
+        // 3. usageLimit >= usedCount
+        if (request.getUsageLimit() != null &&
+                request.getUsedCount() > request.getUsageLimit()) {
+            throw new AppException(ErrorCode.COUPON_INVALID_USAGE_LIMIT);
+        }
+
+
+        // 4. per-user validate
+        if (request.isLimitPerUser() &&
+                (request.getMaxUsesPerUser() == null || request.getMaxUsesPerUser() < 1)) {
+            throw new AppException(ErrorCode.COUPON_INVALID_MAX_USES_PER_USER);
+        }
+    }
 }

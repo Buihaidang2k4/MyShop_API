@@ -42,18 +42,8 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class ReviewController {
     IReviewService reviewService;
     ReviewMapper reviewMapper;
-    UserRepository userRepository;
 
-//    @GetMapping("/product/{productId}")
-//    public ResponseEntity<Page<ReviewResponse>> getReviewsByProduct(
-//            @PathVariable Long productId,
-//            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-//
-//        Page<ReviewResponse> reviews = reviewService.findByProductId(productId, pageable);
-//        return ResponseEntity.ok(reviews);
-//    }
-
-    @GetMapping("/product/{productId}/reviews")
+    @GetMapping("/product/{productId}")
     public ResponseEntity<ApiResponse<?>> getReviewsByProduct(
             @PathVariable Long productId,
             @RequestParam(defaultValue = "0") int page,
@@ -100,8 +90,14 @@ public class ReviewController {
     ) {
         Review review = reviewService.createReview(request, profileId, orderId, productId);
         ReviewResponse response = reviewMapper.toResponse(review);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/product/{productId}/avg-rating")
+    public ResponseEntity<ApiResponse<?>> getAvgRatingReview(@PathVariable Long productId) {
+        return ResponseEntity.ok(
+                new ApiResponse<>(200, "Get rating avg success",
+                        reviewService.calculateAverageRatingByProductId(productId)));
     }
 
 }

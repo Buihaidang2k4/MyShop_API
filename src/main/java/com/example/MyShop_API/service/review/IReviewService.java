@@ -10,4 +10,6 @@ public interface IReviewService {
     Review createReview(CreateReviewRequest request, Long profileId, Long orderId, Long productId);
 
     Page<ReviewResponse> findByProductId(Long productId, Pageable pageable);
+
+    Long calculateAverageRatingByProductId(Long productId);
 }

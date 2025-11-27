@@ -1,7 +1,6 @@
 package com.example.MyShop_API.dto.response;
 
 
-import com.example.MyShop_API.entity.Coupon;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,9 +20,11 @@ public class OrderResponse {
     Long paymentId;
     Long profileId;
     Long deliveryAddressId;
-    LocalDate orderDate;
+    BigDecimal shippingFee;
+    BigDecimal discountAmount;
     BigDecimal totalAmount;
     String orderStatus;
+    LocalDate orderDate;
     List<OrderItemResponse> orderItemResponses;
     CouponResponse couponResponse;
 }

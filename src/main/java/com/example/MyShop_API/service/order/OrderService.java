@@ -76,9 +76,7 @@ public class OrderService implements IOrderService {
     @Transactional
     public Object buyNow(OrderRequest orderRequest, HttpServletRequest request) throws AppException {
         log.info("================= START BUY NOW ===================");
-
         Product product = productRepository.findById(orderRequest.getProductId()).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
-
         UserProfile profile = profileRepository.findById(orderRequest.getProfileId()).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
 
         // Check stock
@@ -86,11 +84,7 @@ public class OrderService implements IOrderService {
         if (!reserved) throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
 
         // create order + orderItem
-        Order order = Order.builder()
-                .profile(profile)
-                .orderDate(LocalDate.now())
-                .orderStatus(OrderStatus.PENDING)
-                .build();
+        Order order = Order.builder().profile(profile).orderDate(LocalDate.now()).orderStatus(OrderStatus.PENDING).build();
 
         OrderItem orderItem = OrderItem.builder()
                 .product(product)
@@ -100,35 +94,30 @@ public class OrderService implements IOrderService {
                 .build();
 
         order.setOrderItems(new HashSet<>(List.of(orderItem)));
-        order.setTotalAmount(orderItem.getPrice()
-                .multiply(BigDecimal.valueOf(orderItem.getQuantity())));
+
+        // calculate final total
+//        order.setTotalAmount(orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())));
+        calculateTotalAmount(order, orderRequest.getShippingFee(), orderRequest.getCouponCode(), profile);
 
         // apply coupon if any
-        if (orderRequest.getCouponCode() != null && !orderRequest.getCouponCode().isBlank()) {
-            BigDecimal discount = couponService.applyCouponToOrder(
-                    orderRequest.getCouponCode()
-                    , order.getTotalAmount()
-                    , order
-                    , profile);
-
-            log.info("discount: {}", discount);
-            order.setTotalAmount(order.getTotalAmount().subtract(discount));
-            BigDecimal newTotal = order.getTotalAmount();
-            if (newTotal.compareTo(BigDecimal.ZERO) < 0) {
-                newTotal = BigDecimal.ZERO;
-            }
-            order.setTotalAmount(newTotal);
-        }
-
+//        if (orderRequest.getCouponCode() != null && !orderRequest.getCouponCode().isBlank()) {
+//            BigDecimal discount = couponService.applyCouponToOrder(orderRequest.getCouponCode(), order.getTotalAmount(), order, profile);
+//
+//            log.info("discount: {}", discount);
+//            order.setTotalAmount(order.getTotalAmount().subtract(discount));
+//            BigDecimal newTotal = order.getTotalAmount();
+//            if (newTotal.compareTo(BigDecimal.ZERO) < 0) {
+//                newTotal = BigDecimal.ZERO;
+//            }
+//            order.setTotalAmount(newTotal);
+//        }
 
         Order savedOrder = orderRepository.save(order);
 
         // set address shipping
-        OrderDeliveryAddress deliveryAddress = deliveryAddressService
-                .createDeliveryAddressFromAddressId(orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
+        OrderDeliveryAddress deliveryAddress = deliveryAddressService.createDeliveryAddressFromAddressId(orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
         deliveryAddress.setOrder(savedOrder);
         order.setDeliveryAddress(deliveryAddress);
-
 
         // log audit status (system)
         historyService.logStatusChange(savedOrder, OrderStatus.PENDING, null);
@@ -161,37 +150,30 @@ public class OrderService implements IOrderService {
                 throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
             }
         });
+
         // Tạo đơn hàng
         Order order = createOrderFromCart(cart);
-        Order saveOrder = orderRepository.save(order);
 
         // apply coupon if any
-        if (orderRequest.getCouponCode() != null && !orderRequest.getCouponCode().isBlank()) {
-            BigDecimal discount = couponService
-                    .applyCouponToOrder(
-                            orderRequest.getCouponCode().trim(),
-                            saveOrder.getTotalAmount(),
-                            saveOrder,
-                            saveOrder.getProfile());
-            saveOrder.setTotalAmount(saveOrder.getTotalAmount().subtract(discount));
-            BigDecimal newTotal = saveOrder.getTotalAmount();
-            if (newTotal.compareTo(BigDecimal.ZERO) < 0) {
-                newTotal = BigDecimal.ZERO;
-            }
-            saveOrder.setTotalAmount(newTotal);
-        }
+//        if (orderRequest.getCouponCode() != null && !orderRequest.getCouponCode().isBlank()) {
+//            BigDecimal discount = couponService.applyCouponToOrder(orderRequest.getCouponCode().trim(), saveOrder.getTotalAmount(), saveOrder, saveOrder.getProfile());
+//            saveOrder.setTotalAmount(saveOrder.getTotalAmount().subtract(discount));
+//            BigDecimal newTotal = saveOrder.getTotalAmount();
+//            if (newTotal.compareTo(BigDecimal.ZERO) < 0) {
+//                newTotal = BigDecimal.ZERO;
+//            }
+//            saveOrder.setTotalAmount(newTotal);
+//        }
+
+        calculateTotalAmount(order, orderRequest.getShippingFee(), orderRequest.getCouponCode(), cart.getProfile());
+        Order saveOrder = orderRepository.save(order);
 
         // set address shipping from address profile
-        OrderDeliveryAddress deliveryAddress = deliveryAddressService.createDeliveryAddressFromAddressId(
-                orderRequest.getAddressId(),
-                orderRequest.getProfileId(),
-                orderRequest.getOrderNote()
-        );
-
+        OrderDeliveryAddress deliveryAddress = deliveryAddressService.createDeliveryAddressFromAddressId(orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
         deliveryAddress.setOrder(saveOrder);
         saveOrder.setDeliveryAddress(deliveryAddress);
-
         saveOrder = orderRepository.save(saveOrder);
+
         try {
             // Process payment
             Object paymentResult = processPayment(saveOrder, orderRequest.getPaymentMethod(), request, orderRequest.getBankCode());
@@ -277,10 +259,7 @@ public class OrderService implements IOrderService {
         }
 
         for (OrderItem item : items) {
-            inventoryService.confirmOrder(
-                    item.getProduct().getProductId(),
-                    item.getQuantity()
-            );
+            inventoryService.confirmOrder(item.getProduct().getProductId(), item.getQuantity());
         }
 
         paymentRepository.save(payment);
@@ -364,20 +343,58 @@ public class OrderService implements IOrderService {
         throw new AppException(ErrorCode.PAYMENT_METHOD_NOT_SUPPORT);
     }
 
+    // =========== CREATE ORDER FROM CART =============
     private Order createOrderFromCart(Cart cart) {
         Order order = Order.builder().profile(cart.getProfile()).orderDate(LocalDate.now()).orderStatus(OrderStatus.PENDING).build();
 
-        List<OrderItem> orderItems = cart.getCartItems().stream().map(ci -> OrderItem.builder().order(order).product(ci.getProduct()).quantity(ci.getQuantity()).price(ci.getUnitPrice()).build()).collect(Collectors.toList());
+        List<OrderItem> orderItems = cart.getCartItems().stream()
+                .map(ci ->
+                        OrderItem.builder()
+                                .order(order)
+                                .product(ci.getProduct()).
+                                quantity(ci.getQuantity())
+                                .price(ci.getUnitPrice()).build())
+                .collect(Collectors.toList());
 
         order.setOrderItems(new HashSet<>(orderItems));
-        order.setTotalAmount(calculateTotalAmount(orderItems));
-
         return order;
     }
 
-    private BigDecimal calculateTotalAmount(List<OrderItem> orderItems) {
-        return orderItems.stream().map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+    // ============== CALCULATE TOTAL AMOUNT ==================
+    private void calculateTotalAmount(Order order, BigDecimal shippingFee, String couponCode, UserProfile profile) {
+        // total amount from order
+        BigDecimal itemTotalAmount = order.getOrderItems().stream()
+                .map(oi -> oi.getPrice().multiply(BigDecimal.valueOf(oi.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        order.setTotalAmount(itemTotalAmount);
+
+        // shipping fee
+        order.setShippingFee(shippingFee != null && shippingFee.compareTo(BigDecimal.ZERO) >= 0 ? shippingFee : BigDecimal.ZERO);
+        order.setDiscountAmount(BigDecimal.ZERO);
+
+        // add shipping fee
+        order.setTotalAmount(order.getTotalAmount().add(order.getShippingFee()));
+
+        //  apply coupon
+        if (couponCode != null && !couponCode.isBlank()) {
+            try {
+                BigDecimal discount = couponService.applyCouponToOrder(
+                        couponCode,
+                        order.getTotalAmount(), // + ship
+                        order,
+                        profile
+                );
+
+                order.setDiscountAmount(discount);
+                order.setTotalAmount(order.getTotalAmount().subtract(discount));
+                if (order.getTotalAmount().compareTo(BigDecimal.ZERO) < 0) order.setTotalAmount(BigDecimal.ZERO);
+            } catch (AppException e) {
+                log.warn("Coupon invalid or expired: {}", couponCode);
+            }
+        }
     }
+
 
     private void confirmOrderInventory(Order order) {
         order.getOrderItems().forEach(item -> inventoryService.confirmOrder(item.getProduct().getProductId(), item.getQuantity()));

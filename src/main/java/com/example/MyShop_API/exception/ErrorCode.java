@@ -94,11 +94,20 @@ public enum ErrorCode {
     // ========== COUPON ==========
     COUPON_INVALID(2200, "This coupon is invalid or cannot be applied to your order.", BAD_REQUEST),
     COUPON_LIMIT_PER_USER_EXCEEDED(2200, "Coupon limit per user exceeded", BAD_REQUEST),
+    COUPON_INVALID_PERCENTAGE(2201, "Invalid percentage discount value", BAD_REQUEST),
+    COUPON_INVALID_FIXED_AMOUNT(2202, "Invalid fixed amount value", BAD_REQUEST),
+    COUPON_INVALID_TYPE(2203, "Invalid coupon discount type", BAD_REQUEST),
+    COUPON_INVALID_DATE_RANGE(2204, "Start date must be before expiry date", BAD_REQUEST),
+    COUPON_CODE_IS_EXISTED(2205, "Coupon code already exists", BAD_REQUEST),
+    COUPON_INVALID_USAGE_LIMIT(2206, "Used count cannot exceed usage limit", BAD_REQUEST),
+    COUPON_INVALID_MAX_USES_PER_USER(2207, "Max uses per user must be >= 1 when per-user limit is enabled", BAD_REQUEST),
+
 
     // =========== REVIEW =================
     REVIEW_NOT_PURCHASED(2300, "You cannot review this item because you haven’t purchased it or it has not been delivered yet.", BAD_REQUEST),
     REVIEW_ALREADY_EXISTS(2301, "Review already exists in this order.", BAD_REQUEST),
-    REVIEW_ALREADY_EXISTS_FOR_THIS_ORDER(2301, "Review already exists for this order", BAD_REQUEST),
+    REVIEW_ALREADY_EXISTS_FOR_THIS_ORDER(2302, "Review already exists for this order", BAD_REQUEST),
+    REVIEW_NOT_EXISTED(2303, "Review is not found", BAD_REQUEST),
 
     // ============ EMAIL ===============
     EMAIL_NOT_FOUND(2400, "Email not found", HttpStatus.NOT_FOUND),

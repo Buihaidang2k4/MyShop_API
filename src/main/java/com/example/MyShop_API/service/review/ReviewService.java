@@ -24,6 +24,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.OptionalDouble;
+import java.util.OptionalLong;
 import java.util.UUID;
 
 @Service
@@ -45,13 +47,7 @@ public class ReviewService implements IReviewService {
         UserProfile profile = profileRepository.findById(profileId).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
-        boolean purchased = orderRepository
-                .hasPurchasedProductInOrder(
-                        profile.getProfileId(),
-                        product.getProductId(),
-                        order.getOrderId(),
-                        List.of(OrderStatus.DELIVERED)
-                );
+        boolean purchased = orderRepository.hasPurchasedProductInOrder(profile.getProfileId(), product.getProductId(), order.getOrderId(), List.of(OrderStatus.DELIVERED));
 
         if (!purchased) throw new AppException(ErrorCode.REVIEW_NOT_PURCHASED);
 
@@ -75,15 +71,7 @@ public class ReviewService implements IReviewService {
 
         String usernameRating = profile.getUsername() != null ? profile.getUsername() : "anonymous" + UUID.randomUUID().toString().substring(0, 5).toUpperCase();
 
-        Review review = Review.builder()
-                .product(product)
-                .profile(profile)
-                .order(order)
-                .customerName(usernameRating)
-                .rating(request.getRating())
-                .comment(request.getComment())
-                .createdAt(LocalDateTime.now())
-                .build();
+        Review review = Review.builder().product(product).profile(profile).order(order).customerName(usernameRating).rating(request.getRating()).comment(request.getComment()).createdAt(LocalDateTime.now()).build();
 
         log.info("Profile {} reviewed product {}", profileId, productId);
         log.info("====================== END CREATE REVIEW =======================");
@@ -93,5 +81,15 @@ public class ReviewService implements IReviewService {
     @Override
     public Page<ReviewResponse> findByProductId(Long productId, Pageable pageable) {
         return reviewRepository.findByProductProductIdAndDeletedFalse(productId, pageable).map(reviewMapper::toResponse);
+    }
+
+    @Override
+    public Long calculateAverageRatingByProductId(Long productId) {
+        List<Review> reviews = reviewRepository.findByProductProductId(productId);
+
+        if (reviews.isEmpty()) return 0L;
+
+        OptionalDouble avg = reviews.stream().mapToDouble(Review::getRating).average();
+        return Math.round(avg.getAsDouble());
     }
 }

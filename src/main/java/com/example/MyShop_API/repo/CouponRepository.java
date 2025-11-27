@@ -26,4 +26,6 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     List<Coupon> findAvailableCoupons(@Param("orderTotal") BigDecimal orderTotal,
                                       @Param("now") LocalDateTime now
     );
+
+    boolean existsByCode(String code);
 }

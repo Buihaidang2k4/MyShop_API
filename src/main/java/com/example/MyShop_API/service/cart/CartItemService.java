@@ -55,7 +55,7 @@ public class CartItemService implements ICartItemService {
                     .cart(cart)
                     .product(product)
                     .quantity(quantity)
-                    .unitPrice(product.getPrice())
+                    .unitPrice(product.getSpecialPrice() != null ? product.getSpecialPrice() : product.getPrice())
                     .build();
 
             cartItem.setTotalPrice();
