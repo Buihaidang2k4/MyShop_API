@@ -75,6 +75,8 @@ public class OrderService implements IOrderService {
     @Override
     @Transactional
     public Object buyNow(OrderRequest orderRequest, HttpServletRequest request) throws AppException {
+        log.info("================= START BUY NOW ===================");
+
         Product product = productRepository.findById(orderRequest.getProductId()).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
 
         UserProfile profile = profileRepository.findById(orderRequest.getProfileId()).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
@@ -132,6 +134,7 @@ public class OrderService implements IOrderService {
         historyService.logStatusChange(savedOrder, OrderStatus.PENDING, null);
 
         try {
+            log.info("================= END BUY NOW ===================");
             // payment
             return processPayment(savedOrder, orderRequest.getPaymentMethod(), request, orderRequest.getBankCode());
         } catch (AppException e) {
@@ -146,7 +149,7 @@ public class OrderService implements IOrderService {
     @Override
     @Transactional
     public Object placeOrder(OrderRequest orderRequest, HttpServletRequest request) {
-        log.info("placeOrder().........");
+        log.info("================= START PLACE ORDER ===================");
 
         // Đặt hàng
         Cart cart = cartService.getCartByUserProfileId(orderRequest.getProfileId());
@@ -197,7 +200,7 @@ public class OrderService implements IOrderService {
                 confirmOrderInventory(saveOrder);
                 cartService.clearCart(cart.getCartId());
             }
-
+            log.info("================= END PLACE ORDER ===================");
             return paymentResult;
         } catch (Exception e) {
             // Hoàn hàng nếu có lỗi

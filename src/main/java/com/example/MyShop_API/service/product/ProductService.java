@@ -36,7 +36,7 @@ public class ProductService implements IProductService {
 
     @Transactional
     public Product addProduct(AddProductRequest request) {
-
+        log.info("=================== START ADD PRODUCT ====================");
         // Tìm danh mục , nếu không có tạo mới
         Category category = Optional.ofNullable(categoryRepository.findByCategoryName(request.getCategory().getCategoryName()))
                 .orElseGet(() -> {
@@ -59,12 +59,13 @@ public class ProductService implements IProductService {
 
         // Khởi tạo tồn kho cho product
         inventoryService.initializeInventory(product, request.getQuantity());
-
+        log.info("=================== END ADD PRODUCT ====================");
         return product;
     }
 
     @Transactional
     public Product updateProduct(AddProductRequest request, Long productId) {
+        log.info("=================== START UPDATE PRODUCT ===================");
         Product findProduct = productRepository.findById(productId).orElseThrow(
                 () -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
 
@@ -83,7 +84,7 @@ public class ProductService implements IProductService {
 
         // Tính lại giá sản phẩm đặc biệt nếu có mã giảm giá
         findProduct.setSpecialPrice(calculateSpecialPrice(request.getPrice(), request.getDiscount()));
-
+        log.info("=================== END UPDATE PRODUCT ===================");
         return productRepository.save(findProduct);
     }
 

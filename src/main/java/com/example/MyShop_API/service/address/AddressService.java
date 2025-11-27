@@ -50,6 +50,7 @@ public class AddressService implements IAddressService {
 
     @Transactional
     public AddressResponse createAddress(AddressRequest request, Long profileId) {
+        log.info("=============START CREATING ADDRESS=========================");
         UserProfile userProfile = userProfileRepository.findById(profileId).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTED));
 
@@ -70,12 +71,13 @@ public class AddressService implements IAddressService {
 
         // luu
         address = addressRepository.save(address);
-        log.info("=============Creating address=========================");
+        log.info("=============END CREATING ADDRESS=========================");
         return addressMapper.toResponse(address);
     }
 
     @Transactional
     public AddressResponse updateAddress(Long addressId, Long profileId, AddressUpdateRequest request) {
+        log.info("===================== START UPDATE ADDRESS ==============");
         Address findAddress = addressRepository.findById(addressId).orElseThrow(() ->
                 new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
 
@@ -88,14 +90,14 @@ public class AddressService implements IAddressService {
             findAddress.setIsDefault(true);
         }
 
-
         findAddress = addressRepository.save(findAddress);
-        log.info("=====================Updating address==============");
 
+        log.info("===================== END UPDATE ADDRESS ==============");
         return addressMapper.toResponse(findAddress);
     }
 
     public void deleteAddress(Long addressId, Long profileId) {
+        log.info("=====================START DELETE ADDRESS==============");
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
 
@@ -104,7 +106,8 @@ public class AddressService implements IAddressService {
         }
 
         addressRepository.delete(address);
-        log.info("=====================Deleting address==============");
+        log.info("=====================END DELETE ADDRESS==============");
+
     }
 
 

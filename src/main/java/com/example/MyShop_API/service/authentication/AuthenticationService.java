@@ -77,7 +77,7 @@ public class AuthenticationService implements IAuthenticationService {
      * @return
      */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-
+        log.info("======================= START LOGIN ======================");
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
                 () -> new AppException(ErrorCode.INVALID_CREDENTIALS)
         );
@@ -95,7 +95,7 @@ public class AuthenticationService implements IAuthenticationService {
 
         // Lưu token mới vào Redis (không ghi DB)
         blacklistService.storeRefreshToken(user.getId(), refreshToken);
-
+        log.info("======================= END LOGIN ======================");
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
