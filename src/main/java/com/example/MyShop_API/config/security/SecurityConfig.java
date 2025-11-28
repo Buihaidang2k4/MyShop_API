@@ -1,5 +1,6 @@
 package com.example.MyShop_API.config.security;
 
+import com.example.MyShop_API.anotation.AdminOnly;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -19,22 +20,32 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * Allow or block requests
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class SecurityConfig {
-    private static final String[] PUBLIC_ENPOINT = {
+    private static final String[] PUBLIC_ENDPOINT = {
             // Auth
             "/api/v1/auth/**", "/api/v1/auth/google",
-            // User
             "/api/v1/users/registration",
+            "/api/v1/auth/forgot-password",
+            "/api/v1/auth/reset-password",
+
+            // categories
             "/api/v1/categories/**",
+
             // product
-            "/api/v1/products/**",
-            // payment
-            "/api/v1/payment/**",
+            "/api/v1/products/product/*",
+            "/api/v1/products/product/by-product-name",
+            "/api/v1/products/page",
+            "/api/v1/products/category/by-category-name",
+            "/api/v1/products/all",
+
             // Image
             "/api/v1/images/**",
     };
@@ -48,13 +59,12 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth ->
-                        auth
-                                .requestMatchers(PUBLIC_ENPOINT).permitAll()
-                                .anyRequest().authenticated()
-                )
                 .httpBasic(httpBasicAuth -> httpBasicAuth.disable())
-                .securityMatcher(request -> !isSwaggerRequest(request))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(SecurityWhitelist.PUBLIC_ENDPOINTS.toArray(String[]::new)).permitAll()
+                        .requestMatchers(SecurityWhitelist.SWAGGER_ENDPOINTS.toArray(new String[0])).permitAll()
+                        .anyRequest().authenticated()
+                )
                 .oauth2ResourceServer(oauth -> oauth
                         .bearerTokenResolver(new CookieBearerTokenResolver(ACCESS_TOKEN_NAME))
                         .jwt(jwtConfigurer -> jwtConfigurer
@@ -64,14 +74,6 @@ public class SecurityConfig {
                 );
 
         return http.build();
-    }
-
-    private boolean isSwaggerRequest(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        return uri.startsWith("/swagger-ui")
-                || uri.startsWith("/v3/api-docs")
-                || uri.startsWith("/swagger-resources")
-                || uri.startsWith("/webjars");
     }
 
     @Bean
@@ -90,7 +92,6 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000")); // frontend Vite
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

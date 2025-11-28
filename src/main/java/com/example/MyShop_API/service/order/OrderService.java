@@ -96,21 +96,7 @@ public class OrderService implements IOrderService {
         order.setOrderItems(new HashSet<>(List.of(orderItem)));
 
         // calculate final total
-//        order.setTotalAmount(orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())));
         calculateTotalAmount(order, orderRequest.getShippingFee(), orderRequest.getCouponCode(), profile);
-
-        // apply coupon if any
-//        if (orderRequest.getCouponCode() != null && !orderRequest.getCouponCode().isBlank()) {
-//            BigDecimal discount = couponService.applyCouponToOrder(orderRequest.getCouponCode(), order.getTotalAmount(), order, profile);
-//
-//            log.info("discount: {}", discount);
-//            order.setTotalAmount(order.getTotalAmount().subtract(discount));
-//            BigDecimal newTotal = order.getTotalAmount();
-//            if (newTotal.compareTo(BigDecimal.ZERO) < 0) {
-//                newTotal = BigDecimal.ZERO;
-//            }
-//            order.setTotalAmount(newTotal);
-//        }
 
         Order savedOrder = orderRepository.save(order);
 
@@ -153,17 +139,6 @@ public class OrderService implements IOrderService {
 
         // Tạo đơn hàng
         Order order = createOrderFromCart(cart);
-
-        // apply coupon if any
-//        if (orderRequest.getCouponCode() != null && !orderRequest.getCouponCode().isBlank()) {
-//            BigDecimal discount = couponService.applyCouponToOrder(orderRequest.getCouponCode().trim(), saveOrder.getTotalAmount(), saveOrder, saveOrder.getProfile());
-//            saveOrder.setTotalAmount(saveOrder.getTotalAmount().subtract(discount));
-//            BigDecimal newTotal = saveOrder.getTotalAmount();
-//            if (newTotal.compareTo(BigDecimal.ZERO) < 0) {
-//                newTotal = BigDecimal.ZERO;
-//            }
-//            saveOrder.setTotalAmount(newTotal);
-//        }
 
         calculateTotalAmount(order, orderRequest.getShippingFee(), orderRequest.getCouponCode(), cart.getProfile());
         Order saveOrder = orderRepository.save(order);
