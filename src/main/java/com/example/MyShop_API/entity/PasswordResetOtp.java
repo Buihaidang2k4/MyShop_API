@@ -27,7 +27,7 @@ public class PasswordResetOtp {
     String otp;
 
     @Column(nullable = false)
-    LocalDateTime createdAt = LocalDateTime.now();
+    LocalDateTime createdAt;
 
     @Column(nullable = false)
     LocalDateTime expiredAt;

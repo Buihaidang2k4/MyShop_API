@@ -40,7 +40,7 @@ public class Review {
     String customerName;
     int rating;
     String comment;
-    LocalDateTime createdAt = LocalDateTime.now();
+    LocalDateTime createdAt;
     boolean deleted = false;
 
     @PrePersist

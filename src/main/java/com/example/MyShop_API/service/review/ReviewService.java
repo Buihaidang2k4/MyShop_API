@@ -24,8 +24,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.OptionalDouble;
-import java.util.OptionalLong;
 import java.util.UUID;
 
 @Service
@@ -61,19 +59,18 @@ public class ReviewService implements IReviewService {
             throw new AppException(ErrorCode.ORDER_NOT_DELIVERED);
         }
 
-
         // Chỉ cho đánh giá 1 lần cho 1 ĐƠN HÀNG + 1 SẢN PHẨM
         boolean alreadyReviewed = reviewRepository.existsReviewForOrderAndProduct(profileId, orderId, productId);
 
-        if (alreadyReviewed) {
-            throw new AppException(ErrorCode.REVIEW_ALREADY_EXISTS_FOR_THIS_ORDER);
-        }
+        if (alreadyReviewed) throw new AppException(ErrorCode.REVIEW_ALREADY_EXISTS_FOR_THIS_ORDER);
 
         String usernameRating = profile.getUsername() != null ? profile.getUsername() : "anonymous" + UUID.randomUUID().toString().substring(0, 5).toUpperCase();
-
         Review review = Review.builder().product(product).profile(profile).order(order).customerName(usernameRating).rating(request.getRating()).comment(request.getComment()).createdAt(LocalDateTime.now()).build();
 
-        log.info("Profile {} reviewed product {}", profileId, productId);
+
+        //  reviewCount & avgRating incremental
+        calculateRatingStatsOrReviewCount(product, request.getRating());
+
         log.info("====================== END CREATE REVIEW =======================");
         return reviewRepository.save(review);
     }
@@ -83,13 +80,13 @@ public class ReviewService implements IReviewService {
         return reviewRepository.findByProductProductIdAndDeletedFalse(productId, pageable).map(reviewMapper::toResponse);
     }
 
-    @Override
-    public Long calculateAverageRatingByProductId(Long productId) {
-        List<Review> reviews = reviewRepository.findByProductProductId(productId);
+    private void calculateRatingStatsOrReviewCount(Product product, int rating) {
+        int newReviewCount = product.getReviewCount() + 1;
+        double newAvgRating = (product.getAvgRating() * product.getReviewCount() + rating) / newReviewCount;
 
-        if (reviews.isEmpty()) return 0L;
+        product.setReviewCount(newReviewCount);
+        product.setAvgRating(newAvgRating);
 
-        OptionalDouble avg = reviews.stream().mapToDouble(Review::getRating).average();
-        return Math.round(avg.getAsDouble());
+        productRepository.save(product);
     }
 }

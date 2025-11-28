@@ -25,6 +25,10 @@ public class ProductResponse {
     BigDecimal price;
     BigDecimal discount;
     BigDecimal specialPrice;
+    String origin;
+    Long soldCount;
+    Integer reviewCount;
+    Double avgRating;
     LocalDate createAt;
     LocalDate updateAt;
     Category category;

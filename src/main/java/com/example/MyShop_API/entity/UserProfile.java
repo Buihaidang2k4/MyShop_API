@@ -41,4 +41,4 @@ public class UserProfile {
     @OneToOne
     @JoinColumn(name = "user_id")
     User user;
-}
+}gt

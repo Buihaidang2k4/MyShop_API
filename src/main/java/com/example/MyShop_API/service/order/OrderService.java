@@ -103,6 +103,7 @@ public class OrderService implements IOrderService {
         // set address shipping
         OrderDeliveryAddress deliveryAddress = deliveryAddressService.createDeliveryAddressFromAddressId(orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
         deliveryAddress.setOrder(savedOrder);
+        deliveryAddress.setCreatedAt(LocalDateTime.now());
         order.setDeliveryAddress(deliveryAddress);
 
         // log audit status (system)
@@ -146,6 +147,7 @@ public class OrderService implements IOrderService {
         // set address shipping from address profile
         OrderDeliveryAddress deliveryAddress = deliveryAddressService.createDeliveryAddressFromAddressId(orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
         deliveryAddress.setOrder(saveOrder);
+        deliveryAddress.setCreatedAt(LocalDateTime.now());
         saveOrder.setDeliveryAddress(deliveryAddress);
         saveOrder = orderRepository.save(saveOrder);
 
@@ -239,6 +241,9 @@ public class OrderService implements IOrderService {
 
         paymentRepository.save(payment);
         orderRepository.save(order);
+
+        // calulate soldCount product
+        calculateSoldCount(order);
     }
 
     @Override
@@ -333,6 +338,17 @@ public class OrderService implements IOrderService {
 
         order.setOrderItems(new HashSet<>(orderItems));
         return order;
+    }
+
+    // ============== UPDATE CALCULATE SOLDCOUNT ==============
+    private void calculateSoldCount(Order order) {
+        order.getOrderItems()
+                .forEach(item -> {
+                    Product product = item.getProduct();
+                    int quantity = item.getQuantity();
+                    product.setSoldCount(product.getSoldCount() + quantity);
+                    productRepository.save(product);
+                });
     }
 
     // ============== CALCULATE TOTAL AMOUNT ==================

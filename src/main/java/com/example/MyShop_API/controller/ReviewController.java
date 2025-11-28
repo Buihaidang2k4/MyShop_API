@@ -4,12 +4,8 @@ import com.example.MyShop_API.dto.request.CreateReviewRequest;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.response.ReviewResponse;
 import com.example.MyShop_API.entity.Review;
-import com.example.MyShop_API.entity.User;
-import com.example.MyShop_API.entity.UserProfile;
 import com.example.MyShop_API.exception.AppException;
-import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.ReviewMapper;
-import com.example.MyShop_API.repo.UserRepository;
 import com.example.MyShop_API.service.review.IReviewService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -20,14 +16,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -93,11 +86,5 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/product/{productId}/avg-rating")
-    public ResponseEntity<ApiResponse<?>> getAvgRatingReview(@PathVariable Long productId) {
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Get rating avg success",
-                        reviewService.calculateAverageRatingByProductId(productId)));
-    }
 
 }

@@ -24,6 +24,7 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long productId;
+
     String productName;
     String description;
     BigDecimal price;
@@ -31,6 +32,11 @@ public class Product {
     BigDecimal specialPrice;
     LocalDate createAt;
     LocalDate updateAt;
+
+    String origin;
+    Integer soldCount;
+    Integer reviewCount;
+    Double avgRating;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Image> images;

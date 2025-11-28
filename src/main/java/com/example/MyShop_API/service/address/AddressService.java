@@ -55,7 +55,6 @@ public class AddressService implements IAddressService {
                 new AppException(ErrorCode.USER_NOT_EXISTED));
 
         Address address = addressMapper.toEntity(request);
-        address.setCreatedAt(LocalDateTime.now());
 
         if (request.getIsDefault() != null) {
             if (request.getIsDefault()) {
@@ -82,7 +81,6 @@ public class AddressService implements IAddressService {
                 new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
 
         addressMapper.updateAddress(request, findAddress);
-        findAddress.setUpdatedAt(LocalDateTime.now());
 
         if (request.getIsDefault() != null && request.getIsDefault()) {
             List<Address> addresses = getAddressByProfileId(profileId);

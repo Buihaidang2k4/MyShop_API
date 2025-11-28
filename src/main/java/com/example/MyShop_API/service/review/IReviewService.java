@@ -11,5 +11,4 @@ public interface IReviewService {
 
     Page<ReviewResponse> findByProductId(Long productId, Pageable pageable);
 
-    Long calculateAverageRatingByProductId(Long productId);
 }

@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -33,6 +35,7 @@ public class InventoryService implements IInventoryService {
     @Override
     public Inventory updateStock(Long productId, int newAvailable) {
         Inventory inventory = getInventoryByProductId(productId);
+        inventory.setUpdatedAt(LocalDateTime.now());
         inventory.setAvailable(newAvailable);
         return inventoryRepository.save(inventory);
     }
