@@ -13,8 +13,11 @@ public class AddressResponse {
     String fullName;          // Tên người nhận
     String phone;             // SĐT giao hàng
     String street;            // Số nhà, tên đường
+    Integer wardCode;
     String ward;              // Phường/Xã
+    Integer districtID;
     String district;          // Quận/Huyện
+    Integer provinceID;
     String province;          // Tỉnh/Thành phố
     String postalCode;        // Mã bưu điện (có thể null)
     String additionalInfo;

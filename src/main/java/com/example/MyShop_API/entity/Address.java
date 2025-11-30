@@ -26,9 +26,14 @@ public class Address {
     String fullName;
     String phone;
     String street;
+
+    Integer wardCode;
     String ward;
+    Integer districtID;
     String district;
+    Integer provinceID;
     String province;
+
     String postalCode;
 
     @Column(name = "additional_info", columnDefinition = "TEXT")

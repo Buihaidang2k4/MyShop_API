@@ -12,24 +12,21 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import org.aspectj.weaver.ast.Or;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayOutputStream;
-import java.security.SecureRandom;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
 import java.util.Set;
 
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class ReportService {
+public class ReportPdfService {
 
     TemplateEngine templateEngine;
     OrderRepository orderRepository;
@@ -65,6 +62,7 @@ public class ReportService {
     }
 
     public byte[] convertHtmlToPdf(String html) {
+        log.info("=========== START CONVERT HTML TO PDF ============");
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.withHtmlContent(html, null);
@@ -73,6 +71,8 @@ public class ReportService {
                     "DejaVu Sans");
             builder.toStream(baos);
             builder.run();
+
+            log.info("=========== END CONVERT HTML TO PDF ============");
             return baos.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException("Error converting HTML to PDF", e);

@@ -1,9 +1,17 @@
 package com.example.MyShop_API.controller;
 
-import com.example.MyShop_API.service.report.ReportService;
+import com.example.MyShop_API.dto.response.ApiResponse;
+import com.example.MyShop_API.entity.Order;
+import com.example.MyShop_API.repo.OrderRepository;
+import com.example.MyShop_API.service.report.ReportExcelService;
+import com.example.MyShop_API.service.report.ReportPdfService;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,22 +21,25 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @RestController
-@RequestMapping("${api.prefix}/demo-report")
+@RequestMapping("${api.prefix}/report")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ReportController {
-    private final ReportService reportService;
+    ReportPdfService reportPdfService;
+    ReportExcelService reportExcelService;
+    OrderRepository orderRepository;
 
-    private final TemplateEngine templateEngine;
-
+    @NonFinal
     @Value("${report.temp-dir}")
     private String tempDir;
 
-    @PostMapping("/report-order/{orderId}")
+    @PostMapping("/report-order-pdf/{orderId}")
     public ResponseEntity<byte[]> generatePdfOrder(@PathVariable Long orderId) throws IOException {
-        String html = reportService.getReportHtml(orderId);
-        byte[] pdfBytes = reportService.convertHtmlToPdf(html);
+        String html = reportPdfService.getReportHtml(orderId);
+        byte[] pdfBytes = reportPdfService.convertHtmlToPdf(html);
 
         // Tạo tên file động theo thời gian hoặc ID
         String fileName = "report-" + System.currentTimeMillis() + ".pdf";
@@ -42,4 +53,18 @@ public class ReportController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
     }
+
+    @GetMapping("/export/orders")
+    public ResponseEntity<ApiResponse> exportOrders() throws IOException {
+        List<Order> orders = orderRepository.findAll();
+        reportExcelService.exportOrders(orders);
+
+        ApiResponse response = new ApiResponse(
+                HttpStatus.OK.value(),
+                "Xuất file Excel thành công",
+                null
+        );
+        return ResponseEntity.ok(response);
+    }
+
 }
