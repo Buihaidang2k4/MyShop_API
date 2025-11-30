@@ -28,6 +28,11 @@
         </license>
     </licenses>
 
+    <!-- Quản lý version iText 7 -->
+    <dependencyManagement>
+
+    </dependencyManagement>
+
     <!-- Developer Information -->
     <developers>
         <developer>
@@ -215,12 +220,41 @@
             <scope>test</scope>
         </dependency>
 
-        <!--        so sánh dữ liệu dễ hơn-->
+        <!-- Thymeleaf -->
         <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <scope>test</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
+
+        <!--        Openhtmltopdf -->
+        <dependency>
+            <groupId>com.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-pdfbox</artifactId>
+            <version>1.0.10</version>
+        </dependency>
+        <dependency>
+            <groupId>com.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-slf4j</artifactId>
+            <version>1.0.10</version>
+        </dependency>
+        <dependency>
+            <groupId>com.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-svg-support</artifactId>
+            <version>1.0.10</version>
+        </dependency>
+
+
+        <!--  create barcode-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.google.zxing</groupId>-->
+        <!--            <artifactId>core</artifactId>-->
+        <!--            <version>3.5.1</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.google.zxing</groupId>-->
+        <!--            <artifactId>javase</artifactId>-->
+        <!--            <version>3.5.1</version>-->
+        <!--        </dependency>-->
 
     </dependencies>
 
@@ -268,6 +302,10 @@
 
     <!-- Repositories -->
     <repositories>
+        <repository>
+            <id>itext-commercial</id>
+            <url>https://repo.itextpdf.com/releases</url>
+        </repository>
     </repositories>
     <pluginRepositories>
     </pluginRepositories>
