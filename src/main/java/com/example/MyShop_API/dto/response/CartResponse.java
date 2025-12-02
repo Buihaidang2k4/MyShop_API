@@ -17,7 +17,6 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CartResponse {
     Long cartId;
-    //    Long profileId;
-    List<CartItem> cartItems = new ArrayList<>();
+    List<CartItemResponse> items = new ArrayList<>();
     BigDecimal totalPrice = BigDecimal.ZERO;
 }

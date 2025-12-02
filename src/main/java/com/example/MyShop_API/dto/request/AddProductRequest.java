@@ -1,6 +1,7 @@
 package com.example.MyShop_API.dto.request;
 
 import com.example.MyShop_API.entity.Category;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,24 @@ public class AddProductRequest {
 
     @Size(max = 100, message = "Xuất xứ tối đa 100 ký tự")
     String origin;
+
+    @NotBlank(message = "Slug không được để trống")
+    @Pattern(regexp = "^[a-z0-9-]+$", message = "Slug chỉ chứa chữ thường, số và dấu '-'")
+    @Column(unique = true)
+    String slug;
+
+    // Số > 0 hoặc có thể để NULL nếu không bắt buộc
+    @Positive(message = "Height phải lớn hơn 0")
+    Double height;
+
+    @Positive(message = "Length phải lớn hơn 0")
+    Double length;
+
+    @Positive(message = "Weight phải lớn hơn 0")
+    Double weight;
+
+    @Positive(message = "Width phải lớn hơn 0")
+    Double width;
 
     @Size(max = 500, message = "Mô tả tối đa 500 ký tự")
     String description;

@@ -26,17 +26,26 @@ public class Product {
     Long productId;
 
     String productName;
+
+    @Column(columnDefinition = "TEXT")
     String description;
     BigDecimal price;
-    BigDecimal discount;
     BigDecimal specialPrice;
-    LocalDate createAt;
-    LocalDate updateAt;
+    BigDecimal discount;
+
+    String bio;
+    String slug;
+    Double height;
+    Double length;
+    Double weight;
+    Double width;
 
     String origin;
     Integer soldCount;
     Integer reviewCount;
     Double avgRating;
+    LocalDate createAt;
+    LocalDate updateAt;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Image> images;

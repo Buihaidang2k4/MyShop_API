@@ -7,10 +7,11 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {CartItemMapper.class})
 public interface CartMapper {
     Cart toEntity(CartRequest cartRequest);
 
+    @Mapping(source = "cartItems", target = "items")
     CartResponse toResponse(Cart cart);
 
     List<CartResponse> toResponseList(List<Cart> cartList);

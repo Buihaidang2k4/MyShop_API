@@ -5,6 +5,7 @@ import com.example.MyShop_API.entity.CartItem;
 import com.example.MyShop_API.entity.Product;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
+import com.example.MyShop_API.mapper.CartItemMapper;
 import com.example.MyShop_API.repo.CartItemRepository;
 import com.example.MyShop_API.repo.CartRepository;
 import com.example.MyShop_API.service.inventory.IInventoryService;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 
 @Service
@@ -29,6 +31,8 @@ public class CartItemService implements ICartItemService {
     ICartService cartService;
     IProductService productService;
     IInventoryService inventoryService;
+    CartItemMapper cartItemMapper;
+
 
     @Transactional
     @Override
@@ -135,6 +139,9 @@ public class CartItemService implements ICartItemService {
     @Override
     public CartItem getCartItem(Long cartId, Long cartItemId) {
         Cart cart = cartService.getCartById(cartId);
+
+        if (cart == null)
+            throw new AppException(ErrorCode.CART_NOT_EXISTED);
 
         return cart.getCartItems()
                 .stream()

@@ -2,7 +2,9 @@ package com.example.MyShop_API.controller;
 
 
 import com.example.MyShop_API.dto.response.ApiResponse;
+import com.example.MyShop_API.dto.response.CartItemResponse;
 import com.example.MyShop_API.entity.Cart;
+import com.example.MyShop_API.mapper.CartItemMapper;
 import com.example.MyShop_API.service.cart.ICartItemService;
 import com.example.MyShop_API.service.cart.ICartService;
 import lombok.AccessLevel;
@@ -21,12 +23,13 @@ import java.util.Optional;
 public class CartItemController {
     ICartItemService cartItemService;
     ICartService cartService;
+    CartItemMapper cartItemMapper;
 
     @GetMapping("/cart/{cartId}/cartItem/{cartItemId}")
-    ResponseEntity<ApiResponse> getCartItem(@PathVariable Long cartId,
-                                            @PathVariable Long cartItemId
+    ResponseEntity<ApiResponse<CartItemResponse>> getCartItem(@PathVariable Long cartId,
+                                                              @PathVariable Long cartItemId
     ) {
-        return ResponseEntity.ok(new ApiResponse<>(200, "get all cart", cartItemService.getCartItem(cartId, cartItemId)));
+        return ResponseEntity.ok(new ApiResponse<>(200, "get all cart", cartItemMapper.toResponse(cartItemService.getCartItem(cartId, cartItemId))));
     }
 
     @PostMapping("/cartItem/addItemToCart")
@@ -47,10 +50,10 @@ public class CartItemController {
         }
     }
 
-    @PutMapping("/cart/{cartId}/cartItem/{cartItemId}/updateItemQuantity")
+    @PutMapping("/cart/{cartId}/cartItem/{cartItemId}/updateItemQuantity/{quantity}")
     ResponseEntity<ApiResponse> updateItemQuantity(@PathVariable Long cartId,
                                                    @PathVariable Long cartItemId,
-                                                   @RequestParam Integer quantity
+                                                   @PathVariable Integer quantity
     ) {
         try {
             cartItemService.updateItemQuantity(cartId, cartItemId, quantity);

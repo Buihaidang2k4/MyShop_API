@@ -25,6 +25,12 @@ public class ProductResponse {
     BigDecimal price;
     BigDecimal discount;
     BigDecimal specialPrice;
+    String bio;
+    String slug;
+    Double height;
+    Double length;
+    Double weight;
+    Double width;
     String origin;
     Long soldCount;
     Integer reviewCount;
