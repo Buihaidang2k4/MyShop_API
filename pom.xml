@@ -237,6 +237,13 @@
             <version>5.2.5</version>
         </dependency>
 
+        <!--    Metamodel tự sinh    -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-jpamodelgen</artifactId>
+            <version>5.3.7.Final</version>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
 

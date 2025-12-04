@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +70,7 @@ public class PaymentService implements IPaymentService {
     // ================================== VnPay =======================================
     @Override
     public String createVnPayPayment(HttpServletRequest request, Long orderId, String bankCode) {
-        long amount = getTotalAmountFromOrder(orderId) * 100L;
+        long amount = getTotalAmountFromOrder(orderId);
 
         Map<String, String> vnParamsMap = vnpayConfig.getVNPayConfig();
         vnParamsMap.put("vnp_Amount", String.valueOf(amount));
@@ -151,20 +152,15 @@ public class PaymentService implements IPaymentService {
     }
 
     private long getTotalAmountFromOrder(long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+
         BigDecimal totalAmount = order.getTotalAmount();
 
-        long rawAmount = totalAmount.setScale(2, BigDecimal.ROUND_HALF_UP).longValue();
-
-        // =============== GIOI HAN SANDBOX ===============
-        if (vnpayConfig.getVnp_PayUrl().contains("sandbox")) {
-            if (rawAmount > 2_000_000) {
-                rawAmount = 2_000_000; // lớn hơn 2tr → cố định 2tr
-                log.warn("VNPAY SANDBOX: Amount capped to 2.000.000đ for testing");
-            }
-        }
-
-        return rawAmount * 100L;
+        // Làm tròn đúng, không mất dữ liệu
+        return totalAmount.multiply(BigDecimal.valueOf(100))
+                .setScale(0, RoundingMode.HALF_UP)
+                .longValueExact();
     }
 
 

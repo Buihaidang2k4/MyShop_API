@@ -65,6 +65,7 @@ public enum ErrorCode {
     CART_ITEM_EXISTED(1703, "Cart item already exists", BAD_REQUEST),
     CART_NOT_MATCH(1704, "Cart does not match with cart item", BAD_REQUEST),
     CART_EMPTY(1704, "Your cart is empty", BAD_REQUEST),
+    LIST_CART_ITEMS_EMPTY(1705, "List cart items is empty", BAD_REQUEST),
 
     // ========== ORDER ==========
     ORDER_EXISTED(1800, "Order already exists", BAD_REQUEST),

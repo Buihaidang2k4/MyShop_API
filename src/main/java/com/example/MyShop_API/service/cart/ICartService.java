@@ -25,4 +25,10 @@ public interface ICartService {
     Cart addCartForUserProfile(Long userProfileId, Long cartId);
 
     void clearCart(Long cartId);
+
+    void recalcTotalPrice(Cart cart);
+
+    Cart saveCart(Cart cart);
+
+
 }

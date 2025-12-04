@@ -2,6 +2,8 @@ package com.example.MyShop_API.controller;
 
 
 import com.example.MyShop_API.Enum.OrderStatus;
+import com.example.MyShop_API.dto.request.OrderPlaceListItemRequest;
+import com.example.MyShop_API.dto.request.PlaceOrderFromCartRequest;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.request.OrderRequest;
 import com.example.MyShop_API.dto.response.OrderResponse;
@@ -15,6 +17,7 @@ import com.example.MyShop_API.service.order.IOrderService;
 import com.example.MyShop_API.service.order.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -64,18 +67,28 @@ public class OrderController {
     @PostMapping("/buy-now")
     @Operation(summary = "Buy now ")
     ResponseEntity<ApiResponse<Object>> buyNow(
-            @RequestBody OrderRequest orderRequest,
+            @Valid @RequestBody OrderRequest orderRequest,
             HttpServletRequest request) {
         Object result = orderService.buyNow(orderRequest, request);
         return buildOrderResponse(result);
     }
 
+    //============= PLACE ORDER FROM LIST CART ITEM ===============
+    @PostMapping("/from-cart-items")
+    @Operation(summary = "Place order from list cart items")
+    ResponseEntity<ApiResponse<Object>> placeOrderFromListItem(
+            @Valid @RequestBody OrderPlaceListItemRequest listItemRequest,
+            HttpServletRequest request
+    ) {
+        Object result = orderService.placeOrderFromListCartItems(listItemRequest, request);
+        return buildOrderResponse(result);
+    }
 
     // ============= PLACE ORDER FROM CART  ===============
     @PostMapping("/placeOrder")
     @Operation(summary = "Place order from cart")
     ResponseEntity<ApiResponse<Object>> placeOrder(
-            @RequestBody OrderRequest orderRequest,
+            @RequestBody PlaceOrderFromCartRequest orderRequest,
             HttpServletRequest request
     ) {
         Object result = orderService.placeOrder(orderRequest, request);

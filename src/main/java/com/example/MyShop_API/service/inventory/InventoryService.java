@@ -56,6 +56,7 @@ public class InventoryService implements IInventoryService {
         // Nếu có đủ thì cho đặt trước
         inventory.setAvailable(inventory.getAvailable() - quantity);
         inventory.setReserved(inventory.getReserved() + quantity);
+        inventory.setUpdatedAt(LocalDateTime.now());
         inventoryRepository.save(inventory);
         return true;
     }

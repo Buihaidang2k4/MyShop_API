@@ -7,7 +7,6 @@ import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.CartItemMapper;
 import com.example.MyShop_API.repo.CartItemRepository;
-import com.example.MyShop_API.repo.CartRepository;
 import com.example.MyShop_API.service.inventory.IInventoryService;
 import com.example.MyShop_API.service.product.IProductService;
 import lombok.AccessLevel;
@@ -27,58 +26,96 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CartItemService implements ICartItemService {
     CartItemRepository cartItemRepository;
-    CartRepository cartRepository;
     ICartService cartService;
     IProductService productService;
     IInventoryService inventoryService;
-    CartItemMapper cartItemMapper;
 
+
+//    @Transactional
+//    @Override
+//    public void addItemToCart(Long cartId, Long productId, int quantity) {
+//        log.info("============ START ADD ITEM TO CART ============");
+//        Cart cart = cartService.getCartById(cartId);
+//        Product product = productService.getProductById(productId);
+//
+//        // Tìm cartItem nếu đã tồn tại
+//        CartItem cartItem = cart.getCartItems()
+//                .stream()
+//                .filter(item -> item.getProduct().getProductId().equals(productId))
+//                .findFirst()
+//                .orElse(null);
+//
+//
+//        // Tạo mới item
+//        if (cartItem == null) {
+//            // Check tồn kho xem đủ số lượng đặt không nếu có đặt trước trong kho
+//            boolean reserved = inventoryService.reserveStock(productId, quantity);
+//            if (!reserved)
+//                throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
+//
+//            // Tạo mới
+//            cartItem = CartItem.builder()
+//                    .cart(cart)
+//                    .product(product)
+//                    .quantity(quantity)
+//                    .unitPrice(product.getSpecialPrice() != null ? product.getSpecialPrice() : product.getPrice())
+//                    .build();
+//
+//            cartItem.setTotalPrice();
+//            cart.addItem(cartItem);
+//        } else {
+//            // Phần tăng
+//            int additionalQuantity = quantity;
+//            boolean reserved = inventoryService.reserveStock(productId, additionalQuantity);
+//            if (!reserved)
+//                throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
+//
+//            // Cập nhật số lượng
+//            cartItem.setQuantity(cartItem.getQuantity() + additionalQuantity);
+//            cartItem.setTotalPrice();
+//        }
+//
+//        // Cập nhật tổng giá
+//        cartService.recalcTotalPrice(cart);
+//        cartService.saveCart(cart);
+//        log.info("============ END ADD ITEM TO CART ============");
+//    }
 
     @Transactional
-    @Override
     public void addItemToCart(Long cartId, Long productId, int quantity) {
         Cart cart = cartService.getCartById(cartId);
         Product product = productService.getProductById(productId);
 
-        // Tìm cartItem nếu đã tồn tại
-        CartItem cartItem = cart.getCartItems()
-                .stream()
-                .filter(item -> item.getProduct().getProductId().equals(productId))
-                .findFirst()
-                .orElse(null);
+        CartItem item = cart.getCartItems().stream()
+                .filter(ci -> ci.getProduct().getProductId().equals(productId))
+                .findFirst().orElse(null);
 
-        // Tạo mới item
-        if (cartItem == null) {
-            // Check tồn kho xem đủ số lượng đặt không nếu có đặt trước trong kho
-            boolean reserved = inventoryService.reserveStock(productId, quantity);
-            if (!reserved)
-                throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
-
-            // Tạo mới
-            cartItem = CartItem.builder()
-                    .cart(cart)
-                    .product(product)
-                    .quantity(quantity)
-                    .unitPrice(product.getSpecialPrice() != null ? product.getSpecialPrice() : product.getPrice())
-                    .build();
-
-            cartItem.setTotalPrice();
-            cart.addItem(cartItem);
-        } else {
-            // Phần tăng
-            int additionalQuantity = quantity;
-            boolean reserved = inventoryService.reserveStock(productId, additionalQuantity);
-            if (!reserved)
-                throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
-
-            // Cập nhật số lượng
-            cartItem.setQuantity(cartItem.getQuantity() + additionalQuantity);
-            cartItem.setTotalPrice();
+        int toReserve = quantity;
+        if (!inventoryService.reserveStock(productId, toReserve)) {
+            throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
         }
 
-        // Cập nhật tổng giá
-        updateCartTotalPrice(cart);
-        cartRepository.save(cart);
+        try {
+            if (item == null) {
+                item = CartItem.builder()
+                        .cart(cart)
+                        .product(product)
+                        .quantity(quantity)
+                        .unitPrice(product.getSpecialPrice() != null ? product.getSpecialPrice() : product.getPrice())
+                        .build();
+                item.setTotalPrice();
+                cart.addItem(item);
+            } else {
+                item.setQuantity(item.getQuantity() + quantity);
+                item.setTotalPrice();
+            }
+
+            cartService.recalcTotalPrice(cart);
+            cartService.saveCart(cart);
+        } catch (RuntimeException e) {
+            inventoryService.cancelReservation(productId, toReserve);
+            throw e;
+        }
     }
 
     @Transactional
@@ -111,29 +148,23 @@ public class CartItemService implements ICartItemService {
         cartItem.setTotalPrice();
 
         // Cập nhật tổng giá
-        updateCartTotalPrice(cart);
-
-        cartRepository.save(cart);
+        cartService.recalcTotalPrice(cart);
+        cartService.saveCart(cart);
     }
 
 
-    @Transactional
     @Override
+    @Transactional
     public void removeItemFromCart(Long cartId, Long cartItemId) {
         Cart cart = cartService.getCartById(cartId);
         CartItem itemToRemove = getCartItem(cartId, cartItemId);
 
         // Trả kho
         inventoryService.cancelReservation(itemToRemove.getProduct().getProductId(), itemToRemove.getQuantity());
-
-        // xóa khỏi giỏ
         cart.removeItem(itemToRemove);
-        cartItemRepository.delete(itemToRemove);
-
-        // Cập nhật tổng giá
-        updateCartTotalPrice(cart);
-
-        cartRepository.save(cart);
+        cartItemRepository.deleteByIdDirect(cartItemId);
+        cartService.recalcTotalPrice(cart);
+        cartService.saveCart(cart);
     }
 
     @Override
@@ -148,14 +179,4 @@ public class CartItemService implements ICartItemService {
                 .filter(item -> item.getCartItemId().equals(cartItemId))
                 .findFirst().orElseThrow(() -> new AppException(ErrorCode.CART_ITEM_NOT_EXISTED));
     }
-
-    private void updateCartTotalPrice(Cart cart) {
-        // Cong tong gia tien
-        BigDecimal totalPrice = cart.getCartItems()
-                .stream().map(CartItem::getTotalPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        cart.setTotalPrice(totalPrice);
-    }
-
 }

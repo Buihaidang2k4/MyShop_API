@@ -24,6 +24,9 @@ public class OrderItem {
     Integer quantity;
     BigDecimal price;
 
+    // Lưu id cartItem để callback VNPAY có thể xoá
+    Long cartItemId;
+    
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "order_id")

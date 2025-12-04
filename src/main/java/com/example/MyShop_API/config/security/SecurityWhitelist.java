@@ -20,6 +20,9 @@ public final class SecurityWhitelist {
             "/api/v1/products/category/by-category-name",
             "/api/v1/products/all",
 
+            // payment
+            "/api/v1/payment/vn-pay-callback",
+
             // image
             "/api/v1/images/**"
     );

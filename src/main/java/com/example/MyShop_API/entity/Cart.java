@@ -27,7 +27,7 @@ public class Cart {
     @JoinColumn(name = "profile_id")
     UserProfile profile;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
     List<CartItem> cartItems = new ArrayList<>();
 
     BigDecimal totalPrice = BigDecimal.ZERO;
@@ -42,8 +42,9 @@ public class Cart {
     }
 
     public void removeItem(CartItem item) {
-        this.cartItems.remove(item);
+        if (item == null) return;
         item.setCart(null);
+        this.cartItems.remove(item);
         updateTotalAmount();
     }
 

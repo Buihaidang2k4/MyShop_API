@@ -33,9 +33,9 @@ public class CartItemController {
     }
 
     @PostMapping("/cartItem/addItemToCart")
-    ResponseEntity<ApiResponse<Cart>> addItemToCart(@RequestParam(required = false) Optional<Long> cartId,
-                                                    @RequestParam Long productId,
-                                                    @RequestParam Integer quantity) {
+    ResponseEntity<ApiResponse<Cart>> addItemToCart(@RequestParam(value = "cartId", required = false) Optional<Long> cartId,
+                                                    @RequestParam("productId") Long productId,
+                                                    @RequestParam("quantity") Integer quantity) {
         try {
             // check cartId
             Long checkCartId = cartId
@@ -64,8 +64,8 @@ public class CartItemController {
     }
 
     @DeleteMapping("/cart/{cartId}/cartItem/{cartItemId}/removeItemFromCart")
-    ResponseEntity<ApiResponse> removeItemFromCart(@PathVariable Long cartId,
-                                                   @PathVariable Long cartItemId) {
+    ResponseEntity<ApiResponse> removeItemFromCart(@PathVariable("cartId") Long cartId,
+                                                   @PathVariable("cartItemId") Long cartItemId) {
         cartItemService.removeItemFromCart(cartId, cartItemId);
         return ResponseEntity.ok(new ApiResponse(200, "remove cartItem success", null));
     }

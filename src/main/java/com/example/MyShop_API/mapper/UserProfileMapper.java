@@ -5,7 +5,7 @@ import com.example.MyShop_API.dto.response.UserProfileResponse;
 import com.example.MyShop_API.entity.UserProfile;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = {AddressMapper.class})
+@Mapper(componentModel = "spring", uses = {AddressMapper.class, CartMapper.class})
 public interface UserProfileMapper {
     UserProfile toEntity(UserProfileRequest userProfileRequest);
 

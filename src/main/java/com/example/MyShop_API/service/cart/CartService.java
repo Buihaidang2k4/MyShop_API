@@ -81,12 +81,9 @@ public class CartService implements ICartService {
      */
     @Override
     public Cart getCartByUserProfileId(Long userProfileId) {
-        Cart cart = cartRepository.findByUserProfileId(userProfileId);
-        if (cart == null) {
-            throw new AppException(ErrorCode.CART_NOT_EXISTED);
-        }
-        return cart;
+        return cartRepository.findByUserProfileId(userProfileId).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
     }
+
 
     /**
      * Get total price
@@ -135,17 +132,29 @@ public class CartService implements ICartService {
      *
      * @param cartId
      */
-    @Transactional
     @Override
+    @Transactional
     public void clearCart(Long cartId) {
         Cart cart = getCartById(cartId);
         cart.setTotalPrice(BigDecimal.ZERO);
-        // Hard delete all items first to avoid leaving rows with null cart_id
         cartItemRepository.hardDeleteByCartId(cartId);
         cartItemRepository.flush();
 
         // Then delete the cart
         cartRepository.deleteById(cartId);
         cartRepository.flush();
+    }
+
+    @Transactional
+    public void recalcTotalPrice(Cart cart) {
+        BigDecimal total = cart.getCartItems().stream()
+                .map(ci -> ci.getTotalPrice() == null ? BigDecimal.ZERO : ci.getTotalPrice())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        cart.setTotalPrice(total);
+    }
+
+    @Transactional
+    public Cart saveCart(Cart cart) {
+        return cartRepository.save(cart);
     }
 }

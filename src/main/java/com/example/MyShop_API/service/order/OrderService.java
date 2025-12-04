@@ -3,15 +3,16 @@ package com.example.MyShop_API.service.order;
 import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.Enum.PaymentMethod;
 import com.example.MyShop_API.Enum.PaymentStatus;
+import com.example.MyShop_API.dto.request.OrderPlaceListItemRequest;
 import com.example.MyShop_API.dto.request.OrderRequest;
+import com.example.MyShop_API.dto.request.PlaceOrderFromCartRequest;
 import com.example.MyShop_API.dto.response.VnpayResponse;
 import com.example.MyShop_API.entity.*;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
-import com.example.MyShop_API.repo.OrderRepository;
-import com.example.MyShop_API.repo.PaymentRepository;
-import com.example.MyShop_API.repo.ProductRepository;
-import com.example.MyShop_API.repo.UserProfileRepository;
+import com.example.MyShop_API.repo.*;
+import com.example.MyShop_API.service.cart.CartItemService;
+import com.example.MyShop_API.service.cart.ICartItemService;
 import com.example.MyShop_API.service.cart.ICartService;
 import com.example.MyShop_API.service.coupon.ICouponService;
 import com.example.MyShop_API.service.inventory.IInventoryService;
@@ -23,14 +24,14 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,6 +49,9 @@ public class OrderService implements IOrderService {
     IOrderStatusHistoryService historyService;
     PaymentRepository paymentRepository;
     IOrderDeliveryAddressService deliveryAddressService;
+    CartItemRepository cartItemRepository;
+    ICartItemService cartItemService;
+    CartRepository cartRepository;
 
     @Override
     public List<Order> getOrders() {
@@ -101,10 +105,8 @@ public class OrderService implements IOrderService {
         Order savedOrder = orderRepository.save(order);
 
         // set address shipping
-        OrderDeliveryAddress deliveryAddress = deliveryAddressService.createDeliveryAddressFromAddressId(orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
-        deliveryAddress.setOrder(savedOrder);
-        deliveryAddress.setCreatedAt(LocalDateTime.now());
-        order.setDeliveryAddress(deliveryAddress);
+        setShippingOrder(savedOrder, orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
+
 
         // log audit status (system)
         historyService.logStatusChange(savedOrder, OrderStatus.PENDING, null);
@@ -115,8 +117,58 @@ public class OrderService implements IOrderService {
             return processPayment(savedOrder, orderRequest.getPaymentMethod(), request, orderRequest.getBankCode());
         } catch (AppException e) {
             inventoryService.restock(product.getProductId(), orderRequest.getQuantity());
-            log.error("Error : {}", e.getMessage());
+            log.error("Error Buy now : {}", e.getMessage());
             throw e;
+        }
+    }
+
+    // ============== PLACE ORDER FROM LIST CART ITEMS (Dành cho tích chọn sản phẩm giỏ hàng) ==================
+    @Override
+    @Transactional
+    public Object placeOrderFromListCartItems(OrderPlaceListItemRequest orderRequest, HttpServletRequest request) {
+        log.info("====================== START PLACE ORDER FROM LIST CART ITEMS ======================");
+        // tim profile
+        UserProfile profile = profileRepository.findById(orderRequest.getProfileId()).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
+
+        // Lấy item từ list itemId nguời dùng chọn
+        Cart cart = cartRepository.findByUserProfileId(profile.getProfileId()).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
+        List<CartItem> cartItems = cart.getCartItems().stream()
+                .filter(ci -> orderRequest.getListItemId().contains(ci.getCartItemId()))
+                .toList();
+
+        if (cartItems.isEmpty()) throw new AppException(ErrorCode.LIST_CART_ITEMS_EMPTY);
+
+        try {
+            // Tạo đơn hàng
+            Order order = createOrderFromCartItem(cartItems, profile);
+            calculateTotalAmount(order, orderRequest.getShippingFee(), orderRequest.getCouponCode(), profile);
+            Order saveOrder = orderRepository.save(order);
+
+            // set address shipping from address profile
+            setShippingOrder(saveOrder, orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
+
+            // Process payment
+            Object paymentResult = processPayment(saveOrder, orderRequest.getPaymentMethod(), request, orderRequest.getBankCode());
+
+            // Xóa các sản phẩm đã chọn khỏi giỏ hàng sau khi xử lý thanh toán thành công
+            if (orderRequest.getPaymentMethod() == PaymentMethod.CASH && paymentResult instanceof Order) {
+                List<Long> itemIdsRemove = orderRequest.getListItemId().stream().filter(Objects::nonNull).toList();
+                processOrderSuccess(saveOrder, itemIdsRemove);
+            }
+
+            log.info("====================== END PLACE ORDER FROM LIST CART ITEMS ======================");
+            return paymentResult;
+        } catch (AppException e) {
+            // Hoàn hàng nếu có lỗi nghiệp vụ
+            cartItems.forEach(item -> inventoryService.restock(item.getProduct().getProductId(), item.getQuantity()));
+
+            log.error("AppException in place order from list cart item: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            // Hoàn hàng cho các lỗi hệ thống/khác
+            cartItems.forEach(item -> inventoryService.restock(item.getProduct().getProductId(), item.getQuantity()));
+            log.error("System Error in place order from list cart item: {}", e.getMessage());
+            throw new AppException(ErrorCode.PAYMENT_FAILED, "Lỗi hệ thống: " + e.getMessage());
         }
     }
 
@@ -124,7 +176,7 @@ public class OrderService implements IOrderService {
     // =================== PLACE ORDER FROM CART ======================
     @Override
     @Transactional
-    public Object placeOrder(OrderRequest orderRequest, HttpServletRequest request) {
+    public Object placeOrder(PlaceOrderFromCartRequest orderRequest, HttpServletRequest request) {
         log.info("================= START PLACE ORDER ===================");
 
         // Đặt hàng
@@ -145,19 +197,14 @@ public class OrderService implements IOrderService {
         Order saveOrder = orderRepository.save(order);
 
         // set address shipping from address profile
-        OrderDeliveryAddress deliveryAddress = deliveryAddressService.createDeliveryAddressFromAddressId(orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
-        deliveryAddress.setOrder(saveOrder);
-        deliveryAddress.setCreatedAt(LocalDateTime.now());
-        saveOrder.setDeliveryAddress(deliveryAddress);
-        saveOrder = orderRepository.save(saveOrder);
+        setShippingOrder(saveOrder, orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
 
         try {
             // Process payment
             Object paymentResult = processPayment(saveOrder, orderRequest.getPaymentMethod(), request, orderRequest.getBankCode());
 
             if (orderRequest.getPaymentMethod() == PaymentMethod.CASH && paymentResult instanceof Order) {
-                confirmOrderInventory(saveOrder);
-                cartService.clearCart(cart.getCartId());
+                processOrderSuccessAndClearAllCart(saveOrder, cart);
             }
             log.info("================= END PLACE ORDER ===================");
             return paymentResult;
@@ -183,7 +230,6 @@ public class OrderService implements IOrderService {
         }
 
         if (orderId == null) {
-            // can't find order id -> just return response (no inventory op)
             return resp;
         }
 
@@ -193,6 +239,16 @@ public class OrderService implements IOrderService {
             // Payment success -> confirm reserved stock for all items
             order.getOrderItems().forEach(i -> inventoryService.confirmOrder(i.getProduct().getProductId(), i.getQuantity()));
             order.setOrderStatus(OrderStatus.PENDING);
+
+            // Xóa item khỏi cart
+            List<Long> cartItemIdsToRemove = order.getOrderItems().stream()
+                    .map(OrderItem::getCartItemId)
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            if (!cartItemIdsToRemove.isEmpty()) {
+                removeSelectedItemsFromCartByItemIds(order.getProfile().getCart().getCartId(), cartItemIdsToRemove);
+            }
 
             // Log system change status
             historyService.logStatusChange(order, OrderStatus.PENDING, null);
@@ -214,9 +270,7 @@ public class OrderService implements IOrderService {
     public void confirmCashOrder(Long orderId, User admin) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
-        if (order.getOrderStatus() == OrderStatus.DELIVERED) {
-            throw new AppException(ErrorCode.ORDER_ALREADY_DELIVERED);
-        }
+        if (order.getOrderStatus() == OrderStatus.DELIVERED) throw new AppException(ErrorCode.ORDER_ALREADY_DELIVERED);
 
         // Update order status when delivery is made
         order.setOrderStatus(OrderStatus.DELIVERED);
@@ -311,7 +365,6 @@ public class OrderService implements IOrderService {
             boolean ok = paymentService.processCashPayment(order.getOrderId());
             if (!ok) throw new AppException(ErrorCode.PAYMENT_DECLINED);
 
-            order.setOrderStatus(OrderStatus.PENDING);
             orderRepository.save(order);
             return order;
         }
@@ -325,7 +378,11 @@ public class OrderService implements IOrderService {
 
     // =========== CREATE ORDER FROM CART =============
     private Order createOrderFromCart(Cart cart) {
-        Order order = Order.builder().profile(cart.getProfile()).orderDate(LocalDate.now()).orderStatus(OrderStatus.PENDING).build();
+        Order order = Order.builder()
+                .profile(cart.getProfile())
+                .orderDate(LocalDate.now())
+                .orderStatus(OrderStatus.PENDING)
+                .build();
 
         List<OrderItem> orderItems = cart.getCartItems().stream()
                 .map(ci ->
@@ -333,14 +390,82 @@ public class OrderService implements IOrderService {
                                 .order(order)
                                 .product(ci.getProduct()).
                                 quantity(ci.getQuantity())
-                                .price(ci.getUnitPrice()).build())
+                                .price(ci.getUnitPrice())
+                                .cartItemId(ci.getCartItemId())
+                                .build()
+                )
                 .collect(Collectors.toList());
 
         order.setOrderItems(new HashSet<>(orderItems));
         return order;
     }
 
-    // ============== UPDATE CALCULATE SOLDCOUNT ==============
+    // ========== CREATE ORDER FROM CART ITEMS =======
+    private Order createOrderFromCartItem(List<CartItem> cartItems, UserProfile profile) {
+        Order order = Order.builder()
+                .profile(profile)
+                .orderDate(LocalDate.now())
+                .orderStatus(OrderStatus.PENDING)
+                .build();
+
+        List<OrderItem> orderItems = cartItems.stream()
+                .map(item ->
+                        OrderItem.builder()
+                                .order(order)
+                                .quantity(item.getQuantity())
+                                .product(item.getProduct())
+                                .price(item.getUnitPrice())
+                                .cartItemId(item.getCartItemId())
+                                .build()
+                ).toList();
+
+        order.setOrderItems(new HashSet<>(orderItems));
+        return order;
+    }
+
+//    // ========= REMOVE SELECTED ITEMS FROM CART  ============
+
+    /// /    @Transactional
+//    public void removeSelectedItemsFromCart(Long cartId, List<Long> cartItemIds) {
+//        if (cartItemIds == null || cartItemIds.isEmpty()) {
+//            return;
+//        }
+//        Cart cart = cartRepository.findById(cartId)
+//                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
+//        log.info("Cart before: {}", cart.getCartItems().toString());
+//        if (cart.getCartItems() == null || cart.getCartItems().isEmpty()) {
+//            throw new AppException(ErrorCode.CART_NOT_EXISTED);
+//        }
+//
+//        cart.getCartItems().removeIf(item ->
+//                {
+//                    if (cartItemIds.contains(item.getCartItemId())) {
+//                        item.setCart(null);
+//                        cartItemRepository.delete(item);
+//                        cartItemRepository.flush();
+//                        return true;
+//                    }
+//                    return false;
+//                }
+//        );
+//
+//        cart.updateTotalAmount();
+//        cartService.saveCart(cart);
+//        cartRepository.flush();
+//        log.info("Cart after: {}", cart.getCartItems().toString());
+//    }
+    @Transactional
+    public void removeSelectedItemsFromCartByItemIds(Long cartId, List<Long> cartItemIds) {
+        if (cartItemIds == null || cartItemIds.isEmpty()) {
+            return;
+        }
+        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
+        cart.getCartItems().removeIf(item -> cartItemIds.contains(item.getCartItemId()));
+        cart.updateTotalAmount();
+        cartRepository.save(cart);
+    }
+
+    // ============== UPDATE CALCULATE SOLD COUNT ==============
     private void calculateSoldCount(Order order) {
         order.getOrderItems()
                 .forEach(item -> {
@@ -386,8 +511,48 @@ public class OrderService implements IOrderService {
         }
     }
 
+    // ============== SET ADDRESS SHIPPING ORDER ========
+    private void setShippingOrder(Order order, Long addressId, Long profileId, String orderNote) {
+        // set address shipping from address profile
+        OrderDeliveryAddress deliveryAddress = deliveryAddressService.createDeliveryAddressFromAddressId(addressId, profileId, orderNote);
+        deliveryAddress.setOrder(order);
+        deliveryAddress.setCreatedAt(LocalDateTime.now());
+        order.setDeliveryAddress(deliveryAddress);
+//        order = orderRepository.save(order);
+    }
 
-    private void confirmOrderInventory(Order order) {
+
+    // ============= processOrderSuccess ==================
+    @Transactional
+    public void processOrderSuccess(Order order, List<Long> cartItemIdsToRemove) {
         order.getOrderItems().forEach(item -> inventoryService.confirmOrder(item.getProduct().getProductId(), item.getQuantity()));
+        order.setOrderStatus(OrderStatus.PENDING);
+        historyService.logStatusChange(order, OrderStatus.PENDING, null);
+
+        if (cartItemIdsToRemove != null && !cartItemIdsToRemove.isEmpty() && order.getProfile().getCart() != null) {
+            Cart cart = order.getProfile().getCart();
+            cart.getCartItems().removeIf(item -> cartItemIdsToRemove.contains(item.getCartItemId()));
+            cart.updateTotalAmount();
+            cartRepository.save(cart);
+        }
+
+        orderRepository.save(order);
+    }
+
+
+    // ========== CONSOLIDATE INVENTORY AND CLEAR WHOLE CART UTILITY =============
+    private void processOrderSuccessAndClearAllCart(Order order, Cart cart) {
+        // 1. Xác nhận Tồn kho
+        order.getOrderItems().forEach(item -> inventoryService.confirmOrder(item.getProduct().getProductId(), item.getQuantity()));
+
+        // 2. Cập nhật trạng thái
+        order.setOrderStatus(OrderStatus.PENDING);
+        historyService.logStatusChange(order, OrderStatus.PENDING, null);
+
+        // 3. Xóa toàn bộ giỏ hàng
+        cartService.clearCart(cart.getCartId());
+
+        // 4. Lưu Order
+        orderRepository.save(order);
     }
 }
