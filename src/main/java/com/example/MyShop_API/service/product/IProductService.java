@@ -14,6 +14,8 @@ import java.util.List;
 public interface IProductService {
     List<Product> getProducts();
 
+//    List
+
     Product getProductById(Long id);
 
     Product getProductByName(String productName);

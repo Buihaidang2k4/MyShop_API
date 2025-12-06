@@ -35,6 +35,8 @@ public class Product {
 
     @Column(columnDefinition = "TEXT")
     String bio;
+    
+    @Column(unique = true)
     String slug;
     Double height;
     Double length;

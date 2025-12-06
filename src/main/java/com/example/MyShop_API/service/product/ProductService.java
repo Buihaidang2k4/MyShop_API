@@ -9,6 +9,7 @@ import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.ProductMapper;
 import com.example.MyShop_API.repo.*;
 import com.example.MyShop_API.service.inventory.IInventoryService;
+import com.example.MyShop_API.utils.SlugUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -51,10 +52,15 @@ public class ProductService implements IProductService {
                     return categoryRepository.save(newCategory);
                 });
 
+        String slug = SlugUtils.toSlug(request.getProductName());
+
         // mapper
         Product product = productMapper.toEntity(request);
         product.setCategory(category);
         product.setSpecialPrice(calculateSpecialPrice(request.getPrice(), request.getDiscount()));
+        product.setSlug(slug);
+        // Tạo slug
+
 
         // Lưu khởi tạo id
         product = productRepository.save(product);

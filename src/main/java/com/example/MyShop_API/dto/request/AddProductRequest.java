@@ -28,11 +28,6 @@ public class AddProductRequest {
     @NotBlank(message = "Bio không được để trống")
     String bio;
 
-    @NotBlank(message = "Slug không được để trống")
-    @Pattern(regexp = "^[a-z0-9-]+$", message = "Slug chỉ chứa chữ thường, số và dấu '-'")
-    @Column(unique = true)
-    String slug;
-
     // Số > 0 hoặc có thể để NULL nếu không bắt buộc
     @Positive(message = "Height phải lớn hơn 0")
     Double height;
