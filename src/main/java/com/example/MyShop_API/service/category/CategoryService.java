@@ -55,6 +55,7 @@ public class CategoryService implements ICategoryService {
         }
 
         oldCategory.setCategoryName(category.getCategoryName());
+        oldCategory.setDescription(category.getDescription());
         oldCategory.setUpdateAt(LocalDate.now());
         return categoryRepository.save(oldCategory);
     }

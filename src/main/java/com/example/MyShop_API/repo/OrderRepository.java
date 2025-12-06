@@ -3,6 +3,7 @@ package com.example.MyShop_API.repo;
 import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,6 +19,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     int countByProfile_ProfileIdAndCoupon_CouponId(Long profileProfileId, Long couponCouponId);
 
+
+    @Modifying
+    @Query("UPDATE Order o SET o.orderStatus=:status WHERE o.orderId=:orderId")
+    void updateStatus(@Param("orderId") Long orderId, @Param("status") OrderStatus status);
 
     @Query("""
             SELECT COUNT(o) > 0

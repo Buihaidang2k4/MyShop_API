@@ -26,13 +26,13 @@ public class OrderItem {
 
     // Lưu id cartItem để callback VNPAY có thể xoá
     Long cartItemId;
-    
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "order_id")
     Order order;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     Product product;
 }

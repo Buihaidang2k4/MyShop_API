@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
@@ -23,6 +24,9 @@ public class AddProductRequest {
 
     @Size(max = 100, message = "Xuất xứ tối đa 100 ký tự")
     String origin;
+
+    @NotBlank(message = "Bio không được để trống")
+    String bio;
 
     @NotBlank(message = "Slug không được để trống")
     @Pattern(regexp = "^[a-z0-9-]+$", message = "Slug chỉ chứa chữ thường, số và dấu '-'")
@@ -63,4 +67,6 @@ public class AddProductRequest {
     Integer soldCount = 0;
     Integer reviewCount = 0;
     Double avgRating = 0.0;
+    LocalDate createAt = LocalDate.now();
+
 }

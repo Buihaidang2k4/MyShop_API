@@ -38,7 +38,8 @@ public class ProductService implements IProductService {
     public Product addProduct(AddProductRequest request) {
         log.info("=================== START ADD PRODUCT ====================");
         // Tìm danh mục , nếu không có tạo mới
-        Category category = Optional.ofNullable(categoryRepository.findByCategoryName(request.getCategory().getCategoryName()))
+        Category category = Optional
+                .ofNullable(categoryRepository.findByCategoryName(request.getCategory().getCategoryName()))
                 .orElseGet(() -> {
                     Category newCategory = Category.builder()
                             .categoryName(request.getCategory().getCategoryName())
@@ -51,7 +52,6 @@ public class ProductService implements IProductService {
         // mapper
         Product product = productMapper.toEntity(request);
         product.setCategory(category);
-        product.setCreateAt(LocalDate.now());
         product.setSpecialPrice(calculateSpecialPrice(request.getPrice(), request.getDiscount()));
 
         // Lưu khởi tạo id
@@ -94,7 +94,7 @@ public class ProductService implements IProductService {
                 () -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED)
         );
 
-        if (orderItemRepository.existsByProductProductId(productId)) {
+        if (orderItemRepository.existsByProductProductId(product.getProductId())) {
             throw new AppException(ErrorCode.PRODUCT_HAS_ORDERS);
         }
 
@@ -118,35 +118,26 @@ public class ProductService implements IProductService {
 
     @Override
     public Product getProductById(Long id) {
-        Product product = productRepository.findById(id).orElseThrow(
+        return productRepository.findById(id).orElseThrow(
                 () -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
-        return product;
     }
 
     // ============ GET ALL BY PRODUCT NAME =============
     @Override
     @Transactional(readOnly = true)
     public Product getProductByName(String productName) {
-        Product product = productRepository.getProductByProductName(productName);
-        if (product == null) {
-            throw new AppException(ErrorCode.PRODUCT_NOT_EXISTED);
-        }
-        return product;
+        return productRepository.getProductByProductName(productName).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
     }
 
     // ============== GET ALL BY CATEGORY NAME ============
     @Override
     @Transactional(readOnly = true)
     public Page<Product> searchProductByCategory(String categoryName, Pageable pageable) {
-        log.info("searchByCategory ");
-
         Category findCategory = categoryRepository.getCategoriesByCategoryName(categoryName);
         if (findCategory == null)
             throw new AppException(ErrorCode.CATEGORY_NOT_EXISTED);
-
         return productRepository.findByCategory_CategoryName(categoryName, pageable);
     }
-
 
     private BigDecimal calculateSpecialPrice(BigDecimal price, BigDecimal discount) {
         return price.multiply(BigDecimal.ONE.subtract(discount.divide(BigDecimal.valueOf(100))));

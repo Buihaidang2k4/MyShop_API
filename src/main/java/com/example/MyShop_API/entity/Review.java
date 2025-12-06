@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Review {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     Long reviewId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,7 +32,6 @@ public class Review {
     @JoinColumn(name = "profile_id", nullable = false)
     UserProfile profile;
 
-    // THÊM DÒNG NÀY – BẮT BUỘC!
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     Order order;

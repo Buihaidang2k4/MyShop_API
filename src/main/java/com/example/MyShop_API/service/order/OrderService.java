@@ -183,13 +183,6 @@ public class OrderService implements IOrderService {
         Cart cart = cartService.getCartByUserProfileId(orderRequest.getProfileId());
         if (cart.getCartItems().isEmpty()) throw new AppException(ErrorCode.CART_NOT_EXISTED);
 
-        // đặt hàng trước cho mỗi item
-        cart.getCartItems().forEach(item -> {
-            if (!inventoryService.reserveStock(item.getProduct().getProductId(), item.getQuantity())) {
-                throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
-            }
-        });
-
         // Tạo đơn hàng
         Order order = createOrderFromCart(cart);
 
@@ -341,10 +334,9 @@ public class OrderService implements IOrderService {
         if (currentStatus == OrderStatus.CANCELLED) {
             throw new AppException(ErrorCode.ORDER_ALREADY_CANCELLED);
         }
-        order.setOrderStatus(newStatus);
-        // audit status
         historyService.logStatusChange(order, newStatus, admin);
-        return orderRepository.save(order);
+        orderRepository.updateStatus(order.getOrderId(), newStatus);
+        return order;
     }
 
     @Override
@@ -423,44 +415,13 @@ public class OrderService implements IOrderService {
         return order;
     }
 
-//    // ========= REMOVE SELECTED ITEMS FROM CART  ============
-
-    /// /    @Transactional
-//    public void removeSelectedItemsFromCart(Long cartId, List<Long> cartItemIds) {
-//        if (cartItemIds == null || cartItemIds.isEmpty()) {
-//            return;
-//        }
-//        Cart cart = cartRepository.findById(cartId)
-//                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
-//        log.info("Cart before: {}", cart.getCartItems().toString());
-//        if (cart.getCartItems() == null || cart.getCartItems().isEmpty()) {
-//            throw new AppException(ErrorCode.CART_NOT_EXISTED);
-//        }
-//
-//        cart.getCartItems().removeIf(item ->
-//                {
-//                    if (cartItemIds.contains(item.getCartItemId())) {
-//                        item.setCart(null);
-//                        cartItemRepository.delete(item);
-//                        cartItemRepository.flush();
-//                        return true;
-//                    }
-//                    return false;
-//                }
-//        );
-//
-//        cart.updateTotalAmount();
-//        cartService.saveCart(cart);
-//        cartRepository.flush();
-//        log.info("Cart after: {}", cart.getCartItems().toString());
-//    }
     @Transactional
     public void removeSelectedItemsFromCartByItemIds(Long cartId, List<Long> cartItemIds) {
         if (cartItemIds == null || cartItemIds.isEmpty()) {
             return;
         }
         Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
-        cart.getCartItems().removeIf(item -> cartItemIds.contains(item.getCartItemId()));
+        cartItemIds.forEach(cartItemRepository::deleteByIdDirect);
         cart.updateTotalAmount();
         cartRepository.save(cart);
     }
@@ -521,8 +482,7 @@ public class OrderService implements IOrderService {
 //        order = orderRepository.save(order);
     }
 
-
-    // ============= processOrderSuccess ==================
+    // ============= PROCESS ORDER SUCCESS PLACE CARTITEM FROM LIST SELECTED ==================
     @Transactional
     public void processOrderSuccess(Order order, List<Long> cartItemIdsToRemove) {
         order.getOrderItems().forEach(item -> inventoryService.confirmOrder(item.getProduct().getProductId(), item.getQuantity()));
@@ -531,11 +491,10 @@ public class OrderService implements IOrderService {
 
         if (cartItemIdsToRemove != null && !cartItemIdsToRemove.isEmpty() && order.getProfile().getCart() != null) {
             Cart cart = order.getProfile().getCart();
-            cart.getCartItems().removeIf(item -> cartItemIdsToRemove.contains(item.getCartItemId()));
+            cartItemIdsToRemove.forEach(cartItemRepository::deleteByIdDirect);
             cart.updateTotalAmount();
             cartRepository.save(cart);
         }
-
         orderRepository.save(order);
     }
 

@@ -27,4 +27,8 @@ public interface IProductService {
     Product updateProduct(AddProductRequest addProductRequest, Long productId);
 
     void deleteProductById(Long productId);
+
+    // Lấy  doanh thu của sản phẩm theo khoảng thời gian
+
+    //
 }

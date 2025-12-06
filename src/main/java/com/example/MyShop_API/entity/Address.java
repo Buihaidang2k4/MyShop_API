@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -56,4 +57,5 @@ public class Address {
 
     @Column(name = "updated_at")
     LocalDateTime updatedAt = LocalDateTime.now();
+
 }
