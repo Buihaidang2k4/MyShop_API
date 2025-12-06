@@ -2,6 +2,7 @@ package com.example.MyShop_API.service.product;
 
 import com.example.MyShop_API.dto.request.AddProductRequest;
 import com.example.MyShop_API.entity.Category;
+import com.example.MyShop_API.entity.Inventory;
 import com.example.MyShop_API.entity.Product;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -101,6 +103,67 @@ public class ProductService implements IProductService {
         cartItemRepository.deleteCartItemByProductProductId(productId);
         productRepository.deleteById(productId);
     }
+
+    @Override
+    @Transactional
+    public void initDataProduct() {
+        List<Product> products = new ArrayList<>();
+
+        // Tạo sẵn vài Category
+        Category electronics = Category.builder()
+                .categoryName("Cây ăn quả")
+                .description("Các loại cây ăn quả")
+                .build();
+
+        Category fashion = Category.builder()
+                .categoryName("Cây lấy gỗ")
+                .description("Các loại cây lấy gỗ")
+                .build();
+
+        Category home = Category.builder()
+                .categoryName("Rau củ quả")
+                .description("Các loại rau củ quả")
+                .build();
+
+        categoryRepository.saveAll(List.of(electronics, fashion, home));
+
+        for (int i = 0; i < 50; i++) {
+            // Chọn category luân phiên
+            Category category = (i % 3 == 0) ? electronics : (i % 3 == 1 ? fashion : home);
+
+            Product product = Product.builder()
+                    .productName("Sản phẩm " + i)
+                    .origin("Việt Nam " + i)
+                    .bio("Sản phẩm chất lượng " + i)
+                    .slug("san-pham-" + i)
+                    .height(20.0)
+                    .length(10.0)
+                    .weight(50.0)
+                    .width(100.0)
+                    .description("Mô tả sản phẩm " + i)
+                    .category(category)
+                    .price(BigDecimal.valueOf(1000 + i * 10))
+                    .discount(BigDecimal.valueOf(i % 20))
+                    .soldCount(0)
+                    .reviewCount(0)
+                    .avgRating(0.0)
+                    .createAt(LocalDate.now())
+                    .build();
+
+            // Tạo tồn kho cho sản phẩm
+            Inventory inventory = Inventory.builder()
+                    .available(100 + i)
+                    .product(product)
+                    .build();
+
+            product.setInventory(inventory);
+
+            products.add(product);
+        }
+
+        productRepository.saveAll(products); // cascade sẽ lưu cả inventory
+    }
+
 
     @Override
     @Transactional(readOnly = true)

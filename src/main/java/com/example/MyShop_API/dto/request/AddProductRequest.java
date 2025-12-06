@@ -62,7 +62,7 @@ public class AddProductRequest {
 
     @DecimalMin(value = "0.0", inclusive = true, message = "Giảm giá phải >= 0")
     @DecimalMax(value = "100.0", inclusive = true, message = "Giảm giá phải <= 100")
-    BigDecimal discount; // % giảm giá, có thể null
+    BigDecimal discount;
 
     Integer soldCount = 0;
     Integer reviewCount = 0;

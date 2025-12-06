@@ -119,6 +119,12 @@ public class ProductController {
         }
     }
 
+    @PostMapping("/init-data-50")
+    ResponseEntity<ApiResponse> initData() {
+        productService.initDataProduct();
+        return ResponseEntity.ok(new ApiResponse(200, "Init data success!", null));
+    }
+
     @PostMapping("/product/add")
     ResponseEntity<ApiResponse<ProductResponse>> addProduct(@Valid @RequestBody AddProductRequest addProductRequest) {
         try {
