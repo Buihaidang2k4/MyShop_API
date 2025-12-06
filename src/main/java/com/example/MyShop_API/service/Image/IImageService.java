@@ -15,7 +15,9 @@ public interface IImageService {
 
     void deleteImageById(Long id);
 
-    List<ImageDTO> saveImage(Long productId, List<MultipartFile> files);
+    List<ImageDTO> addImages(Long productId, List<MultipartFile> files);
+
+    void addImageUrl(Long productId, List<String> urls);
 
     void updateImage(Long productId, MultipartFile file) throws IOException, SQLException;
 }

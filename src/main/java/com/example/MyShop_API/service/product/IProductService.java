@@ -30,5 +30,7 @@ public interface IProductService {
 
     // Lấy  doanh thu của sản phẩm theo khoảng thời gian
 
-    //
+    // init data demo 50
+
+    
 }

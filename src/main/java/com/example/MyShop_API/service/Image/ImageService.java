@@ -52,8 +52,9 @@ public class ImageService implements IImageService {
         });
     }
 
+
     @Override
-    public List<ImageDTO> saveImage(Long productId, List<MultipartFile> files) {
+    public List<ImageDTO> addImages(Long productId, List<MultipartFile> files) {
         Product product = productService.getProductById(productId);
 
         List<ImageDTO> saveImageDTO = new ArrayList<>();
@@ -85,6 +86,18 @@ public class ImageService implements IImageService {
 
         }
         return saveImageDTO;
+    }
+
+    @Override
+    public void addImageUrl(Long productId, List<String> urls) {
+        Product product = productService.getProductById(productId);
+        for (String url : urls) {
+            Image image = Image.builder()
+                    .url(url)
+                    .product(product)
+                    .build();
+            imageRepository.save(image);
+        }
     }
 
     @Override

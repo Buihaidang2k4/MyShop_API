@@ -35,7 +35,7 @@ public class ImageController {
     @PostMapping("/upload/product/{productId}")
     ResponseEntity<ApiResponse> saveImages(@RequestPart("files") List<MultipartFile> files, @PathVariable("productId") Long productId) {
         try {
-            List<ImageDTO> imageDTOs = imageService.saveImage(productId, files);
+            List<ImageDTO> imageDTOs = imageService.addImages(productId, files);
 
 
             return ResponseEntity.ok(new ApiResponse(200, "Upload success!", imageDTOs));
@@ -43,6 +43,17 @@ public class ImageController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(500, "Upload failed!", null));
         }
     }
+
+    // Lưu nhiều URL ảnh cho product
+    @PostMapping("/{productId}/images/url")
+    public ResponseEntity<ApiResponse<List<String>>> addImageUrls(
+            @PathVariable("productId") Long productId,
+            @RequestBody List<String> urls
+    ) {
+        imageService.addImageUrl(productId, urls);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Add image URLs successfully!", null));
+    }
+
 
     @GetMapping("/image/download/{imageId}")
     ResponseEntity<Resource> downloadImage(@PathVariable Long imageId) throws SQLException {
@@ -56,7 +67,7 @@ public class ImageController {
     @GetMapping("/product/{productId}/images")
     ResponseEntity<ApiResponse> getImagesByProductId(@PathVariable Long productId) {
         List<ImageDTO> ds = imageService.getImageByProductId(productId);
-       
+
         return ResponseEntity.ok(new ApiResponse(200, "Get success!", ds));
     }
 
