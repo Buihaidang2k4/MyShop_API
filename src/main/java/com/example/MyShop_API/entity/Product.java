@@ -33,6 +33,7 @@ public class Product {
     BigDecimal specialPrice;
     BigDecimal discount;
 
+    @Column(columnDefinition = "TEXT")
     String bio;
     String slug;
     Double height;
