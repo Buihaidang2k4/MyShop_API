@@ -178,6 +178,11 @@ public class ProductService implements IProductService {
         return productRepository.findAll();
     }
 
+    @Override
+    public Product getProductBySlug(String slug) {
+        return productRepository.findBySlug(slug).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
+    }
+
     // ============== GET ALL ===================
     @Override
     @Transactional(readOnly = true)

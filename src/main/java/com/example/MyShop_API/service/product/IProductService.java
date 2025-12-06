@@ -14,7 +14,7 @@ import java.util.List;
 public interface IProductService {
     List<Product> getProducts();
 
-//    List
+    Product getProductBySlug(String slug);
 
     Product getProductById(Long id);
 

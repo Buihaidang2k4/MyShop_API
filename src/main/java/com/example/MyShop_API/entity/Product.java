@@ -25,6 +25,7 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long productId;
 
+    @Column(unique = true)
     String productName;
 
     @Column(columnDefinition = "TEXT")
@@ -35,7 +36,7 @@ public class Product {
 
     @Column(columnDefinition = "TEXT")
     String bio;
-    
+
     @Column(unique = true)
     String slug;
     Double height;

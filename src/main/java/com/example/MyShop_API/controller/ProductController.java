@@ -109,6 +109,16 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/product/{slug}/slug")
+    ResponseEntity<ApiResponse<?>> getProductById(@PathVariable String slug) {
+        try {
+            Product product = productService.getProductBySlug(slug);
+            return ResponseEntity.ok(new ApiResponse(200, "Get product successfully!", productMapper.toResponse(product)));
+        } catch (AppException e) {
+            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(404, e.getMessage(), null));
+        }
+    }
+
     @GetMapping("/product/by-product-name")
     ResponseEntity<ApiResponse<ProductResponse>> getProductByName(@RequestParam String productName) {
         try {
