@@ -66,6 +66,12 @@ public class CouponService implements ICouponService {
         return couponRepository.findAvailableCoupons(orderTotal, LocalDateTime.now());
     }
 
+    @Override
+    public List<Coupon> getAvailableCoupons() {
+        return couponRepository.findCouponByEnabledTrue();
+    }
+
+
     // =============== APPLY COUPON TO ORDER =================
     @Override
     public BigDecimal applyCouponToOrder(String couponCode,

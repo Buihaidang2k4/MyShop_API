@@ -3,6 +3,8 @@ package com.example.MyShop_API.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
+
 @Data
 @AllArgsConstructor
 @Builder
@@ -11,4 +13,5 @@ import lombok.experimental.FieldDefaults;
 public class AuthenticationResponse {
     String accessToken;
     String refreshToken;
+    Instant exp;
 }

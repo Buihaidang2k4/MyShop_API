@@ -15,9 +15,9 @@ import java.text.ParseException;
 
 public interface IAuthenticationService {
 
-    AuthenticationResponse authenticate(AuthenticationRequest request);
+    AuthenticationResponse authenticate(AuthenticationRequest request) throws ParseException;
 
-    AuthenticationResponse authenticateGoogle(IntrospectRequest request) throws GeneralSecurityException, IOException;
+    AuthenticationResponse authenticateGoogle(IntrospectRequest request) throws GeneralSecurityException, IOException, ParseException;
 
     IntrospectResponse introspect(IntrospectRequest request) throws ParseException, JOSEException;
 

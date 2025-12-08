@@ -56,7 +56,6 @@ public class ImageService implements IImageService {
     @Override
     public List<ImageDTO> addImages(Long productId, List<MultipartFile> files) {
         Product product = productService.getProductById(productId);
-
         List<ImageDTO> saveImageDTO = new ArrayList<>();
 
         for (MultipartFile file : files) {
@@ -68,22 +67,18 @@ public class ImageService implements IImageService {
                         .product(product)
                         .build();
 
-                String buildDownLoadUrl = "api/v1/images/image/download/";
-                String downloadUrl = buildDownLoadUrl + image.getId();
-                image.setDownloadUrl(downloadUrl);
+                Image savedImage = imageRepository.saveAndFlush(image);
 
-                Image savedImage = imageRepository.save(image);
-                savedImage.setDownloadUrl(downloadUrl + savedImage.getId());
+                String downloadUrl = "/api/v1/images/image/download/" + savedImage.getId();
+                savedImage.setDownloadUrl(downloadUrl);
+
                 imageRepository.saveAndFlush(savedImage);
 
                 ImageDTO imageDTO = imageMapper.toImageDTO(savedImage);
                 saveImageDTO.add(imageDTO);
-
-
             } catch (IOException | SQLException e) {
                 throw new RuntimeException(e.getMessage());
             }
-
         }
         return saveImageDTO;
     }

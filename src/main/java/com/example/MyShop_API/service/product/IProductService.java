@@ -31,7 +31,6 @@ public interface IProductService {
     void deleteProductById(Long productId);
 
     // Lấy  doanh thu của sản phẩm theo khoảng thời gian
-    // init data demo 50
     void initDataProduct();
 
 

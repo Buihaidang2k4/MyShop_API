@@ -27,5 +27,8 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
                                       @Param("now") LocalDateTime now
     );
 
+
+    List<Coupon> findCouponByEnabledTrue();
+
     boolean existsByCode(String code);
 }

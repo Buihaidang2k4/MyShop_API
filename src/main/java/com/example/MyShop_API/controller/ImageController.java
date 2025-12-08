@@ -58,6 +58,8 @@ public class ImageController {
     @GetMapping("/image/download/{imageId}")
     ResponseEntity<Resource> downloadImage(@PathVariable Long imageId) throws SQLException {
         Image image = imageService.getImageById(imageId);
+        if (image == null || image.getDownloadUrl().isEmpty()) return ResponseEntity.notFound().build();
+
         ByteArrayResource resource = new ByteArrayResource(image.getImage().getBytes(1, (int) image.getImage().length()));
         return ResponseEntity.ok().contentType(MediaType.parseMediaType(image.getFileType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + image.getFileName() + "\"")
@@ -67,6 +69,9 @@ public class ImageController {
     @GetMapping("/product/{productId}/images")
     ResponseEntity<ApiResponse> getImagesByProductId(@PathVariable Long productId) {
         List<ImageDTO> ds = imageService.getImageByProductId(productId);
+        if (ds.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.ok(new ApiResponse(200, "Get success!", ds));
     }

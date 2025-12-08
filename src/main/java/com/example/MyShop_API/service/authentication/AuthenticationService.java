@@ -76,7 +76,7 @@ public class AuthenticationService implements IAuthenticationService {
      * @param request
      * @return
      */
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public AuthenticationResponse authenticate(AuthenticationRequest request) throws ParseException {
         log.info("======================= START LOGIN ======================");
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
                 () -> new AppException(ErrorCode.INVALID_CREDENTIALS)
@@ -93,12 +93,18 @@ public class AuthenticationService implements IAuthenticationService {
         String accessToken = generateAccessToken(user);
         String refreshToken = generateRefreshToken(user);
 
+        // trả về thời gian hết hạn access token
+        JWTClaimsSet claimsSet = decodeToken(accessToken);
+        Date expiration = claimsSet.getExpirationTime();
+        Instant exp = expiration.toInstant();
+
         // Lưu token mới vào Redis (không ghi DB)
         blacklistService.storeRefreshToken(user.getId(), refreshToken);
         log.info("======================= END LOGIN ======================");
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .exp(exp)
                 .build();
     }
 
@@ -110,7 +116,7 @@ public class AuthenticationService implements IAuthenticationService {
      * @throws ParseException
      * @throws JOSEException
      */
-    public AuthenticationResponse authenticateGoogle(IntrospectRequest request) throws GeneralSecurityException, IOException {
+    public AuthenticationResponse authenticateGoogle(IntrospectRequest request) throws GeneralSecurityException, IOException, ParseException {
         GoogleIdToken idToken = verifyIdToken(request.getToken());
 
         String email = idToken.getPayload().getEmail();
@@ -140,12 +146,18 @@ public class AuthenticationService implements IAuthenticationService {
         String accessToken = generateAccessToken(user);
         String refreshToken = generateRefreshToken(user);
 
+
+        // trả về thời gian hết hạn access token
+        JWTClaimsSet claimsSet = decodeToken(accessToken);
+        Date expiration = claimsSet.getExpirationTime();
+        Instant exp = expiration.toInstant();
+
         log.info("Google ID token verification successfully: {}", accessToken);
         log.info("Google ID token verification successfully: {}", refreshToken);
 
         blacklistService.storeRefreshToken(user.getId(), refreshToken);
 
-        return new AuthenticationResponse(accessToken, refreshToken);
+        return new AuthenticationResponse(accessToken, refreshToken, exp);
     }
 
     public String refreshToken(String token) throws ParseException, JOSEException {

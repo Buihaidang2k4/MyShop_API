@@ -11,9 +11,12 @@ import java.util.List;
 public interface ICouponService {
     List<Coupon> getCoupons();
 
-    Coupon createCoupon(CreateCouponRequest request);
 
     List<Coupon> getAvailableCoupons(BigDecimal orderTotal);
+
+    List<Coupon> getAvailableCoupons();
+
+    Coupon createCoupon(CreateCouponRequest request);
 
     BigDecimal applyCouponToOrder(String couponCode, BigDecimal orderTotal, Order order, UserProfile profile);
 

@@ -45,7 +45,7 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     ResponseEntity<ApiResponse> login(@Valid @RequestBody AuthenticationRequest request,
-                                      HttpServletResponse response) {
+                                      HttpServletResponse response) throws ParseException {
         log.info("Login");
         AuthenticationResponse tokens = authenticationService.authenticate(request);
         ResponseCookie cookieAccess = authenticationService.buildCookie(tokens.getAccessToken(), ACCESS_COOKIE_NAME);
@@ -55,13 +55,13 @@ public class AuthenticationController {
         response.addHeader(HttpHeaders.SET_COOKIE, cookieRefresh.toString());
 
 
-        return ResponseEntity.ok(new ApiResponse(200, "Login successfull", null));
+        return ResponseEntity.ok(new ApiResponse(200, "Login successfull", tokens.getExp()));
     }
 
     @PostMapping("/google")
     ResponseEntity<ApiResponse> handleGoogleLogin(@Valid @RequestBody IntrospectRequest request
             , HttpServletResponse response
-    ) throws GeneralSecurityException, IOException {
+    ) throws GeneralSecurityException, IOException, ParseException {
 
         AuthenticationResponse tokens = authenticationService.authenticateGoogle(request);
 
@@ -72,7 +72,7 @@ public class AuthenticationController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookieAccess.toString())
                 .header(HttpHeaders.SET_COOKIE, cookieRefresh.toString())
-                .body(new ApiResponse(200, "Login jwt successful", null));
+                .body(new ApiResponse(200, "Login jwt successful", tokens.getExp()));
     }
 
     @PostMapping("/refresh")

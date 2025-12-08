@@ -1,7 +1,6 @@
 package com.example.MyShop_API.dto.response;
 
 import com.example.MyShop_API.Enum.DiscountType;
-import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
