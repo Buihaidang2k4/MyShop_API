@@ -46,6 +46,7 @@ public enum ErrorCode {
     PRODUCT_OUT_OF_STOCK(1401, "Product is out of stock", BAD_REQUEST),
     PRODUCT_NOT_ENOUGH(1402, "Requested: %d, Available: %d", BAD_REQUEST),
     PRODUCT_HAS_ORDERS(1403, "Product has orders and cannot be deleted", CONFLICT),
+    PRODUCT_NAME_IS_EXISTED(1404, "Product name is existed", BAD_REQUEST),
 
     // ========== CATEGORY ==========
     CATEGORY_NOT_EXISTED(1500, "Category not found", NOT_FOUND),

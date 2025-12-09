@@ -52,7 +52,12 @@ public class ProductService implements IProductService {
                     return categoryRepository.save(newCategory);
                 });
 
+        if (productRepository.existsProductByProductName(request.getProductName()))
+            throw new AppException(ErrorCode.PRODUCT_NAME_IS_EXISTED);
+
+
         String slug = SlugUtils.toSlug(request.getProductName());
+
 
         // mapper
         Product product = productMapper.toEntity(request);
