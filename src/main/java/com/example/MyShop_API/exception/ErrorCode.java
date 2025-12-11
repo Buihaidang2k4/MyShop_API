@@ -32,6 +32,8 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(1104, "Incorrect username or password", HttpStatus.UNAUTHORIZED),
     PASSWORD_NOT_MATCHES(1105, "Current password is incorrect", BAD_REQUEST),
     PASSWORD_CONFIRM_NOT_MATCHES(1106, "New password and confirm password do not match", HttpStatus.BAD_REQUEST),
+    USER_ALREADY_LOCKED(1107, "This user account is already locked.", HttpStatus.BAD_REQUEST),
+    USER_ALREADY_UNLOCKED(1107, "This user account is already unlocked.", HttpStatus.BAD_REQUEST),
 
     // ========== PROFILE ==========
     PROFILE_EXISTED(1200, "Profile already exists", BAD_REQUEST),

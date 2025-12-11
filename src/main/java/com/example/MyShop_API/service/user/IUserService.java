@@ -18,6 +18,10 @@ public interface IUserService {
 
     UserResponse updateRoleUser(UserUpdateRequest request, Long id);
 
+    void lockUser(Long userId, String reason);
+
+    void unlockUser(Long userId);
+
     void deleteUserById(Long id);
 
     UserResponse getMyInfor();

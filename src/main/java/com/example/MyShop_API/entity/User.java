@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -29,6 +30,8 @@ public class User {
     String email;
 
     boolean enabled = true;
+    String lockedReason;
+    LocalDateTime lockedAt;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

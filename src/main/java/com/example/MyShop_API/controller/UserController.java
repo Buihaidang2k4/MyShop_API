@@ -69,6 +69,24 @@ public class UserController {
                 .build();
     }
 
+    @PutMapping("/{userId}/lock-user")
+    ResponseEntity<ApiResponse> updateUser(
+            @PathVariable Long userId,
+            @RequestBody String lockReason
+    ) {
+
+        userService.lockUser(userId, lockReason);
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "locked user success", userId));
+    }
+
+    @PutMapping("/{userId}/unlocked-user")
+    ResponseEntity<ApiResponse> updateUser(
+            @PathVariable Long userId) {
+        userService.unlockUser(userId);
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "unlocked user success", userId));
+    }
+
+
     @PutMapping("/{userId}/change-password")
     ResponseEntity<ApiResponse<?>> changePassword(
             @PathVariable(name = "userId") Long userId

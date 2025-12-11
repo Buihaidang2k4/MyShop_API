@@ -27,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,6 +63,7 @@ public class UserService implements IUserService {
 
         // convert pass
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setEnabled(true);
 
         // set role defautlt nếu không có tạo mới
         HashSet<Role> roles = new HashSet<>();
@@ -114,7 +116,7 @@ public class UserService implements IUserService {
         }
     }
 
-    @AllAccess
+    @AdminOnly
     @Transactional
     public UserResponse updateRoleUser(UserUpdateRequest request, Long id) {
         log.info("updateUser().........");
@@ -133,6 +135,27 @@ public class UserService implements IUserService {
         }
 
         return userMapper.toResponse(findUser);
+    }
+
+    @Override
+    @AdminOnly
+    public void lockUser(Long userId, String reason) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (!user.isEnabled()) throw new AppException(ErrorCode.USER_ALREADY_LOCKED);
+        user.setEnabled(false);
+        user.setLockedReason(reason);
+        user.setLockedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    @Override
+    @AdminOnly
+    public void unlockUser(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (user.isEnabled()) throw new AppException(ErrorCode.USER_ALREADY_UNLOCKED);
+        user.setEnabled(true);
+        user.setLockedReason("");
+        userRepository.save(user);
     }
 
     @AdminOnly

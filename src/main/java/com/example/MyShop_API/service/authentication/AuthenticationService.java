@@ -82,10 +82,15 @@ public class AuthenticationService implements IAuthenticationService {
                 () -> new AppException(ErrorCode.INVALID_CREDENTIALS)
         );
 
+
+        if (!user.isEnabled()) {
+            log.warn("Login attempt on locked account: {}", user.getEmail());
+            throw new AppException(ErrorCode.USER_ALREADY_LOCKED);
+        }
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCHES);
         }
-
         // Thu hồi toàn bộ token cũ trước khi sinh token mới
         blacklistService.revokeAllTokensForUser(user.getId(), Duration.ofMillis(REFRESH_TOKEN_DURATION));
 

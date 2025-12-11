@@ -50,6 +50,7 @@ public class ApplicationInitConfig {
 //                        .username("admin")
                         .email("admin@gmail.com")
                         .password(passwordEncoder.encode("Admin@123"))
+                        .enabled(true)
                         .roles((Set.of(role)))
                         .build();
 

@@ -305,8 +305,6 @@ public class OrderService implements IOrderService {
 
         // Order was paid/confirm restock
         if (order.getOrderStatus() == OrderStatus.SHIPPED || order.getOrderStatus() == OrderStatus.PENDING) {
-
-
             order.getOrderItems().forEach(orderItem -> {
                 // restock
                 inventoryService.restock(orderItem.getProduct().getProductId(), orderItem.getQuantity());
