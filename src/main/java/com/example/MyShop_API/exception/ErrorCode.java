@@ -82,6 +82,8 @@ public enum ErrorCode {
     ORDER_STATUS_FINAL(1808, "Unable to change completed order", BAD_REQUEST),
     ORDER_NOT_DELIVERED(1809, "he order has not been delivered.", BAD_REQUEST),
     ORDER_NOT_BELONG_TO_USER(1809, "You did not place this order.", BAD_REQUEST),
+    ORDER_CANNOT_CHANGE_ADDRESS(1810, "The delivery address cannot be changed because the shipment has already been made.", BAD_REQUEST),
+    ORDER_ADDRESS_MISMATCH(1810, "The delivery address you selected does not match the customer associated with this order.", BAD_REQUEST),
 
     // ========== INVENTORY ==========
     INVENTORY_DOES_NOT_EXIST(1900, "Inventory does not exist", NOT_FOUND),

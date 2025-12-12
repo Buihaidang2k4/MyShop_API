@@ -1,10 +1,13 @@
 package com.example.MyShop_API.service.order_delivery_address;
 
 import com.example.MyShop_API.entity.Address;
+import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.entity.OrderDeliveryAddress;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.repo.AddressRepository;
+import com.example.MyShop_API.repo.OrderDeliveryAddressRepository;
+import com.example.MyShop_API.repo.OrderRepository;
 import io.netty.util.internal.StringUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +24,18 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderDeliveryAddressService implements IOrderDeliveryAddressService {
     AddressRepository addressRepository;
+    OrderDeliveryAddressRepository orderDeliveryAddressRepository;
+    OrderRepository orderRepository;
+
+    @Override
+    public OrderDeliveryAddress getOrderDeliveryAddress(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+        return orderDeliveryAddressRepository.findOrderDeliveryAddressByOrderId(order.getOrderId());
+    }
 
     @Override
     public OrderDeliveryAddress createDeliveryAddressFromAddressId(Long addressId, Long profileId, String extraDeliveryNote) {
         Address address = addressRepository.findById(addressId).orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
-
 
         return OrderDeliveryAddress.builder()
                 .createdAt(LocalDateTime.now())
@@ -43,4 +53,24 @@ public class OrderDeliveryAddressService implements IOrderDeliveryAddressService
                 )
                 .build();
     }
+
+    @Override
+    public OrderDeliveryAddress updateDeliveryAddressFromAddressId(Long addressId, Order order, String extraDeliveryNote) {
+        Address address = addressRepository.findById(addressId).orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
+        OrderDeliveryAddress deliveryAddress = order.getDeliveryAddress();
+        deliveryAddress.setRecipientName(address.getFullName());
+        deliveryAddress.setRecipientPhone(address.getPhone());
+        deliveryAddress.setStreet(address.getStreet());
+        deliveryAddress.setWard(address.getWard());
+        deliveryAddress.setDistrict(address.getDistrict());
+        deliveryAddress.setProvince(address.getProvince());
+        deliveryAddress.setPostalCode(address.getPostalCode());
+        deliveryAddress.setDeliveryNote(StringUtils.hasText(extraDeliveryNote)
+                ? extraDeliveryNote
+                : address.getAdditionalInfo());
+
+        return orderDeliveryAddressRepository.save(deliveryAddress);
+    }
+
+
 }

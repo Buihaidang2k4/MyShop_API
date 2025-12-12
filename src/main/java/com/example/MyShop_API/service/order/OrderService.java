@@ -11,7 +11,6 @@ import com.example.MyShop_API.entity.*;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.repo.*;
-import com.example.MyShop_API.service.cart.CartItemService;
 import com.example.MyShop_API.service.cart.ICartItemService;
 import com.example.MyShop_API.service.cart.ICartService;
 import com.example.MyShop_API.service.coupon.ICouponService;
@@ -24,7 +23,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +50,7 @@ public class OrderService implements IOrderService {
     CartItemRepository cartItemRepository;
     ICartItemService cartItemService;
     CartRepository cartRepository;
+    AddressRepository addressRepository;
 
     @Override
     public List<Order> getOrders() {
@@ -106,7 +105,6 @@ public class OrderService implements IOrderService {
 
         // set address shipping
         setShippingOrder(savedOrder, orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
-
 
         // log audit status (system)
         historyService.logStatusChange(savedOrder, OrderStatus.PENDING, null);
@@ -349,6 +347,23 @@ public class OrderService implements IOrderService {
         orderRepository.delete(order);
     }
 
+
+    // ==================== UPDATE SHIPPING ORDER ==========
+    @Override
+    public Order updateShippingOrder(Long orderId, Long addressId, String orderNote) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+        Address address = addressRepository.findById(addressId).orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
+
+        if (order.getProfile().getProfileId() != address.getProfile().getProfileId())
+            throw new AppException(ErrorCode.ORDER_ADDRESS_MISMATCH);
+
+        if (order.getOrderStatus() != OrderStatus.PENDING)
+            throw new AppException(ErrorCode.ORDER_CANNOT_CHANGE_ADDRESS);
+
+        deliveryAddressService.updateDeliveryAddressFromAddressId(address.getAddressId(), order, orderNote);
+        return orderRepository.save(order);
+    }
+
     // =========== PROCESS PAYMENT ===============
     private Object processPayment(Order order, PaymentMethod method, HttpServletRequest request, Object... extraParams) {
         if (method == PaymentMethod.CASH) {
@@ -479,6 +494,7 @@ public class OrderService implements IOrderService {
         order.setDeliveryAddress(deliveryAddress);
 //        order = orderRepository.save(order);
     }
+
 
     // ============= PROCESS ORDER SUCCESS PLACE CARTITEM FROM LIST SELECTED ==================
     @Transactional
