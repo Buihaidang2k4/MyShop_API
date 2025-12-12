@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -39,23 +40,20 @@ public class TokenBlacklistService {
      */
     public void blacklist(String token, Duration duration) {
         String key = getRedisKey(token);
+        Instant now = Instant.now();
+        Instant expiresAt = now.plus(duration);
+        // Luôn ghi vào redis để đảm bảo TTL cập nhật
+        redisTemplate.opsForValue().set(key, true, duration);
         try {
-            // Luôn ghi vào Redis để đảm bảo TTL cập nhật
-            redisTemplate.opsForValue().set(key, true, duration);
-
-            // Kiểm tra DB: chỉ ghi nếu chưa có hoặc đã hết hạn
-            RevokedToken existing = revokedTokenRepository.findByToken(token).orElse(null);
-            Instant now = Instant.now();
-
-            if (existing == null || existing.getExpiresAt().isBefore(now)) {
-                revokedTokenRepository.save(RevokedToken.builder()
-                        .token(token)
-                        .revokedAt(now)
-                        .expiresAt(now.plus(duration))
-                        .build());
-            } else {
-                log.info("Token [{}] already exists and valid in DB, skipped insert", token);
-            }
+            // 2. ghi vào db ( dự phòng khi phục hồi)
+            revokedTokenRepository.save(RevokedToken.builder()
+                    .token(token)
+                    .revokedAt(now)
+                    .expiresAt(expiresAt)
+                    .build());
+        } catch (DataIntegrityViolationException e) {
+            // Xử lý khi token đã tồn tại (Unique Constraint)
+            log.warn("Token [{}] already exists in DB, updating expiry time.", token);
 
         } catch (Exception e) {
             log.error("Failed to blacklist token [{}]: {}", token, e.getMessage());
@@ -63,19 +61,31 @@ public class TokenBlacklistService {
         }
     }
 
+
     /**
      * Kiểm tra token có bị thu hồi không
      */
     public boolean isBlacklisted(String token) {
         String key = getRedisKey(token);
+
+        // check redis
         try {
             Boolean exists = redisTemplate.hasKey(key);
             if (Boolean.TRUE.equals(exists)) return true;
-            return revokedTokenRepository.existsByToken(token);
         } catch (Exception e) {
             log.info("Redis failed to blacklist token [{}]: {}", token, e.getMessage());
-            return false;
         }
+
+        // check db
+        try {
+            return revokedTokenRepository.existsByToken(token);
+        } catch (Exception e) {
+            log.error("Database failed to check blacklist for token [{}]: {}", token, e.getMessage());
+            // Nếu db lỗi ném ex chặn truy cập
+            throw new AppException(ErrorCode.DATABASE_ERROR);
+        }
+
+
     }
 
     /**

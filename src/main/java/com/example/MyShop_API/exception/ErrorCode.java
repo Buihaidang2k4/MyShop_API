@@ -23,6 +23,7 @@ public enum ErrorCode {
     TOKEN_EXPIRED(1003, "Token expired", HttpStatus.UNAUTHORIZED),
     TOKEN_REVOKED(1004, "Token has been revoked or is no longer valid", HttpStatus.UNAUTHORIZED),
     ROLE_NOT_ALLOWED(1005, "Role is not allowed for this action", HttpStatus.FORBIDDEN),
+    DATABASE_ERROR(1006, "Database failed to check backlist for token ", INTERNAL_SERVER_ERROR),
 
     // ========== USER ==========
     USER_EXISTED(1100, "User already exists", BAD_REQUEST),
