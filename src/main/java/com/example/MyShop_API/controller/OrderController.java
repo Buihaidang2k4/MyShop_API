@@ -108,11 +108,11 @@ public class OrderController {
         return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", null));
     }
 
-    // ============== CONFIRM PAYMENT CASH =================
+    // ============== UPDATE SHIPPING =================
     @PutMapping("order/{orderId}/address/{addressId}/update-order-address")
     ResponseEntity<ApiResponse<OrderResponse>> confirmCashPayment(@PathVariable Long orderId,
                                                                   @PathVariable Long addressId,
-                                                                  @RequestBody String orderNote
+                                                                  @RequestParam String orderNote
     ) {
         Order order = orderService.updateShippingOrder(orderId, addressId, orderNote);
         return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", orderMapper.toResponse(order)));
