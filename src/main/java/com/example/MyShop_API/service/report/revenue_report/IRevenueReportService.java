@@ -4,7 +4,7 @@ import com.example.MyShop_API.dto.request.*;
 
 import java.util.List;
 
-public interface IRevenueReport {
+public interface IRevenueReportService {
     // Doanh thu theo tháng trong 1 năm
     List<MonthlyRevenueDTO> getMonthlyRevenue(int year);
 

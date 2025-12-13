@@ -18,13 +18,17 @@ public final class SecurityWhitelist {
             "/api/v1/products/product/by-product-name",
             "/api/v1/products/page",
             "/api/v1/products/category/by-category-name",
+            "/api/v1/products/product/{productId}",
             "/api/v1/products/all",
 
             // payment
             "/api/v1/payment/vn-pay-callback",
 
             // image
-            "/api/v1/images/**"
+            "/api/v1/images/**",
+
+            // review
+            "/api/v1/reviews/product/{productId}"
     );
     // swagger
     public static final List<String> SWAGGER_ENDPOINTS = List.of(

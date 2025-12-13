@@ -1,10 +1,12 @@
 package com.example.MyShop_API.controller;
 
+import com.example.MyShop_API.dto.request.*;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.repo.OrderRepository;
 import com.example.MyShop_API.service.report.ReportExcelService;
 import com.example.MyShop_API.service.report.ReportPdfService;
+import com.example.MyShop_API.service.report.revenue_report.IRevenueReportService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -15,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.thymeleaf.TemplateEngine;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,6 +32,7 @@ public class ReportController {
     ReportPdfService reportPdfService;
     ReportExcelService reportExcelService;
     OrderRepository orderRepository;
+    IRevenueReportService reportService;
 
     @NonFinal
     @Value("${report.temp-dir}")
@@ -67,4 +69,34 @@ public class ReportController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/monthly-revenue")
+    public List<MonthlyRevenueDTO> getMonthlyRevenue(@RequestParam int year) {
+        return reportService.getMonthlyRevenue(year);
+    }
+
+    @GetMapping("/quarterly-revenue")
+    public List<QuarterlyRevenueDTO> getQuarterlyRevenue(@RequestParam int year) {
+        return reportService.getQuarterlyRevenue(year);
+    }
+
+    @GetMapping("/annual-revenue")
+    public List<AnnualRevenueDTO> getAnnualRevenue(
+            @RequestParam int fromYear,
+            @RequestParam int toYear) {
+        return reportService.getAnnualRevenue(fromYear, toYear);
+    }
+
+    @GetMapping("/product-revenue")
+    public List<ProductRevenueDTO> getRevenueByProduct(
+            @RequestParam int year,
+            @RequestParam int month) {
+        return reportService.getRevenueByProduct(year, month);
+    }
+
+    @GetMapping("/category-revenue")
+    public List<CategoryRevenueDTO> getRevenueByCategory(
+            @RequestParam int year,
+            @RequestParam int month) {
+        return reportService.getRevenueByCategory(year, month);
+    }
 }

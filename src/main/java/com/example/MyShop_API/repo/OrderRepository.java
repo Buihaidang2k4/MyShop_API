@@ -38,4 +38,73 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("productId") Long productId,
             @Param("orderId") Long orderId,
             @Param("statuses") List<OrderStatus> statuses);
+
+    // Doanh thu thang
+    @Query(value = """
+            SELECT
+            	MONTH(o.order_date) as month,
+            	SUM(oi.quantity * oi.price ) as revenue,
+            	COUNT(DISTINCT o.order_id ) as totalOrders,
+            	SUM(oi.quantity) as totalProductSoild
+            FROM
+            	orders o
+            JOIN order_items oi ON
+            	o.order_id = oi.order_id
+            JOIN payments p ON
+            	o.payment_id = p.payment_id
+            WHERE
+            	YEAR(o.order_date) =:year
+            	AND p.payment_status = 'PAID'
+            GROUP BY MONTH(o.order_date )
+            ORDER By month
+            """, nativeQuery = true)
+    List<Object[]> getMonthlyRevenue(@Param("year") int year);
+
+    // Doanh thu quy
+    @Query(value = """
+            SELECT
+            	QUARTER(o.order_date) as quater,
+            	SUM(oi.quantity * oi.price) as revenueQuater,
+            	COUNT(DISTINCT o.order_id) as totalOrders,
+            	SUM(oi.quantity) as totalProductSold
+            FROM
+            	orders o
+            JOIN order_items oi ON
+            	o.order_id = oi.order_id
+            JOIN payments p ON
+            	o.payment_id = p.payment_id
+            WHERE
+            	YEAR(o.order_date) =:year
+            	and p.payment_status = 'PAID'
+            GROUP BY
+            	QUARTER(o.order_date)
+            ORDER BY
+            	quater
+            """, nativeQuery = true)
+    List<Object[]> getQuarterlyRevenue(@Param("year") int year);
+
+    // Doanh thu theo nam
+    @Query(value = """
+            	SELECT
+            	QUARTER(o.order_date) as year,
+            	SUM(oi.quantity * oi.price) as revenueYear,
+            	COUNT(DISTINCT o.order_id) as totalOrders,
+            	SUM(oi.quantity) as totalProductSold
+            FROM
+            	orders o
+            JOIN order_items oi ON
+            	o.order_id = oi.order_id
+            JOIN payments p ON
+            	o.payment_id = p.payment_id
+            WHERE
+            	YEAR(o.order_date) BETWEEN :fromYear AND :toYear\s
+            	and p.payment_status = 'PAID'
+            GROUP BY
+            	QUARTER(o.order_date)
+            ORDER BY
+            	year
+            """, nativeQuery = true)
+    List<Object[]> getAnnualRevenue(@Param("fromYear") int fromYear,
+                                    @Param("toYear") int toYear);
+
 }
