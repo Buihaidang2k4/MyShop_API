@@ -238,7 +238,7 @@ public class OrderService implements IOrderService {
                     .toList();
 
             if (!cartItemIdsToRemove.isEmpty()) {
-                removeSelectedItemsFromCartByItemIds(order.getProfile().getCart().getCartId(), cartItemIdsToRemove);
+                cartService.removeSelectedItemsFromCartByItemIds(order.getProfile().getCart().getCartId(), cartItemIdsToRemove);
             }
 
             // Log system change status
@@ -295,7 +295,11 @@ public class OrderService implements IOrderService {
     @Transactional
     public void cancelOrder(Long orderId) {
         // Tìm kiếm đơn hàng
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+        Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+
+        if (order.getOrderStatus() == OrderStatus.CANCELLED) {
+            throw new AppException(ErrorCode.ORDER_ALREADY_CANCELLED);
+        }
 
         if (order.getOrderStatus() == OrderStatus.DELIVERED) {
             throw new AppException(ErrorCode.ORDER_CANCEL_FAILED);
@@ -346,7 +350,6 @@ public class OrderService implements IOrderService {
         }
         orderRepository.delete(order);
     }
-
 
     // ==================== UPDATE SHIPPING ORDER ==========
     @Override
@@ -428,17 +431,6 @@ public class OrderService implements IOrderService {
         return order;
     }
 
-    @Transactional
-    public void removeSelectedItemsFromCartByItemIds(Long cartId, List<Long> cartItemIds) {
-        if (cartItemIds == null || cartItemIds.isEmpty()) {
-            return;
-        }
-        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
-        cartItemIds.forEach(cartItemRepository::deleteByIdDirect);
-        cart.updateTotalAmount();
-        cartRepository.save(cart);
-    }
-
     // ============== UPDATE CALCULATE SOLD COUNT ==============
     private void calculateSoldCount(Order order) {
         order.getOrderItems()
@@ -492,14 +484,12 @@ public class OrderService implements IOrderService {
         deliveryAddress.setOrder(order);
         deliveryAddress.setCreatedAt(LocalDateTime.now());
         order.setDeliveryAddress(deliveryAddress);
-//        order = orderRepository.save(order);
     }
 
 
-    // ============= PROCESS ORDER SUCCESS PLACE CARTITEM FROM LIST SELECTED ==================
+    // ============= PROCESS ORDER SUCCESS PLACE CART ITEM FROM LIST SELECTED ==================
     @Transactional
     public void processOrderSuccess(Order order, List<Long> cartItemIdsToRemove) {
-        order.getOrderItems().forEach(item -> inventoryService.confirmOrder(item.getProduct().getProductId(), item.getQuantity()));
         order.setOrderStatus(OrderStatus.PENDING);
         historyService.logStatusChange(order, OrderStatus.PENDING, null);
 
@@ -512,20 +502,11 @@ public class OrderService implements IOrderService {
         orderRepository.save(order);
     }
 
-
     // ========== CONSOLIDATE INVENTORY AND CLEAR WHOLE CART UTILITY =============
     private void processOrderSuccessAndClearAllCart(Order order, Cart cart) {
-        // 1. Xác nhận Tồn kho
-        order.getOrderItems().forEach(item -> inventoryService.confirmOrder(item.getProduct().getProductId(), item.getQuantity()));
-
-        // 2. Cập nhật trạng thái
         order.setOrderStatus(OrderStatus.PENDING);
         historyService.logStatusChange(order, OrderStatus.PENDING, null);
-
-        // 3. Xóa toàn bộ giỏ hàng
         cartService.clearCart(cart.getCartId());
-
-        // 4. Lưu Order
         orderRepository.save(order);
     }
 }

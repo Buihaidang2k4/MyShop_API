@@ -30,5 +30,7 @@ public interface ICartService {
 
     Cart saveCart(Cart cart);
 
+    void removeSelectedItemsFromCartByItemIds(Long cartId, List<Long> cartItemIds);
+
 
 }

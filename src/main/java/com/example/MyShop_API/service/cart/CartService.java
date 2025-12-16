@@ -157,4 +157,18 @@ public class CartService implements ICartService {
     public Cart saveCart(Cart cart) {
         return cartRepository.save(cart);
     }
+
+
+    @Transactional
+    public void removeSelectedItemsFromCartByItemIds(Long cartId, List<Long> cartItemIds) {
+        if (cartItemIds == null || cartItemIds.isEmpty()) {
+            return;
+        }
+        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
+        cartItemIds.forEach(cartItemRepository::deleteByIdDirect);
+        cart.updateTotalAmount();
+        cartRepository.save(cart);
+    }
+
+
 }
