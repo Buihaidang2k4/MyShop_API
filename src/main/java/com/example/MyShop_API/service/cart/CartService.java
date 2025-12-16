@@ -2,10 +2,7 @@ package com.example.MyShop_API.service.cart;
 
 import com.example.MyShop_API.dto.request.CartRequest;
 import com.example.MyShop_API.dto.response.CartResponse;
-import com.example.MyShop_API.entity.Cart;
-import com.example.MyShop_API.entity.CartItem;
-import com.example.MyShop_API.entity.Product;
-import com.example.MyShop_API.entity.UserProfile;
+import com.example.MyShop_API.entity.*;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.CartMapper;
@@ -24,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -170,5 +168,18 @@ public class CartService implements ICartService {
         cartRepository.save(cart);
     }
 
+    @Override
+    @Transactional
+    public void removeItemAfterOrder(Order order) {
+        Cart cart = order.getProfile().getCart();
+        List<Long> ids = order.getOrderItems().stream()
+                .map(OrderItem::getCartItemId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        cart.getCartItems().removeIf(ci -> ids.contains(ci.getCartItemId()));
+        cartItemRepository.deleteAllById(ids);
+        cart.updateTotalAmount();
+    }
 
 }

@@ -39,8 +39,6 @@ public interface IOrderService {
 
     Order updateOrderStatus(Long orderId, OrderStatus orderStatus, User admin);
 
-    void processOrderSuccess(Order order, List<Long> cartItemIdsToRemove);
-
     void deleteOrder(Long orderId);
 
     Order updateShippingOrder(Long orderId, Long addressId, String orderNote);

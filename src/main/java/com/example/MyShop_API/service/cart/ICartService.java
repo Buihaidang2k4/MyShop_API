@@ -3,6 +3,7 @@ package com.example.MyShop_API.service.cart;
 import com.example.MyShop_API.dto.request.CartRequest;
 import com.example.MyShop_API.dto.response.CartResponse;
 import com.example.MyShop_API.entity.Cart;
+import com.example.MyShop_API.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -32,5 +33,5 @@ public interface ICartService {
 
     void removeSelectedItemsFromCartByItemIds(Long cartId, List<Long> cartItemIds);
 
-
+    void removeItemAfterOrder(Order order);
 }

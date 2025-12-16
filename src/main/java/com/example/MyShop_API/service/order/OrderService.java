@@ -129,12 +129,16 @@ public class OrderService implements IOrderService {
         UserProfile profile = profileRepository.findById(orderRequest.getProfileId()).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
 
         // Lấy item từ list itemId nguời dùng chọn
-        Cart cart = cartRepository.findByUserProfileId(profile.getProfileId()).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
+        Cart cart = cartRepository
+                .findByUserProfileId(profile.getProfileId())
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
+
         List<CartItem> cartItems = cart.getCartItems().stream()
                 .filter(ci -> orderRequest.getListItemId().contains(ci.getCartItemId()))
                 .toList();
 
-        if (cartItems.isEmpty()) throw new AppException(ErrorCode.LIST_CART_ITEMS_EMPTY);
+        if (cartItems.isEmpty())
+            throw new AppException(ErrorCode.LIST_CART_ITEMS_EMPTY);
 
         try {
             // Tạo đơn hàng
@@ -150,8 +154,7 @@ public class OrderService implements IOrderService {
 
             // Xóa các sản phẩm đã chọn khỏi giỏ hàng sau khi xử lý thanh toán thành công
             if (orderRequest.getPaymentMethod() == PaymentMethod.CASH && paymentResult instanceof Order) {
-                List<Long> itemIdsRemove = orderRequest.getListItemId().stream().filter(Objects::nonNull).toList();
-                processOrderSuccess(saveOrder, itemIdsRemove);
+                processOrderSuccess(saveOrder);
             }
 
             log.info("====================== END PLACE ORDER FROM LIST CART ITEMS ======================");
@@ -159,7 +162,6 @@ public class OrderService implements IOrderService {
         } catch (AppException e) {
             // Hoàn hàng nếu có lỗi nghiệp vụ
             cartItems.forEach(item -> inventoryService.restock(item.getProduct().getProductId(), item.getQuantity()));
-
             log.error("AppException in place order from list cart item: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
@@ -488,17 +490,10 @@ public class OrderService implements IOrderService {
 
 
     // ============= PROCESS ORDER SUCCESS PLACE CART ITEM FROM LIST SELECTED ==================
-    @Transactional
-    public void processOrderSuccess(Order order, List<Long> cartItemIdsToRemove) {
+    public void processOrderSuccess(Order order) {
         order.setOrderStatus(OrderStatus.PENDING);
         historyService.logStatusChange(order, OrderStatus.PENDING, null);
-
-        if (cartItemIdsToRemove != null && !cartItemIdsToRemove.isEmpty() && order.getProfile().getCart() != null) {
-            Cart cart = order.getProfile().getCart();
-            cartItemIdsToRemove.forEach(cartItemRepository::deleteByIdDirect);
-            cart.updateTotalAmount();
-            cartRepository.save(cart);
-        }
+        cartService.removeItemAfterOrder(order);
         orderRepository.save(order);
     }
 
