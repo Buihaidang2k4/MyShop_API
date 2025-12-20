@@ -10,7 +10,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
 
-    @Mapping(target = "category", source = "category")
+    @Mapping(target = "category.categoryId", source = "categoryId")
     Product toEntity(AddProductRequest addProductRequest);
 
     ProductResponse toResponse(Product product);

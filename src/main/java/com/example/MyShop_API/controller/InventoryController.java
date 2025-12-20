@@ -15,6 +15,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("${api.prefix}/inventory")
 @RequiredArgsConstructor
@@ -28,6 +30,19 @@ public class InventoryController {
         return ResponseEntity.ok(new ApiResponse<>(200, "success", inventoryService.getInventoryStatus(productId)));
     }
 
+
+    @GetMapping("/out-of-stock")
+    @Operation(summary = "Get inventory out of stock")
+    ResponseEntity<ApiResponse<List<InventoryDTO>>> getInventoryOutOfStock() {
+        return ResponseEntity.ok(new ApiResponse<>(200, "success", inventoryService.getInventoryOutOfStock()));
+    }
+
+
+    @GetMapping("/low-stock/{threshold}")
+    @Operation(summary = "Get inventory low stock")
+    ResponseEntity<ApiResponse<List<InventoryDTO>>> getInventoryLowStock(@PathVariable("threshold") int threshold) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "success", inventoryService.getInventoryLowStock(threshold)));
+    }
 
     @GetMapping("/checkStock")
     @Operation(summary = "Check stock", description = "return true if enough stock ")

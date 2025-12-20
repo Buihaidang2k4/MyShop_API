@@ -40,33 +40,20 @@ public class ProductService implements IProductService {
     @Transactional
     public Product addProduct(AddProductRequest request) {
         log.info("=================== START ADD PRODUCT ====================");
-        // Tìm danh mục , nếu không có tạo mới
-        Category category = Optional
-                .ofNullable(categoryRepository.findByCategoryName(request.getCategory().getCategoryName()))
-                .orElseGet(() -> {
-                    Category newCategory = Category.builder()
-                            .categoryName(request.getCategory().getCategoryName())
-                            .description(request.getCategory().getDescription())
-                            .createAt(LocalDate.now())
-                            .build();
-                    return categoryRepository.save(newCategory);
-                });
+        // Tìm danh mục
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
 
         if (productRepository.existsProductByProductName(request.getProductName()))
             throw new AppException(ErrorCode.PRODUCT_NAME_IS_EXISTED);
 
-
         String slug = SlugUtils.toSlug(request.getProductName());
-
 
         // mapper
         Product product = productMapper.toEntity(request);
         product.setCategory(category);
         product.setSpecialPrice(calculateSpecialPrice(request.getPrice(), request.getDiscount()));
         product.setSlug(slug);
-        // Tạo slug
-
-
         // Lưu khởi tạo id
         product = productRepository.save(product);
 
@@ -83,15 +70,13 @@ public class ProductService implements IProductService {
                 () -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
 
         // Check category
-        Category category = categoryRepository.findByCategoryName(request.getCategory().getCategoryName());
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
         if (category == null)
             throw new AppException(ErrorCode.CATEGORY_NOT_EXISTED);
-
         findProduct.setCategory(category);
         findProduct.setUpdateAt(LocalDate.now());
-
         productMapper.update(request, findProduct);
-
         // Cập nhật tồn kho
         inventoryService.updateStock(productId, request.getQuantity());
 

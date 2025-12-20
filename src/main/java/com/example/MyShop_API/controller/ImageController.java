@@ -6,6 +6,8 @@ import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.entity.Image;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.service.Image.IImageService;
+import com.example.MyShop_API.service.Image.MinioService;
+import io.minio.errors.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +35,7 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ImageController {
     IImageService imageService;
+    MinioService minioService;
 
     @PostMapping("/upload/product/{productId}")
     ResponseEntity<ApiResponse> saveImages(@RequestPart("files") List<MultipartFile> files, @PathVariable("productId") Long productId) {
@@ -103,4 +108,41 @@ public class ImageController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(500, "Delete failed!", null));
     }
+
+    @PostMapping("/put-object-image")
+    ResponseEntity<ApiResponse<String>> saveImages(@RequestPart("file") MultipartFile file) {
+        try {
+            return ResponseEntity.ok(new ApiResponse(200, "Upload success!", minioService.putObject(file)));
+        } catch (AppException | ServerException | InsufficientDataException | ErrorResponseException | IOException |
+                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
+                 InternalException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(500, "Upload failed!", e));
+        }
+    }
+
+    @DeleteMapping("/delete-object-image")
+    ResponseEntity<ApiResponse<Void>> deleteImage(@RequestParam("objectName") String objectName) {
+        try {
+            minioService.removeObject(objectName);
+            return ResponseEntity.ok(new ApiResponse(200, "Delete success!", null));
+        } catch (AppException | ServerException | InsufficientDataException | ErrorResponseException | IOException |
+                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
+                 InternalException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(404, "Delete failed!", e));
+        }
+    }
+
+
+    @GetMapping("/get-object-image")
+    ResponseEntity<ApiResponse<String>> downloadImage(@RequestParam("objectName") String objectName) throws SQLException {
+        try {
+            return ResponseEntity.ok(new ApiResponse<>(200, "success", minioService.presignedUrl(objectName)));
+        } catch (AppException | ServerException | InsufficientDataException | ErrorResponseException | IOException |
+                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException | XmlParserException |
+                 InternalException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(404, "Delete failed!", e));
+        }
+    }
+
+
 }

@@ -9,6 +9,8 @@ import org.mapstruct.Mapping;
 public interface InventoryMapper {
     Inventory toInventory(InventoryDTO inventoryDTO);
 
+    @Mapping(source = "product.productId", target = "productId")
+    @Mapping(source = "updatedAt", target = "updatedAt")
     InventoryDTO toInventoryDTO(Inventory inventory);
 
 }

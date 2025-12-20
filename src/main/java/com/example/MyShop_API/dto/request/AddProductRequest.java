@@ -45,7 +45,7 @@ public class AddProductRequest {
     String description;
 
     @NotNull(message = "Danh mục không được để trống")
-    Category category;
+    Long categoryId;
 
     @NotNull(message = "Số lượng không được để trống")
     @PositiveOrZero(message = "Số lượng phải >= 0")

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -127,4 +128,19 @@ public class InventoryService implements IInventoryService {
     public Inventory getInventoryByProductId(Long productId) {
         return inventoryRepository.findByProduct_ProductId(productId).orElseThrow(() -> new AppException(ErrorCode.INVENTORY_DOES_NOT_EXIST, productId));
     }
+
+    @Override
+    public List<InventoryDTO> getInventoryLowStock(int threshold) {
+        List<Inventory> inventories = inventoryRepository.findLowStock(threshold);
+        return inventories.stream().map(inventoryMapper::toInventoryDTO).toList();
+    }
+
+    @Override
+    public List<InventoryDTO> getInventoryOutOfStock() {
+        List<Inventory> inventories = inventoryRepository.findInventoriesByAvailableOutOfStock(0);
+        log.info(inventories.toString());
+        return inventories.stream().map(inventoryMapper::toInventoryDTO).toList();
+    }
+
+
 }
