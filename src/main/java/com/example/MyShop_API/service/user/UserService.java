@@ -44,12 +44,14 @@ public class UserService implements IUserService {
     UserProfileService profileService;
 
     @AdminOnly
+    @Transactional(readOnly = true)
     public List<UserResponse> getUsers() {
         log.info("getUsers().........");
-        return userRepository.findAll().stream().map(userMapper::toResponse).collect(Collectors.toList());
+        return userRepository.findAll().stream().map(userMapper::toResponse).toList();
     }
 
     @AdminOnly
+    @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
         log.info("getUserById().........");
         User user = userRepository.findById(id).orElse(null);

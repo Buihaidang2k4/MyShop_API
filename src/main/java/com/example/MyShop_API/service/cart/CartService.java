@@ -41,6 +41,7 @@ public class CartService implements ICartService {
      * @return {@link List<Cart>}
      */
     @Override
+    @Transactional(readOnly = true)
     public List<Cart> getCarts() {
         log.info("getCarts ");
         List<Cart> carts = cartRepository.findAll();
@@ -54,6 +55,7 @@ public class CartService implements ICartService {
      * @return
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<Cart> getAllCarts(Pageable pageable) {
         return cartRepository.findAll(pageable);
     }
@@ -64,8 +66,8 @@ public class CartService implements ICartService {
      * @param cartId
      * @return cart
      */
-    @Transactional
     @Override
+    @Transactional(readOnly = true)
     public Cart getCartById(Long cartId) {
         return cartRepository.findByIdWithItems(cartId)
                 .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
@@ -78,6 +80,7 @@ public class CartService implements ICartService {
      * @return cart
      */
     @Override
+    @Transactional(readOnly = true)
     public Cart getCartByUserProfileId(Long userProfileId) {
         return cartRepository.findByUserProfileId(userProfileId).orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
     }
@@ -90,6 +93,7 @@ public class CartService implements ICartService {
      * @return
      */
     @Override
+    @Transactional(readOnly = true)
     public BigDecimal getTotalPrice(Long id) {
         Cart cart = getCartById(id);
         return cart.getTotalPrice();

@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -76,6 +77,7 @@ public class ReviewService implements IReviewService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ReviewResponse> findByProductId(Long productId, Pageable pageable) {
         return reviewRepository.findByProductProductIdAndDeletedFalse(productId, pageable).map(reviewMapper::toResponse);
     }

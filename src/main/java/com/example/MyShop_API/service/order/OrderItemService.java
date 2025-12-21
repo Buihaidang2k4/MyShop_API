@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,10 +25,12 @@ public class OrderItemService implements IOrderItemService {
     OrderItemRepository orderItemRepository;
     OrderItemMapper orderItemMapper;
 
+    @Transactional(readOnly = true)
     public List<OrderItemResponse> getOrderItem() {
-        return orderItemRepository.findAll().stream().map(orderItemMapper::toResponse).collect(Collectors.toList());
+        return orderItemRepository.findAll().stream().map(orderItemMapper::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public OrderItemResponse getOrderItem(Long orderItemId) {
         OrderItem findOrderItem = orderItemRepository.findById(orderItemId).orElseThrow(() ->
                 new AppException(ErrorCode.ORDER_ITEM_NOT_EXISTED));

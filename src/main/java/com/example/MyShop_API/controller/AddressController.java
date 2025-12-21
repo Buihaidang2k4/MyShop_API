@@ -48,10 +48,7 @@ public class AddressController {
 
     @GetMapping("/profile/{profileId}")
     ResponseEntity<ApiResponse<List<AddressResponse>>> getAddressByProfile(@PathVariable Long profileId) {
-        List<Address> list = addressService.getAddressByProfileId(profileId);
-        List<AddressResponse> responses = addressMapper.toResponse(list);
-
-        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Success", responses));
+        return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Success", addressService.getAddressByProfileId(profileId)));
     }
 
     @PostMapping("/user-profile/{userProfileId}/add")

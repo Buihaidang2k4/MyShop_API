@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ public class OrderDeliveryAddressService implements IOrderDeliveryAddressService
     OrderRepository orderRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public OrderDeliveryAddress getOrderDeliveryAddress(Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
         return orderDeliveryAddressRepository.findOrderDeliveryAddressByOrderId(order.getOrderId());

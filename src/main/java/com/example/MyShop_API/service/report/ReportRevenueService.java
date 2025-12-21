@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -26,6 +27,7 @@ public class ReportRevenueService implements IRevenueReportService {
     OrderItemRepository orderItemRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<MonthlyRevenueDTO> getMonthlyRevenue(int year) {
         List<MonthlyRevenueDTO> raw = orderRepository.getMonthlyRevenue(year).stream()
                 .map(r -> new MonthlyRevenueDTO(
@@ -53,6 +55,7 @@ public class ReportRevenueService implements IRevenueReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<QuarterlyRevenueDTO> getQuarterlyRevenue(int year) {
         List<QuarterlyRevenueDTO> raw = orderRepository.getQuarterlyRevenue(year).stream()
                 .map(r -> new QuarterlyRevenueDTO(
@@ -80,6 +83,7 @@ public class ReportRevenueService implements IRevenueReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AnnualRevenueDTO> getAnnualRevenue(int fromYear, int toYear) {
         List<AnnualRevenueDTO> raw = orderRepository.getAnnualRevenue(fromYear, toYear).stream()
                 .map(r -> new AnnualRevenueDTO(
@@ -107,6 +111,7 @@ public class ReportRevenueService implements IRevenueReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductRevenueDTO> getRevenueByProduct(int year, int month) {
         return orderItemRepository.getRevenueByProduct(year, month).stream()
                 .map(r -> new ProductRevenueDTO(
@@ -121,6 +126,7 @@ public class ReportRevenueService implements IRevenueReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CategoryRevenueDTO> getRevenueByCategory(int year, int month) {
         return orderItemRepository.getRevenueByCategory(year, month).stream()
                 .map(r -> new CategoryRevenueDTO(

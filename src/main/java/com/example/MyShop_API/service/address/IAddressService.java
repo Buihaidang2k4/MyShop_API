@@ -12,7 +12,7 @@ public interface IAddressService {
 
     AddressResponse getAddressById(Long addressId);
 
-    List<Address> getAddressByProfileId(Long profileId);
+    List<AddressResponse> getAddressByProfileId(Long profileId);
 
     AddressResponse createAddress(AddressRequest addressRequest, Long userProfileId);
 

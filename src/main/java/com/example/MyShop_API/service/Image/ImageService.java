@@ -14,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.sql.rowset.serial.SerialBlob;
@@ -32,12 +33,14 @@ public class ImageService implements IImageService {
     ImageMapper imageMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public Image getImageById(Long id) {
         return imageRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.IMAGE_NOT_FOUND));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ImageDTO> getImageByProductId(Long productId) {
         List<Image> ds = imageRepository.findImageByProductId(productId);
         if (ds.isEmpty()) throw new AppException(ErrorCode.IMAGE_NOT_FOUND);

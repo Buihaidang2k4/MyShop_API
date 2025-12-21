@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,4 +19,6 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     void clearDefaultAddressForProfile(@Param("profileId") Long profileId);
 
     Optional<Address> findById(Long addressId);
+
+    List<Address> findByProfile_ProfileId(Long profileProfileId);
 }

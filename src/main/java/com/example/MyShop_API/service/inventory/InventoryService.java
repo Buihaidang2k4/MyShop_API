@@ -112,12 +112,14 @@ public class InventoryService implements IInventoryService {
     }
 
     @Override
+    @Transactional
     public Inventory getInventoryWithLock(Long productId) {
         return inventoryRepository.findByProductIdWithLock(productId).orElseThrow(() -> new AppException(ErrorCode.INVENTORY_DOES_NOT_EXIST));
     }
 
     // 8. Lấy thông tin tồn kho
     @Override
+    @Transactional(readOnly = true)
     public InventoryDTO getInventoryStatus(Long productId) {
         Inventory inventory = getInventoryByProductId(productId);
         return inventoryMapper.toInventoryDTO(inventory);
@@ -125,20 +127,22 @@ public class InventoryService implements IInventoryService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public Inventory getInventoryByProductId(Long productId) {
         return inventoryRepository.findByProduct_ProductId(productId).orElseThrow(() -> new AppException(ErrorCode.INVENTORY_DOES_NOT_EXIST, productId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InventoryDTO> getInventoryLowStock(int threshold) {
         List<Inventory> inventories = inventoryRepository.findLowStock(threshold);
         return inventories.stream().map(inventoryMapper::toInventoryDTO).toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InventoryDTO> getInventoryOutOfStock() {
         List<Inventory> inventories = inventoryRepository.findInventoriesByAvailableOutOfStock(0);
-        log.info(inventories.toString());
         return inventories.stream().map(inventoryMapper::toInventoryDTO).toList();
     }
 

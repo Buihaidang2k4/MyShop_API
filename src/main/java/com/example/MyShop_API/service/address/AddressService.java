@@ -31,16 +31,18 @@ public class AddressService implements IAddressService {
     AddressMapper addressMapper;
     UserProfileRepository userProfileRepository;
 
+    @Transactional(readOnly = true)
     public List<AddressResponse> getAllAddresses() {
-        return addressRepository.findAll().stream().map(addressMapper::toResponse).collect(Collectors.toList());
+        return addressRepository.findAll().stream().map(addressMapper::toResponse).toList();
     }
 
-    public List<Address> getAddressByProfileId(Long profileId) {
-        return addressRepository.findAll().stream()
-                .filter(address -> address.getProfile().getProfileId().equals(profileId))
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public List<AddressResponse> getAddressByProfileId(Long profileId) {
+        return addressRepository.findByProfile_ProfileId(profileId).stream().map(addressMapper::toResponse)
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     public AddressResponse getAddressById(Long addressId) {
         Address address = addressRepository.findById(addressId).orElseThrow(() ->
                 new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
@@ -83,7 +85,7 @@ public class AddressService implements IAddressService {
         addressMapper.updateAddress(request, findAddress);
 
         if (request.getIsDefault() != null && request.getIsDefault()) {
-            List<Address> addresses = getAddressByProfileId(profileId);
+            List<Address> addresses = addressRepository.findByProfile_ProfileId(profileId);
             addresses.forEach(addr -> addr.setIsDefault(false));
             findAddress.setIsDefault(true);
         }

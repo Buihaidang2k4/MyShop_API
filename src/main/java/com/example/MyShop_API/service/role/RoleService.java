@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,11 +25,13 @@ public class RoleService implements IRoleService {
     RoleRepository roleRepository;
     RoleMapper roleMapper;
 
+    @Transactional(readOnly = true)
     public List<RoleResponse> getAllRoles() {
         log.debug("getAllRoles()");
         return roleRepository.findAll().stream().map(roleMapper::toResponse).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public RoleResponse getRoleById(String id) {
         log.debug("getRoleById({})", id);
         Role role = roleRepository.findById(id).orElseThrow(() ->

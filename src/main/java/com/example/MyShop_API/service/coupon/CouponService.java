@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -34,6 +35,7 @@ public class CouponService implements ICouponService {
     OrderRepository orderRepository;
 
     // ============= ALL COUPONS ==============
+    @Transactional(readOnly = true)
     public List<Coupon> getCoupons() {
         return couponRepository.findAll();
     }
@@ -62,11 +64,13 @@ public class CouponService implements ICouponService {
 
     // ================ LIST AVAILABLE COUPONS ===========================
     @Override
+    @Transactional(readOnly = true)
     public List<Coupon> getAvailableCoupons(BigDecimal orderTotal) {
         return couponRepository.findAvailableCoupons(orderTotal, LocalDateTime.now());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Coupon> getAvailableCoupons() {
         return couponRepository.findCouponByEnabledTrue();
     }

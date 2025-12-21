@@ -53,22 +53,26 @@ public class OrderService implements IOrderService {
     AddressRepository addressRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<Order> getOrders() {
         return orderRepository.findAll().stream().toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Order getOrder(Long orderId) {
         log.info("getOrderById().........");
         return orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Order> getOrdersByStatus(OrderStatus status) {
         return orderRepository.findByOrderStatus(status);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Order> getUserOrders(Long profileId) {
         return orderRepository.findByProfileProfile_id(profileId);
     }

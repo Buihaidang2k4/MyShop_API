@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,16 +27,19 @@ public class CategoryService implements ICategoryService {
     CategoryRepository categoryRepository;
     CategoryMapper categoryMapper;
 
+    @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategory() {
-        return categoryRepository.findAll().stream().map(categoryMapper::toResponse).collect(Collectors.toList());
+        return categoryRepository.findAll().stream().map(categoryMapper::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public Category getCategoryById(Long id) {
         return categoryRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Category getCategoryByName(String name) {
         return categoryRepository.findByCategoryName(name);
     }

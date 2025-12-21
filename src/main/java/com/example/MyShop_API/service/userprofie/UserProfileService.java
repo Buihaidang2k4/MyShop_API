@@ -31,10 +31,12 @@ public class UserProfileService implements IUserProfileService {
     UserProfileMapper userProfileMapper;
     UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     public List<UserProfileResponse> getUserProfile() {
-        return userProfileRepository.findAll().stream().map(userProfileMapper::toResponse).collect(Collectors.toList());
+        return userProfileRepository.findAll().stream().map(userProfileMapper::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public UserProfileResponse getUserProfileById(Long userProfileId) throws AppException {
         return userProfileMapper.toResponse(userProfileRepository.findById(userProfileId).orElseThrow(
                 () -> new AppException(ErrorCode.USER_NOT_EXISTED)

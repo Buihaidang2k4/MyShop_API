@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +24,7 @@ public class OrderStatusHistoryService implements IOrderStatusHistoryService {
     OrderStatusHistoryRepository historyRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderStatusHistory> getHistory(Long orderId) {
         return historyRepository.findByOrderOrderIdOrderByChangedAtAsc(orderId);
     }

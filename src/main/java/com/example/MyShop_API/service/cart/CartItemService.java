@@ -31,56 +31,6 @@ public class CartItemService implements ICartItemService {
     IInventoryService inventoryService;
 
 
-//    @Transactional
-//    @Override
-//    public void addItemToCart(Long cartId, Long productId, int quantity) {
-//        log.info("============ START ADD ITEM TO CART ============");
-//        Cart cart = cartService.getCartById(cartId);
-//        Product product = productService.getProductById(productId);
-//
-//        // Tìm cartItem nếu đã tồn tại
-//        CartItem cartItem = cart.getCartItems()
-//                .stream()
-//                .filter(item -> item.getProduct().getProductId().equals(productId))
-//                .findFirst()
-//                .orElse(null);
-//
-//
-//        // Tạo mới item
-//        if (cartItem == null) {
-//            // Check tồn kho xem đủ số lượng đặt không nếu có đặt trước trong kho
-//            boolean reserved = inventoryService.reserveStock(productId, quantity);
-//            if (!reserved)
-//                throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
-//
-//            // Tạo mới
-//            cartItem = CartItem.builder()
-//                    .cart(cart)
-//                    .product(product)
-//                    .quantity(quantity)
-//                    .unitPrice(product.getSpecialPrice() != null ? product.getSpecialPrice() : product.getPrice())
-//                    .build();
-//
-//            cartItem.setTotalPrice();
-//            cart.addItem(cartItem);
-//        } else {
-//            // Phần tăng
-//            int additionalQuantity = quantity;
-//            boolean reserved = inventoryService.reserveStock(productId, additionalQuantity);
-//            if (!reserved)
-//                throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
-//
-//            // Cập nhật số lượng
-//            cartItem.setQuantity(cartItem.getQuantity() + additionalQuantity);
-//            cartItem.setTotalPrice();
-//        }
-//
-//        // Cập nhật tổng giá
-//        cartService.recalcTotalPrice(cart);
-//        cartService.saveCart(cart);
-//        log.info("============ END ADD ITEM TO CART ============");
-//    }
-
     @Transactional
     public void addItemToCart(Long cartId, Long productId, int quantity) {
         Cart cart = cartService.getCartById(cartId);
@@ -168,6 +118,7 @@ public class CartItemService implements ICartItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CartItem getCartItem(Long cartId, Long cartItemId) {
         Cart cart = cartService.getCartById(cartId);
 
