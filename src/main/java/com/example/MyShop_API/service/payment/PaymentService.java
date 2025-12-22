@@ -5,6 +5,7 @@ import com.example.MyShop_API.Enum.PaymentMethod;
 import com.example.MyShop_API.Enum.PaymentStatus;
 import com.example.MyShop_API.config.payment.VnpayConfig;
 import com.example.MyShop_API.dto.request.PaymentRequest;
+import com.example.MyShop_API.dto.response.PaymentDto;
 import com.example.MyShop_API.dto.response.PaymentResponse;
 import com.example.MyShop_API.dto.response.VnpayResponse;
 import com.example.MyShop_API.entity.Order;
@@ -41,8 +42,28 @@ public class PaymentService implements IPaymentService {
     VnpayConfig vnpayConfig;
     OrderRepository orderRepository;
     PaymentRepository paymentRepository;
-    IInventoryService inventoryService;
+    PaymentMapper paymentMapper;
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<PaymentDto> getPayments() {
+        List<Payment> payments = paymentRepository.findAll();
+        return payments.stream().map(paymentMapper::toDto).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaymentDto getPayment(Long paymentId) {
+        Payment payment = paymentRepository.findByPaymentId(paymentId).orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
+        return paymentMapper.toDto(payment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaymentDto getPaymentByOrder(Long orderId) {
+        Payment payment = paymentRepository.findByOrder_OrderId(orderId).orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
+        return paymentMapper.toDto(payment);
+    }
 
     // ======================== COD =========================================
     @Override

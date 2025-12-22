@@ -1,6 +1,7 @@
 package com.example.MyShop_API.controller;
 
 import com.example.MyShop_API.dto.response.ApiResponse;
+import com.example.MyShop_API.dto.response.PaymentDto;
 import com.example.MyShop_API.dto.response.VnpayResponse;
 import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.service.order.IOrderService;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("${api.prefix}/payment")
@@ -22,6 +25,21 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
     IPaymentService paymentService;
     IOrderService orderService;
+
+    @GetMapping
+    ResponseEntity<ApiResponse<List<PaymentDto>>> getPayments() {
+        return ResponseEntity.ok(new ApiResponse<>(200, "success", paymentService.getPayments()));
+    }
+
+    @GetMapping("/{paymentId}")
+    ResponseEntity<ApiResponse<PaymentDto>> getPayment(@PathVariable Long paymentId) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "success", paymentService.getPayment(paymentId)));
+    }
+
+    @GetMapping("/order/{orderId}")
+    ResponseEntity<ApiResponse<PaymentDto>> getPaymentByOrder(@PathVariable Long orderId) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "success", paymentService.getPaymentByOrder(orderId)));
+    }
 
     // ================ Create Url payment =================
     @GetMapping("/vn-pay")

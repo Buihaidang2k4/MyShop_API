@@ -57,5 +57,4 @@ public class Payment {
 
     // vnp_CardType
     String cardType;
-
 }
