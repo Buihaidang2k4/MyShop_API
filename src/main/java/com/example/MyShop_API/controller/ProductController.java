@@ -1,6 +1,8 @@
 package com.example.MyShop_API.controller;
 
 
+import com.example.MyShop_API.dto.request.productSearch.AdminProductSearchCondition;
+import com.example.MyShop_API.dto.request.productSearch.UserProductSearchCondition;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.request.AddProductRequest;
 import com.example.MyShop_API.dto.response.ProductResponse;
@@ -34,6 +36,23 @@ import static org.springframework.http.HttpStatus.*;
 public class ProductController {
     IProductService productService;
     ProductMapper productMapper;
+
+    @GetMapping("/search")
+    public Page<ProductResponse> searchForUser(
+            @Valid @ModelAttribute UserProductSearchCondition condition,
+            Pageable pageable) {
+        return productService.searchProductsForUser(condition, pageable)
+                .map(productMapper::toResponse);
+    }
+
+    @GetMapping("/admin/search")
+    public Page<ProductResponse> searchForAdmin(
+            @Valid @ModelAttribute AdminProductSearchCondition condition,
+            Pageable pageable) {
+        return productService.searchProductsForAdmin(condition, pageable)
+                .map(productMapper::toResponse);
+    }
+
 
     @GetMapping("/category/by-category-name")
     ResponseEntity<ApiResponse<?>> getProductByCategoryName(

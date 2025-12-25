@@ -1,6 +1,6 @@
 package com.example.MyShop_API.service.report;
 
-import com.example.MyShop_API.dto.request.*;
+import com.example.MyShop_API.dto.request.report.*;
 import com.example.MyShop_API.repo.OrderItemRepository;
 import com.example.MyShop_API.repo.OrderRepository;
 import com.example.MyShop_API.service.report.revenue_report.IRevenueReportService;

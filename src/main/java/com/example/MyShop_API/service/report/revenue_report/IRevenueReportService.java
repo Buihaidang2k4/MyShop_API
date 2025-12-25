@@ -1,6 +1,6 @@
 package com.example.MyShop_API.service.report.revenue_report;
 
-import com.example.MyShop_API.dto.request.*;
+import com.example.MyShop_API.dto.request.report.*;
 
 import java.util.List;
 

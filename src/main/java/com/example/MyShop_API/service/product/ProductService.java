@@ -1,6 +1,8 @@
 package com.example.MyShop_API.service.product;
 
 import com.example.MyShop_API.dto.request.AddProductRequest;
+import com.example.MyShop_API.dto.request.productSearch.AdminProductSearchCondition;
+import com.example.MyShop_API.dto.request.productSearch.UserProductSearchCondition;
 import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.entity.Inventory;
 import com.example.MyShop_API.entity.Product;
@@ -16,6 +18,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -161,6 +164,33 @@ public class ProductService implements IProductService {
         productRepository.saveAll(products); // cascade sẽ lưu cả inventory
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Product> searchProductsForUser(UserProductSearchCondition condition, Pageable pageable) {
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasKeyword(condition.getKeyword()))
+                .and(ProductSpecification.hasCategoryName(condition.getCategoryName()))
+                .and(ProductSpecification.priceBetween(condition.getMinPrice(), condition.getMaxPrice()))
+                .and(ProductSpecification.hasDiscount(condition.getHasDiscount()))
+                .and(ProductSpecification.minRating(condition.getRating()))
+                .and(ProductSpecification.origin(condition.getOrigin()))
+                .and(ProductSpecification.bestSeller(condition.getBestSeller()));
+        return productRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Product> searchProductsForAdmin(AdminProductSearchCondition condition, Pageable pageable) {
+        Specification<Product> spec = Specification
+                .where(ProductSpecification.hasKeyword(condition.getKeyword()))
+                .and(ProductSpecification.hasCategoryName(condition.getCategoryName()))
+                .and(ProductSpecification.priceBetween(condition.getMinPrice(), condition.getMaxPrice()))
+                .and(ProductSpecification.hasDiscount(condition.getHasDiscount()))
+                .and(ProductSpecification.bestSeller(condition.getBestSeller()))
+                .and(ProductSpecification.inStock(condition.getInStock()))
+                .and(ProductSpecification.createdBetween(condition.getFromDate(), condition.getToDate()));
+        return productRepository.findAll(spec, pageable);
+    }
 
     @Override
     @Transactional(readOnly = true)

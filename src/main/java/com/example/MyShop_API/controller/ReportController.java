@@ -1,6 +1,6 @@
 package com.example.MyShop_API.controller;
 
-import com.example.MyShop_API.dto.request.*;
+import com.example.MyShop_API.dto.request.report.*;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.repo.OrderRepository;

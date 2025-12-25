@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -15,4 +16,6 @@ public class CategoryResponse {
     Long categoryId;
     String categoryName;
     String description;
+    LocalDate createAt;
+    LocalDate updateAt;
 }

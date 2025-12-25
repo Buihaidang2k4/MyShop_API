@@ -5,6 +5,7 @@ import com.example.MyShop_API.dto.request.CategoryRequest;
 import com.example.MyShop_API.dto.response.CategoryResponse;
 import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.exception.AppException;
+import com.example.MyShop_API.mapper.CategoryMapper;
 import com.example.MyShop_API.service.category.CategoryService;
 import com.example.MyShop_API.service.category.ICategoryService;
 import lombok.AccessLevel;
@@ -27,9 +28,10 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CategoryController {
     ICategoryService categoryService;
+    CategoryMapper categoryMapper;
 
     @GetMapping("/all")
-    ResponseEntity<ApiResponse> getAllCategories() {
+    ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
         try {
             List<CategoryResponse> categories = categoryService.getAllCategory();
             return ResponseEntity.ok(new ApiResponse<>(200, "success", categories));
@@ -40,30 +42,30 @@ public class CategoryController {
     }
 
     @GetMapping("/category/{categoryId}")
-    ResponseEntity<ApiResponse> getCategory(@PathVariable Long categoryId) {
+    ResponseEntity<ApiResponse<CategoryResponse>> getCategory(@PathVariable Long categoryId) {
         try {
             Category category = categoryService.getCategoryById(categoryId);
-            return ResponseEntity.ok(new ApiResponse<>(200, "success", category));
+            return ResponseEntity.ok(new ApiResponse<>(200, "success", categoryMapper.toResponse(category)));
         } catch (AppException e) {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse<>(200, e.getMessage(), null));
         }
     }
 
-    @GetMapping("/category/{categoryName}")
+    @GetMapping("/category/{categoryName}/name")
     ResponseEntity<ApiResponse> getCategory(@PathVariable String categoryName) {
         try {
             Category category = categoryService.getCategoryByName(categoryName);
-            return ResponseEntity.ok(new ApiResponse<>(200, "success", category));
+            return ResponseEntity.ok(new ApiResponse<>(200, "success", categoryMapper.toResponse(category)));
         } catch (AppException e) {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse<>(200, e.getMessage(), null));
         }
     }
 
     @PostMapping("/category/add")
-    ResponseEntity<ApiResponse> addCategory(@RequestBody Category category) {
+    ResponseEntity<ApiResponse<CategoryResponse>> addCategory(@RequestBody Category category) {
         try {
             Category theCategory = categoryService.addCategory(category);
-            return ResponseEntity.ok(new ApiResponse<>(200, "Add success", theCategory));
+            return ResponseEntity.ok(new ApiResponse<>(200, "Add success", categoryMapper.toResponse(theCategory)));
         } catch (AppException e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse<>(500, e.getMessage(), null));
         }
@@ -71,10 +73,10 @@ public class CategoryController {
     }
 
     @PutMapping("/category/{categoryId}/update")
-    ResponseEntity<ApiResponse> updateCategory(@RequestBody Category category, @PathVariable Long categoryId) {
+    ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(@RequestBody Category category, @PathVariable Long categoryId) {
         try {
             Category updateCategory = categoryService.updateCategory(category, categoryId);
-            return ResponseEntity.ok(new ApiResponse<>(200, "Update success", updateCategory));
+            return ResponseEntity.ok(new ApiResponse<>(200, "Update success", categoryMapper.toResponse(updateCategory)));
         } catch (AppException e) {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse<>(404, e.getMessage(), null));
         }

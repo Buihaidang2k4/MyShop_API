@@ -1,6 +1,5 @@
 package com.example.MyShop_API.dto.request;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -27,19 +26,16 @@ public class AddressRequest {
     @Size(max = 255)
     String street;
 
-    @NotNull(message = "Mã phường/xã không được để trống")
     Integer wardCode;
 
     @NotBlank(message = "Phường/Xã không được để trống")
     String ward;
 
-    @NotNull(message = "Mã quận/huyện không được để trống")
     Integer districtID;
 
     @NotBlank(message = "Quận/Huyện không được để trống")
     String district;
 
-    @NotNull(message = "Mã tỉnh/thành phố không được để trống")
     Integer provinceID;
 
     @NotBlank(message = "Tỉnh/Thành phố không được để trống")
@@ -52,7 +48,7 @@ public class AddressRequest {
     @Builder.Default
     Boolean isDefault = false;
 
-    String type; // "HOME", "WORK", "OTHER" (có thể dùng String hoặc Enum)
+    String type; // "HOME", "WORK", "OTHER"
 
     @Size(max = 50)
     String label; // Ví dụ: "Nhà riêng", "Công ty", "Nhà bố mẹ", "Quán cà phê"

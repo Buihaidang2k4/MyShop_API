@@ -1,4 +1,4 @@
-package com.example.MyShop_API.dto.request;
+package com.example.MyShop_API.dto.request.report;
 
 import java.math.BigDecimal;
 

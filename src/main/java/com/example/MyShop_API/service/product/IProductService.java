@@ -1,6 +1,8 @@
 package com.example.MyShop_API.service.product;
 
 import com.example.MyShop_API.dto.request.AddProductRequest;
+import com.example.MyShop_API.dto.request.productSearch.AdminProductSearchCondition;
+import com.example.MyShop_API.dto.request.productSearch.UserProductSearchCondition;
 import com.example.MyShop_API.dto.response.ProductResponse;
 import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.entity.Product;
@@ -12,6 +14,10 @@ import java.io.IOException;
 import java.util.List;
 
 public interface IProductService {
+    Page<Product> searchProductsForUser(UserProductSearchCondition condition, Pageable pageable);
+
+    Page<Product> searchProductsForAdmin(AdminProductSearchCondition condition, Pageable pageable);
+
     List<Product> getProducts();
 
     Product getProductBySlug(String slug);
