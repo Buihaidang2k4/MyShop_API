@@ -4,7 +4,6 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.Getter;
 
 import java.math.BigDecimal;
 

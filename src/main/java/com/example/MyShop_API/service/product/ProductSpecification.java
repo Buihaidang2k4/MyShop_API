@@ -46,7 +46,7 @@ public class ProductSpecification {
             if (hasDiscount == null) return null;
             return hasDiscount
                     ? cb.greaterThan(root.get("discount"), BigDecimal.ZERO)
-                    : cb.equal(root.get("discount"), BigDecimal.ZERO);
+                    : null;
         };
     }
 

@@ -70,9 +70,9 @@ public class UserController {
     }
 
     @PutMapping("/{userId}/lock-user")
-    ResponseEntity<ApiResponse> updateUser(
+    ResponseEntity<ApiResponse> lockeUser(
             @PathVariable Long userId,
-            @RequestBody String lockReason
+            @RequestParam("lockReason") String lockReason
     ) {
 
         userService.lockUser(userId, lockReason);
@@ -80,7 +80,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}/unlocked-user")
-    ResponseEntity<ApiResponse> updateUser(
+    ResponseEntity<ApiResponse> unlockedUser(
             @PathVariable Long userId) {
         userService.unlockUser(userId);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "unlocked user success", userId));
