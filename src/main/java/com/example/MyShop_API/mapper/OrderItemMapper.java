@@ -12,6 +12,7 @@ public interface OrderItemMapper {
 
 
     @Mapping(source = "product.productId", target = "productId")
+    @Mapping(source = "product.productName", target = "productName")
     OrderItemResponse toResponse(OrderItem orderItem);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

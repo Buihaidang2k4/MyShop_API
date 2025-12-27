@@ -14,8 +14,8 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderItemResponse {
     Long orderItemId;
-    //    Long orderId;
     Long productId;
+    String productName;
     Integer quantity;
     BigDecimal price;
 }

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +41,7 @@ public class ProductController {
     @GetMapping("/search")
     public Page<ProductResponse> searchForUser(
             @Valid @ModelAttribute UserProductSearchCondition condition,
-            Pageable pageable) {
+            @PageableDefault(page = 0, size = 20, sort = "price", direction = Sort.Direction.ASC) Pageable pageable) {
         return productService.searchProductsForUser(condition, pageable)
                 .map(productMapper::toResponse);
     }
