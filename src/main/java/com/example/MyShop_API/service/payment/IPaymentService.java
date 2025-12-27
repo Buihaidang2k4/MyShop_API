@@ -23,4 +23,5 @@ public interface IPaymentService {
 
     VnpayResponse handleVnPayCallback(HttpServletRequest request);
 
+    void confirmCodPayment(Order order);
 }

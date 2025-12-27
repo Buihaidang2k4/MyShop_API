@@ -14,6 +14,7 @@ import com.example.MyShop_API.exception.AppException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.weaver.ast.Or;
 
+import java.security.Principal;
 import java.util.List;
 
 public interface IOrderService {
@@ -33,9 +34,9 @@ public interface IOrderService {
 
     VnpayResponse finalizeVnPayCallback(HttpServletRequest request);
 
-    OrderResponse confirmCashOrder(Long orderId, User admin);
+    OrderResponse confirmCashOrder(Long orderId, Principal principal);
 
-    OrderResponse confirmVnpayOrder(Long orderId, User admin);
+    OrderResponse confirmVnpayOrder(Long orderId, Principal principal);
 
 
     void cancelOrder(Long orderId);

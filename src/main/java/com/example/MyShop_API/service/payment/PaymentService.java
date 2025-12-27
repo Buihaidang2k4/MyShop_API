@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,7 +88,6 @@ public class PaymentService implements IPaymentService {
         orderRepository.save(order);
         return true;
     }
-
 
     // ================================== VnPay =======================================
     @Override
@@ -173,7 +173,6 @@ public class PaymentService implements IPaymentService {
                 PaymentMethod.VNPAY);
     }
 
-
     private long getTotalAmountFromOrder(long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
@@ -186,5 +185,16 @@ public class PaymentService implements IPaymentService {
                 .longValueExact();
     }
 
+    public void confirmCodPayment(Order order) {
+        Payment payment = Optional.ofNullable(order.getPayment())
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
 
+        if (payment.getPaymentMethod() != PaymentMethod.CASH) {
+            throw new AppException(ErrorCode.INVALID_PAYMENT_METHOD);
+        }
+
+        payment.setPaymentStatus(PaymentStatus.PAID);
+        payment.setStatus("SUCCESS");
+        payment.setPaymentDate(LocalDateTime.now());
+    }
 }

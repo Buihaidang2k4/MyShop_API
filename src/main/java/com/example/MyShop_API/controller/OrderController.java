@@ -101,11 +101,8 @@ public class OrderController {
     ResponseEntity<ApiResponse<OrderResponse>> confirmCashPayment(@PathVariable Long orderId,
                                                                   Principal principal
     ) {
-        String email = principal.getName();
-        User admin = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        orderService.confirmCashOrder(orderId, admin);
-        return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", orderService.confirmCashOrder(orderId, admin)));
+
+        return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", orderService.confirmCashOrder(orderId, principal)));
     }
 
     // ============== CONFIRM PAYMENT CASH =================
@@ -113,19 +110,16 @@ public class OrderController {
     ResponseEntity<ApiResponse<OrderResponse>> confirmVnpayPayment(@PathVariable Long orderId,
                                                                    Principal principal
     ) {
-        String email = principal.getName();
-        User admin = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", orderService.confirmVnpayOrder(orderId, admin)));
+        return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", orderService.confirmVnpayOrder(orderId, principal)));
     }
 
 
     // ============== UPDATE SHIPPING =================
     @PutMapping("order/{orderId}/address/{addressId}/update-order-address")
-    ResponseEntity<ApiResponse<OrderResponse>> confirmCashPayment(@PathVariable Long orderId,
-                                                                  @PathVariable Long addressId,
-                                                                  @RequestParam String orderNote
+    ResponseEntity<ApiResponse<OrderResponse>> updateShipping(@PathVariable Long orderId,
+                                                              @PathVariable Long addressId,
+                                                              @RequestParam String orderNote
     ) {
         Order order = orderService.updateShippingOrder(orderId, addressId, orderNote);
         return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", orderMapper.toResponse(order)));

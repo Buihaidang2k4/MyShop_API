@@ -27,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -53,10 +54,17 @@ public class UserService implements IUserService {
     @AdminOnly
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
-        log.info("getUserById().........");
         User user = userRepository.findById(id).orElse(null);
         return userMapper.toResponse(user);
     }
+
+    @Override
+    @AdminOnly
+    @Transactional(readOnly = true)
+    public User findAdminByPrincipal(Principal principal) {
+        return userRepository.findByEmail(principal.getName()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+    }
+
 
     @Transactional
     public UserResponse createUser(UserCreationRequest request) {

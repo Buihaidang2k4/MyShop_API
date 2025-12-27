@@ -21,6 +21,7 @@ import com.example.MyShop_API.service.inventory.IInventoryService;
 import com.example.MyShop_API.service.order_delivery_address.IOrderDeliveryAddressService;
 import com.example.MyShop_API.service.order_status_history.IOrderStatusHistoryService;
 import com.example.MyShop_API.service.payment.IPaymentService;
+import com.example.MyShop_API.service.user.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -51,11 +53,10 @@ public class OrderService implements IOrderService {
     IOrderStatusHistoryService historyService;
     PaymentRepository paymentRepository;
     IOrderDeliveryAddressService deliveryAddressService;
-    CartItemRepository cartItemRepository;
-    ICartItemService cartItemService;
     CartRepository cartRepository;
     AddressRepository addressRepository;
     OrderMapper orderMapper;
+    IUserService userService;
 
     @Override
     @Transactional(readOnly = true)
@@ -239,7 +240,6 @@ public class OrderService implements IOrderService {
 
         if ("00".equals(code)) {
             // Payment success -> confirm reserved stock for all items
-            order.getOrderItems().forEach(i -> inventoryService.confirmOrder(i.getProduct().getProductId(), i.getQuantity()));
             order.setOrderStatus(OrderStatus.PENDING);
 
             // Xóa item khỏi cart
@@ -268,63 +268,70 @@ public class OrderService implements IOrderService {
     }
 
     // ================== CONFIRM COD ============================
-    @AdminOnly
     @Override
-    public OrderResponse confirmCashOrder(Long orderId, User admin) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+    @AdminOnly
+    @Transactional(rollbackFor = Exception.class)
+    public OrderResponse confirmCashOrder(Long orderId, Principal principal) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
-        if (order.getOrderStatus() == OrderStatus.DELIVERED) throw new AppException(ErrorCode.ORDER_ALREADY_DELIVERED);
+        if (order.getOrderStatus() == OrderStatus.DELIVERED)
+            throw new AppException(ErrorCode.ORDER_ALREADY_DELIVERED);
 
-        // Update order status when delivery is made
+        User admin = userService.findAdminByPrincipal(principal);
+
+        if (order.getOrderItems().isEmpty()) throw new AppException(ErrorCode.ORDER_ITEM_EMPTY);
+
+        for (OrderItem item : order.getOrderItems()) {
+            inventoryService.confirmOrder(
+                    item.getProduct().getProductId(),
+                    item.getQuantity()
+            );
+        }
+
         order.setOrderStatus(OrderStatus.DELIVERED);
+        paymentService.confirmCodPayment(order);
         historyService.logStatusChange(order, OrderStatus.DELIVERED, admin);
-        Payment payment = order.getPayment();
-
-        if (payment == null) throw new AppException(ErrorCode.PAYMENT_NOT_EXISTED);
-
-        payment.setPaymentStatus(PaymentStatus.PAID);
-        payment.setStatus("SUCCESS");
-        payment.setPaymentDate(LocalDateTime.now());
-
-        // Confirm inventory
-        List<OrderItem> items = order.getOrderItems().stream().toList();
-        if (items.isEmpty()) {
-            throw new AppException(ErrorCode.ORDER_ITEM_EMPTY);
-        }
-
-        for (OrderItem item : items) {
-            inventoryService.confirmOrder(item.getProduct().getProductId(), item.getQuantity());
-        }
-
-        paymentRepository.save(payment);
-        orderRepository.save(order);
         calculateSoldCount(order);
 
         return orderMapper.toResponse(order);
     }
 
-    @AdminOnly
+
     @Override
-    public OrderResponse confirmVnpayOrder(Long orderId, User admin) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+    @AdminOnly
+    @Transactional(rollbackFor = Exception.class)
+    public OrderResponse confirmVnpayOrder(Long orderId, Principal principal) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
-        if (order.getOrderStatus() == OrderStatus.DELIVERED) throw new AppException(ErrorCode.ORDER_ALREADY_DELIVERED);
+        if (order.getOrderStatus() == OrderStatus.DELIVERED)
+            throw new AppException(ErrorCode.ORDER_ALREADY_DELIVERED);
 
-        // Update order status when delivery is made
+        Payment payment = Optional.ofNullable(order.getPayment())
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
+
+        if (payment.getPaymentMethod() != PaymentMethod.VNPAY)
+            throw new AppException(ErrorCode.INVALID_PAYMENT_METHOD);
+
+        if (payment.getPaymentStatus() != PaymentStatus.PAID)
+            throw new AppException(ErrorCode.PAYMENT_NOT_PAID);
+
+
+        if (order.getOrderItems().isEmpty()) throw new AppException(ErrorCode.ORDER_ITEM_EMPTY);
+
+        for (OrderItem item : order.getOrderItems()) {
+            inventoryService.confirmOrder(
+                    item.getProduct().getProductId(),
+                    item.getQuantity()
+            );
+        }
+
+        User admin = userService.findAdminByPrincipal(principal);
+
         order.setOrderStatus(OrderStatus.DELIVERED);
         historyService.logStatusChange(order, OrderStatus.DELIVERED, admin);
 
-        // Confirm inventory
-        List<OrderItem> items = order.getOrderItems().stream().toList();
-        if (items.isEmpty()) {
-            throw new AppException(ErrorCode.ORDER_ITEM_EMPTY);
-        }
-
-        for (OrderItem item : items) {
-            inventoryService.confirmOrder(item.getProduct().getProductId(), item.getQuantity());
-        }
-
-        orderRepository.save(order);
         return orderMapper.toResponse(order);
     }
 
