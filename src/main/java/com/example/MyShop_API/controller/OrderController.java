@@ -98,15 +98,28 @@ public class OrderController {
 
     // ============== CONFIRM PAYMENT CASH =================
     @PutMapping("order/{orderId}/confirm-cash-payment")
-    ResponseEntity<ApiResponse<Void>> confirmCashPayment(@PathVariable Long orderId,
-                                                         Principal principal
+    ResponseEntity<ApiResponse<OrderResponse>> confirmCashPayment(@PathVariable Long orderId,
+                                                                  Principal principal
     ) {
         String email = principal.getName();
         User admin = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         orderService.confirmCashOrder(orderId, admin);
-        return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", null));
+        return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", orderService.confirmCashOrder(orderId, admin)));
     }
+
+    // ============== CONFIRM PAYMENT CASH =================
+    @PutMapping("order/{orderId}/confirm-vnpay-payment")
+    ResponseEntity<ApiResponse<OrderResponse>> confirmVnpayPayment(@PathVariable Long orderId,
+                                                                   Principal principal
+    ) {
+        String email = principal.getName();
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        return ResponseEntity.ok(new ApiResponse<>(200, "Cash payment confirm ", orderService.confirmVnpayOrder(orderId, admin)));
+    }
+
 
     // ============== UPDATE SHIPPING =================
     @PutMapping("order/{orderId}/address/{addressId}/update-order-address")

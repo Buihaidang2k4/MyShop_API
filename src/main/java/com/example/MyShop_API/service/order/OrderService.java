@@ -3,13 +3,16 @@ package com.example.MyShop_API.service.order;
 import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.Enum.PaymentMethod;
 import com.example.MyShop_API.Enum.PaymentStatus;
+import com.example.MyShop_API.anotation.AdminOnly;
 import com.example.MyShop_API.dto.request.OrderPlaceListItemRequest;
 import com.example.MyShop_API.dto.request.OrderRequest;
 import com.example.MyShop_API.dto.request.PlaceOrderFromCartRequest;
+import com.example.MyShop_API.dto.response.OrderResponse;
 import com.example.MyShop_API.dto.response.VnpayResponse;
 import com.example.MyShop_API.entity.*;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
+import com.example.MyShop_API.mapper.OrderMapper;
 import com.example.MyShop_API.repo.*;
 import com.example.MyShop_API.service.cart.ICartItemService;
 import com.example.MyShop_API.service.cart.ICartService;
@@ -23,6 +26,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +55,7 @@ public class OrderService implements IOrderService {
     ICartItemService cartItemService;
     CartRepository cartRepository;
     AddressRepository addressRepository;
+    OrderMapper orderMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -263,8 +268,9 @@ public class OrderService implements IOrderService {
     }
 
     // ================== CONFIRM COD ============================
+    @AdminOnly
     @Override
-    public void confirmCashOrder(Long orderId, User admin) {
+    public OrderResponse confirmCashOrder(Long orderId, User admin) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
         if (order.getOrderStatus() == OrderStatus.DELIVERED) throw new AppException(ErrorCode.ORDER_ALREADY_DELIVERED);
@@ -292,9 +298,34 @@ public class OrderService implements IOrderService {
 
         paymentRepository.save(payment);
         orderRepository.save(order);
-
-        // calulate soldCount product
         calculateSoldCount(order);
+
+        return orderMapper.toResponse(order);
+    }
+
+    @AdminOnly
+    @Override
+    public OrderResponse confirmVnpayOrder(Long orderId, User admin) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+
+        if (order.getOrderStatus() == OrderStatus.DELIVERED) throw new AppException(ErrorCode.ORDER_ALREADY_DELIVERED);
+
+        // Update order status when delivery is made
+        order.setOrderStatus(OrderStatus.DELIVERED);
+        historyService.logStatusChange(order, OrderStatus.DELIVERED, admin);
+
+        // Confirm inventory
+        List<OrderItem> items = order.getOrderItems().stream().toList();
+        if (items.isEmpty()) {
+            throw new AppException(ErrorCode.ORDER_ITEM_EMPTY);
+        }
+
+        for (OrderItem item : items) {
+            inventoryService.confirmOrder(item.getProduct().getProductId(), item.getQuantity());
+        }
+
+        orderRepository.save(order);
+        return orderMapper.toResponse(order);
     }
 
     @Override

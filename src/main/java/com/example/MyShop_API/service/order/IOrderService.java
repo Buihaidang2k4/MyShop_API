@@ -33,7 +33,10 @@ public interface IOrderService {
 
     VnpayResponse finalizeVnPayCallback(HttpServletRequest request);
 
-    void confirmCashOrder(Long orderId, User admin);
+    OrderResponse confirmCashOrder(Long orderId, User admin);
+
+    OrderResponse confirmVnpayOrder(Long orderId, User admin);
+
 
     void cancelOrder(Long orderId);
 
