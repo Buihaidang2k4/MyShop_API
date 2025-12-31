@@ -113,8 +113,14 @@ public enum ErrorCode {
     COUPON_INVALID_DATE_RANGE(2204, "Start date must be before expiry date", BAD_REQUEST),
     COUPON_CODE_IS_EXISTED(2205, "Coupon code already exists", BAD_REQUEST),
     COUPON_INVALID_USAGE_LIMIT(2206, "Used count cannot exceed usage limit", BAD_REQUEST),
-    COUPON_INVALID_MAX_USES_PER_USER(2207, "Max uses per user must be >= 1 when per-user limit is enabled", BAD_REQUEST),
-
+    COUPON_INVALID_MAX_USES_PER_USER(2208, "Max uses per user must be >= 1 when per-user limit is enabled", BAD_REQUEST),
+    COUPON_NOT_EXISTED(2209, "Coupon not existed", BAD_REQUEST),
+    COUPON_EXPIRED(2210, "Coupon has already expired", BAD_REQUEST),
+    COUPON_ALREADY_STARTED(2211, "Coupon has already started and cannot be modified", BAD_REQUEST),
+    EXPIRY_BEFORE_START(2212, "Coupon expiry date must be after start date", BAD_REQUEST),
+    CANNOT_ENABLE_EXPIRED_COUPON(2213, "Cannot enable an expired coupon", BAD_REQUEST),
+    COUPON_ALREADY_USED(2214, "Coupon has already been used and cannot be deleted", BAD_REQUEST),
+    CANNOT_DELETE_ACTIVE_COUPON(2215, "Cannot delete an active coupon", BAD_REQUEST),
 
     // =========== REVIEW =================
     REVIEW_NOT_PURCHASED(2300, "You cannot review this item because you haven’t purchased it or it has not been delivered yet.", BAD_REQUEST),

@@ -181,11 +181,16 @@ public class UserService implements IUserService {
 
     @Override
     @AdminOnly
+    @Transactional
     public void unlockUser(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        if (user.isEnabled()) throw new AppException(ErrorCode.USER_ALREADY_UNLOCKED);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.isEnabled())
+            throw new AppException(ErrorCode.USER_ALREADY_UNLOCKED);
         user.setEnabled(true);
         user.setLockedReason("");
+        
         userRepository.save(user);
     }
 

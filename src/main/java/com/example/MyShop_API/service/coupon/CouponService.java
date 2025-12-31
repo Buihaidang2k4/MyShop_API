@@ -3,6 +3,7 @@ package com.example.MyShop_API.service.coupon;
 import com.example.MyShop_API.Enum.DiscountType;
 import com.example.MyShop_API.anotation.AdminOnly;
 import com.example.MyShop_API.dto.request.CreateCouponRequest;
+import com.example.MyShop_API.dto.request.UpdateCouponRequest;
 import com.example.MyShop_API.entity.Coupon;
 import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.entity.UserProfile;
@@ -11,7 +12,6 @@ import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.CouponMapper;
 import com.example.MyShop_API.repo.CouponRepository;
 import com.example.MyShop_API.repo.OrderRepository;
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -118,6 +118,59 @@ public class CouponService implements ICouponService {
         log.info("Coupon {} applied to order {}. Discount: {}", couponCode, order.getOrderId(), discount);
         return discount;
     }
+
+    @Override
+    @Transactional
+    public void updateCoupon(Long couponId, UpdateCouponRequest request) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new AppException(ErrorCode.COUPON_NOT_EXISTED));
+
+        if (coupon.getExpiryDate().isBefore(LocalDateTime.now()))
+            throw new AppException(ErrorCode.COUPON_EXPIRED);
+
+        if (request.getStartDate() != null && coupon.getStartDate().isBefore(request.getStartDate()))
+            throw new AppException(ErrorCode.COUPON_ALREADY_STARTED);
+
+
+        LocalDateTime newStart =
+                request.getStartDate() != null ? request.getStartDate() : coupon.getStartDate();
+
+        LocalDateTime newExpiry =
+                request.getExpiryDate() != null ? request.getExpiryDate() : coupon.getExpiryDate();
+
+        if (newExpiry.isBefore(newStart)) {
+            throw new AppException(ErrorCode.EXPIRY_BEFORE_START);
+        }
+
+        if (Boolean.TRUE.equals(request.getEnabled()) &&
+                coupon.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.CANNOT_ENABLE_EXPIRED_COUPON);
+        }
+
+        couponMapper.updateCoupon(request, coupon);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCoupon(Long couponId) {
+
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new AppException(ErrorCode.COUPON_NOT_EXISTED));
+
+        if (coupon.getUsedCount() > 0) {
+            throw new AppException(ErrorCode.COUPON_ALREADY_USED);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (coupon.isEnabled()
+                && !coupon.getStartDate().isAfter(now)
+                && !coupon.getExpiryDate().isBefore(now)) {
+            throw new AppException(ErrorCode.CANNOT_DELETE_ACTIVE_COUPON);
+        }
+
+        couponRepository.delete(coupon);
+    }
+
 
     private String generateCode(String prefix) {
         String random = UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();

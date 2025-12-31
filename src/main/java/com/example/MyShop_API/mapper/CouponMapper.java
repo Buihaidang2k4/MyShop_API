@@ -1,9 +1,13 @@
 package com.example.MyShop_API.mapper;
 
 import com.example.MyShop_API.dto.request.CreateCouponRequest;
+import com.example.MyShop_API.dto.request.UpdateCouponRequest;
 import com.example.MyShop_API.dto.response.CouponResponse;
 import com.example.MyShop_API.entity.Coupon;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
@@ -14,4 +18,7 @@ public interface CouponMapper {
     CouponResponse toCouponResponse(Coupon coupon);
 
     List<CouponResponse> toCouponResponses(List<Coupon> coupons);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateCoupon(UpdateCouponRequest request, @MappingTarget Coupon coupon);
 }
