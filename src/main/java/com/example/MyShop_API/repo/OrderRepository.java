@@ -3,6 +3,8 @@ package com.example.MyShop_API.repo;
 import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.entity.Order;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
@@ -114,4 +116,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Object[]> getAnnualRevenue(@Param("fromYear") int fromYear,
                                     @Param("toYear") int toYear);
 
+    Page<Order> findByOrderStatus(OrderStatus orderStatus, Pageable pageable);
 }

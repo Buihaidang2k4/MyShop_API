@@ -14,7 +14,6 @@ import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
 import com.example.MyShop_API.mapper.OrderMapper;
 import com.example.MyShop_API.repo.*;
-import com.example.MyShop_API.service.cart.ICartItemService;
 import com.example.MyShop_API.service.cart.ICartService;
 import com.example.MyShop_API.service.coupon.ICouponService;
 import com.example.MyShop_API.service.inventory.IInventoryService;
@@ -27,7 +26,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.A;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,6 +75,12 @@ public class OrderService implements IOrderService {
     @Transactional(readOnly = true)
     public List<Order> getOrdersByStatus(OrderStatus status) {
         return orderRepository.findByOrderStatus(status);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Order> getOrdersByStatus(OrderStatus status, Pageable pageable) {
+        return orderRepository.findByOrderStatus(status, pageable);
     }
 
     @Override
@@ -278,7 +284,7 @@ public class OrderService implements IOrderService {
         if (order.getOrderStatus() == OrderStatus.DELIVERED)
             throw new AppException(ErrorCode.ORDER_ALREADY_DELIVERED);
 
-        User admin = userService.findAdminByPrincipal(principal);
+        User admin = userService.findUserByPrincipal(principal);
 
         if (order.getOrderItems().isEmpty()) throw new AppException(ErrorCode.ORDER_ITEM_EMPTY);
 
@@ -327,7 +333,7 @@ public class OrderService implements IOrderService {
             );
         }
 
-        User admin = userService.findAdminByPrincipal(principal);
+        User admin = userService.findUserByPrincipal(principal);
 
         order.setOrderStatus(OrderStatus.DELIVERED);
         historyService.logStatusChange(order, OrderStatus.DELIVERED, admin);

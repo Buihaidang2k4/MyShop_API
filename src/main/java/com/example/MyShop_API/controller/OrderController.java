@@ -7,6 +7,7 @@ import com.example.MyShop_API.dto.request.PlaceOrderFromCartRequest;
 import com.example.MyShop_API.dto.response.ApiResponse;
 import com.example.MyShop_API.dto.request.OrderRequest;
 import com.example.MyShop_API.dto.response.OrderResponse;
+import com.example.MyShop_API.entity.Cart;
 import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.entity.User;
 import com.example.MyShop_API.exception.AppException;
@@ -21,12 +22,18 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("${api.prefix}/orders")
@@ -43,10 +50,34 @@ public class OrderController {
         return ResponseEntity.ok(new ApiResponse<>(200, "Get orders", responses));
     }
 
+
     @GetMapping("/order/{orderId}")
     ResponseEntity<ApiResponse<OrderResponse>> getOrder(@PathVariable Long orderId) {
         OrderResponse orderResponse = orderMapper.toResponse(orderService.getOrder(orderId));
         return ResponseEntity.ok(new ApiResponse<>(200, "Get order", orderResponse));
+    }
+
+    @GetMapping("/status-page")
+    ResponseEntity<ApiResponse<List<OrderResponse>>> getOrderByStatusOrPage(@RequestParam OrderStatus orderStatus,
+                                                                            @RequestParam(defaultValue = "0") int page,
+                                                                            @RequestParam(defaultValue = "10") int size,
+                                                                            @RequestParam(defaultValue = "orderId") String sortBy,
+                                                                            @RequestParam(defaultValue = "asc") String direction
+    ) {
+        Sort sort = direction.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Order> orders = orderService.getOrdersByStatus(orderStatus, pageable);
+        Page<OrderResponse> orderRes = orders.map(orderMapper::toResponse);
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("content", orderRes.getContent()); // data
+        res.put("currentPage", orderRes.getNumber());
+        res.put("totalItems", orderRes.getTotalElements());
+        res.put("totalPages", orderRes.getTotalPages());
+        res.put("size", orderRes.getSize()); // number one page
+        res.put("sortBy", sortBy);
+
+        return ResponseEntity.ok(new ApiResponse(200, "success", res));
     }
 
     @GetMapping("/status")

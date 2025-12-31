@@ -17,6 +17,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.security.SecurityUtil;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,7 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,7 +63,7 @@ public class UserService implements IUserService {
     @Override
     @AdminOnly
     @Transactional(readOnly = true)
-    public User findAdminByPrincipal(Principal principal) {
+    public User findUserByPrincipal(Principal principal) {
         return userRepository.findByEmail(principal.getName()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
     }
 
@@ -149,9 +151,28 @@ public class UserService implements IUserService {
 
     @Override
     @AdminOnly
-    public void lockUser(Long userId, String reason) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        if (!user.isEnabled()) throw new AppException(ErrorCode.USER_ALREADY_LOCKED);
+    @Transactional
+    public void lockUser(Long userId, String reason, Principal principal) {
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new AppException(ErrorCode.LOCK_REASON_REQUIRED);
+        }
+        User current = findUserByPrincipal(principal);
+
+        if (userId.equals(current.getId()))
+            throw new AppException(ErrorCode.CANNOT_LOCK_YOURSELF);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> role.getRoleName().equals(com.example.MyShop_API.Enum.Role.ADMIN.name()));
+
+        if (isAdmin)
+            throw new AppException(ErrorCode.CANNOT_LOCK_ADMIN);
+
+        if (!user.isEnabled())
+            throw new AppException(ErrorCode.USER_ALREADY_LOCKED);
+
         user.setEnabled(false);
         user.setLockedReason(reason);
         user.setLockedAt(LocalDateTime.now());

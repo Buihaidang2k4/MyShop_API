@@ -34,7 +34,10 @@ public enum ErrorCode {
     PASSWORD_NOT_MATCHES(1105, "Current password is incorrect", BAD_REQUEST),
     PASSWORD_CONFIRM_NOT_MATCHES(1106, "New password and confirm password do not match", HttpStatus.BAD_REQUEST),
     USER_ALREADY_LOCKED(1107, "This user account is already locked.", HttpStatus.BAD_REQUEST),
-    USER_ALREADY_UNLOCKED(1107, "This user account is already unlocked.", HttpStatus.BAD_REQUEST),
+    USER_ALREADY_UNLOCKED(1108, "This user account is already unlocked.", HttpStatus.BAD_REQUEST),
+    LOCK_REASON_REQUIRED(1109, "Lock reason is required", HttpStatus.BAD_REQUEST),
+    CANNOT_LOCK_YOURSELF(1110, "You cannot lock yourself", HttpStatus.BAD_REQUEST),
+    CANNOT_LOCK_ADMIN(1111, "You cannot lock ADMIN", HttpStatus.BAD_REQUEST),
 
     // ========== PROFILE ==========
     PROFILE_EXISTED(1200, "Profile already exists", BAD_REQUEST),

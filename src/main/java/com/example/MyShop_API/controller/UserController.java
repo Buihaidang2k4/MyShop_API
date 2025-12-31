@@ -23,6 +23,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -72,10 +73,11 @@ public class UserController {
     @PutMapping("/{userId}/lock-user")
     ResponseEntity<ApiResponse> lockeUser(
             @PathVariable Long userId,
-            @RequestParam("lockReason") String lockReason
+            @RequestParam("lockReason") String lockReason,
+            Principal principal
     ) {
 
-        userService.lockUser(userId, lockReason);
+        userService.lockUser(userId, lockReason, principal);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "locked user success", userId));
     }
 

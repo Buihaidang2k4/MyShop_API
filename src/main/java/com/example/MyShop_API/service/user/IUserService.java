@@ -14,7 +14,7 @@ public interface IUserService {
 
     UserResponse getUserById(Long id);
 
-    User findAdminByPrincipal(Principal principal);
+    User findUserByPrincipal(Principal principal);
 
     UserResponse createUser(UserCreationRequest request);
 
@@ -22,7 +22,7 @@ public interface IUserService {
 
     UserResponse updateRoleUser(UserUpdateRequest request, Long id);
 
-    void lockUser(Long userId, String reason);
+    void lockUser(Long userId, String reason, Principal principal);
 
     void unlockUser(Long userId);
 

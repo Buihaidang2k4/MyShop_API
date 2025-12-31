@@ -7,6 +7,7 @@ import com.example.MyShop_API.entity.Cart;
 import com.example.MyShop_API.mapper.CartItemMapper;
 import com.example.MyShop_API.service.cart.ICartItemService;
 import com.example.MyShop_API.service.cart.ICartService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -26,21 +28,20 @@ public class CartItemController {
     CartItemMapper cartItemMapper;
 
     @GetMapping("/cart/{cartId}/cartItem/{cartItemId}")
-    ResponseEntity<ApiResponse<CartItemResponse>> getCartItem(@PathVariable Long cartId,
-                                                              @PathVariable Long cartItemId
-    ) {
+    ResponseEntity<ApiResponse<CartItemResponse>> getCartItem(@PathVariable Long cartId, @PathVariable Long cartItemId) {
         return ResponseEntity.ok(new ApiResponse<>(200, "get all cart", cartItemMapper.toResponse(cartItemService.getCartItem(cartId, cartItemId))));
     }
 
+    @GetMapping("/{profileId}/ids")
+    ResponseEntity<ApiResponse<List<CartItemResponse>>> getCartItemIds(@Valid @RequestParam List<Long> ids, @PathVariable Long profileId) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "get all cart itemIds", cartItemService.getCartItems(ids, profileId)));
+    }
+
     @PostMapping("/cartItem/addItemToCart")
-    ResponseEntity<ApiResponse<Cart>> addItemToCart(@RequestParam(value = "cartId", required = false) Optional<Long> cartId,
-                                                    @RequestParam("productId") Long productId,
-                                                    @RequestParam("quantity") Integer quantity) {
+    ResponseEntity<ApiResponse<Cart>> addItemToCart(@RequestParam(value = "cartId", required = false) Optional<Long> cartId, @RequestParam("productId") Long productId, @RequestParam("quantity") Integer quantity) {
         try {
             // check cartId
-            Long checkCartId = cartId
-                    .map(id -> cartService.getCartById(id) != null ? id : cartService.initializeNewCart())
-                    .orElseGet(() -> cartService.initializeNewCart());
+            Long checkCartId = cartId.map(id -> cartService.getCartById(id) != null ? id : cartService.initializeNewCart()).orElseGet(() -> cartService.initializeNewCart());
 
             cartItemService.addItemToCart(checkCartId, productId, quantity);
             Cart cart = cartService.getCartById(checkCartId);
@@ -51,10 +52,7 @@ public class CartItemController {
     }
 
     @PutMapping("/cart/{cartId}/cartItem/{cartItemId}/updateItemQuantity/{quantity}")
-    ResponseEntity<ApiResponse> updateItemQuantity(@PathVariable Long cartId,
-                                                   @PathVariable Long cartItemId,
-                                                   @PathVariable Integer quantity
-    ) {
+    ResponseEntity<ApiResponse> updateItemQuantity(@PathVariable Long cartId, @PathVariable Long cartItemId, @PathVariable Integer quantity) {
         try {
             cartItemService.updateItemQuantity(cartId, cartItemId, quantity);
             return ResponseEntity.ok(new ApiResponse(200, "update cartItem success", null));
@@ -64,8 +62,7 @@ public class CartItemController {
     }
 
     @DeleteMapping("/cart/{cartId}/cartItem/{cartItemId}/removeItemFromCart")
-    ResponseEntity<ApiResponse> removeItemFromCart(@PathVariable("cartId") Long cartId,
-                                                   @PathVariable("cartItemId") Long cartItemId) {
+    ResponseEntity<ApiResponse> removeItemFromCart(@PathVariable("cartId") Long cartId, @PathVariable("cartItemId") Long cartItemId) {
         cartItemService.removeItemFromCart(cartId, cartItemId);
         return ResponseEntity.ok(new ApiResponse(200, "remove cartItem success", null));
     }

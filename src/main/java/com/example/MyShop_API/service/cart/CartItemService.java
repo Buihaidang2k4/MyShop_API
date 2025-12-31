@@ -1,5 +1,6 @@
 package com.example.MyShop_API.service.cart;
 
+import com.example.MyShop_API.dto.response.CartItemResponse;
 import com.example.MyShop_API.entity.Cart;
 import com.example.MyShop_API.entity.CartItem;
 import com.example.MyShop_API.entity.Product;
@@ -16,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -29,6 +29,7 @@ public class CartItemService implements ICartItemService {
     ICartService cartService;
     IProductService productService;
     IInventoryService inventoryService;
+    CartItemMapper cartItemMapper;
 
 
     @Transactional
@@ -129,5 +130,22 @@ public class CartItemService implements ICartItemService {
                 .stream()
                 .filter(item -> item.getCartItemId().equals(cartItemId))
                 .findFirst().orElseThrow(() -> new AppException(ErrorCode.CART_ITEM_NOT_EXISTED));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CartItemResponse> getCartItems(List<Long> ids, Long profileId) {
+        if (ids == null || ids.isEmpty())
+            return List.of();
+
+        List<CartItem> cartItems =
+                cartItemRepository.findALlByIdsAndProfile(ids, profileId);
+
+        if (cartItems.size() != ids.size())
+            throw new AppException(ErrorCode.CART_ITEM_NOT_EXISTED);
+
+        return cartItems.stream()
+                .map(cartItemMapper::toResponse)
+                .toList();
     }
 }
