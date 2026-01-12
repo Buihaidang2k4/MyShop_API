@@ -166,7 +166,6 @@
             <version>1.15</version>
         </dependency>
 
-
         <!--        Google api -->
         <!-- https://mvnrepository.com/artifact/com.google.api-client/google-api-client -->
         <dependency>
@@ -223,7 +222,6 @@
             <artifactId>openhtmltopdf-svg-support</artifactId>
             <version>1.0.10</version>
         </dependency>
-
 
         <!--excel -->
         <dependency>

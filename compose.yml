@@ -12,6 +12,7 @@ services:
       - .env.${SPRING_PROFILES_ACTIVE}
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      TZ: Asia/Ho_Chi_Minh
     depends_on:
       mysql:
         condition: service_healthy
