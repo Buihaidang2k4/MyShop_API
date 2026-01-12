@@ -51,6 +51,7 @@ public class Payment {
 
     // Thời gian thanh toán (vnp_PayDate)
     LocalDateTime paymentDate;
+    LocalDateTime expiredAt;
 
     // mã giao dịch VnPay
     String transactionNo;

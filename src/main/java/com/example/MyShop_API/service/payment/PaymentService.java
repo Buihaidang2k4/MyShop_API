@@ -4,12 +4,15 @@ import com.example.MyShop_API.Enum.OrderStatus;
 import com.example.MyShop_API.Enum.PaymentMethod;
 import com.example.MyShop_API.Enum.PaymentStatus;
 import com.example.MyShop_API.config.payment.VnpayConfig;
+import com.example.MyShop_API.dto.request.OrderRequest;
 import com.example.MyShop_API.dto.request.PaymentRequest;
 import com.example.MyShop_API.dto.response.PaymentDto;
+import com.example.MyShop_API.dto.response.PaymentInitResponse;
 import com.example.MyShop_API.dto.response.PaymentResponse;
 import com.example.MyShop_API.dto.response.VnpayResponse;
 import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.entity.OrderItem;
+import com.example.MyShop_API.entity.OrderStatusHistory;
 import com.example.MyShop_API.entity.Payment;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;
@@ -17,12 +20,14 @@ import com.example.MyShop_API.mapper.PaymentMapper;
 import com.example.MyShop_API.repo.OrderRepository;
 import com.example.MyShop_API.repo.PaymentRepository;
 import com.example.MyShop_API.service.inventory.IInventoryService;
+import com.example.MyShop_API.service.order_status_history.OrderStatusHistoryService;
 import com.example.MyShop_API.utils.VnpayUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +49,8 @@ public class PaymentService implements IPaymentService {
     OrderRepository orderRepository;
     PaymentRepository paymentRepository;
     PaymentMapper paymentMapper;
+    OrderStatusHistoryService historyService;
+    IInventoryService inventoryService;
 
     @Override
     @Transactional(readOnly = true)
@@ -64,6 +71,14 @@ public class PaymentService implements IPaymentService {
     public PaymentDto getPaymentByOrder(Long orderId) {
         Payment payment = paymentRepository.findByOrder_OrderId(orderId).orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
         return paymentMapper.toDto(payment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Payment getPaymentByOrderId(Long orderId) {
+        Payment payment = paymentRepository.
+                findByOrder_OrderId(orderId).orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
+        return payment;
     }
 
     // ======================== COD =========================================
@@ -123,32 +138,20 @@ public class PaymentService implements IPaymentService {
             String vnpTxnRef = request.getParameter("vnp_TxnRef");
             Long orderId = Long.parseLong(request.getParameter("vnp_TxnRef"));
             Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
-
+            Payment payment = paymentRepository.findByOrder_OrderId(orderId).orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
 
             String transactionNo = request.getParameter("vnp_TransactionNo");
-            String bankCode = request.getParameter("vnp_BankCode");
             String orderInfo = request.getParameter("vnp_OrderInfo");
-            String amountStr = request.getParameter("vnp_Amount");
             String cardType = request.getParameter("vnp_CardType");
 
-            // Số tiền trả về từ VNPay là *100 (VNPay quy định), nên chia lại
-            Long amount = Long.parseLong(amountStr) / 100;
-
-            //  Tạo mới bản ghi Payment
-            Payment payment = Payment.builder()
-                    .paymentMethod(PaymentMethod.VNPAY)
-                    .paymentStatus(PaymentStatus.PAID)
-                    .vnpTxnRef(vnpTxnRef)
-                    .transactionNo(transactionNo)
-                    .bankCode(bankCode)
-                    .cardType(cardType)
-                    .orderInfo(orderInfo)
-                    .amount(amount)
-                    .responseCode(responseCode)
-                    .status("SUCCESS")
-                    .paymentDate(LocalDateTime.now())
-                    .order(order)
-                    .build();
+            // Cập nhật bản ghi Payment khi thanh toán thành công
+            payment.setPaymentStatus(PaymentStatus.PAID);
+            payment.setResponseCode(responseCode);
+            payment.setTransactionNo(transactionNo);
+            payment.setCardType(cardType);
+            payment.setOrderInfo(orderInfo);
+            payment.setStatus("SUCCESS");
+            payment.setPaymentDate(LocalDateTime.now());
 
             paymentRepository.save(payment);
 
@@ -172,6 +175,7 @@ public class PaymentService implements IPaymentService {
                 PaymentStatus.UNPAID,
                 PaymentMethod.VNPAY);
     }
+
 
     private long getTotalAmountFromOrder(long orderId) {
         Order order = orderRepository.findById(orderId)
@@ -197,4 +201,162 @@ public class PaymentService implements IPaymentService {
         payment.setStatus("SUCCESS");
         payment.setPaymentDate(LocalDateTime.now());
     }
+
+
+    // =============== create payment  ====================
+    public Payment createPayment(
+            Order order,
+            PaymentMethod paymentMethod,
+            long amount,
+            String bankCode
+    ) {
+
+        if (order.getOrderId() == null) {
+            throw new IllegalStateException("Order must be persisted before creating payment");
+        }
+
+        PaymentStatus status =
+                paymentMethod == PaymentMethod.VNPAY
+                        ? PaymentStatus.INIT
+                        : PaymentStatus.UNPAID;
+
+        Payment payment = Payment.builder()
+                .order(order)
+                .paymentMethod(paymentMethod)
+                .paymentStatus(status)
+                .amount(amount)
+                .vnpTxnRef(order.getOrderId().toString())
+                .bankCode(
+                        (bankCode != null && !bankCode.isBlank())
+                                ? bankCode
+                                : null
+                )
+                .expiredAt(
+                        paymentMethod == PaymentMethod.VNPAY
+                                ? LocalDateTime.now().plusHours(12)
+                                : null
+                )
+                .status("")
+                .build();
+
+        paymentRepository.save(payment);
+        return payment;
+    }
+
+
+    // ================ payment vnpay =================
+    @Override
+    @Transactional
+    public PaymentInitResponse payOrderwithVnpay(Long orderId, HttpServletRequest request) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+
+        Payment payment = paymentRepository.findByOrder_OrderId(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
+
+        if (order.getOrderStatus() == OrderStatus.CANCELLED) {
+            throw new AppException(ErrorCode.ORDER_ALREADY_CANCELLED);
+        }
+
+        if (payment.getPaymentStatus() != PaymentStatus.INIT) {
+            throw new AppException(ErrorCode.PAYMENT_ALREADY_PROCESSED);
+        }
+
+        if (payment.getExpiredAt().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.PAYMENT_EXPIRED);
+        }
+
+        if (payment.getPaymentMethod() != PaymentMethod.VNPAY) {
+            throw new AppException(ErrorCode.INVALID_PAYMENT_METHOD);
+        }
+
+        if (payment.getPaymentStatus() == PaymentStatus.EXPIRED) {
+            throw new AppException(ErrorCode.PAYMENT_EXPIRED);
+        }
+
+        if (payment.getPaymentStatus() == PaymentStatus.PAID) {
+            throw new AppException(ErrorCode.PAYMENT_ALREADY_PROCESSED);
+        }
+
+
+        String paymentUrl = createVnpayUrl(order, payment, request);
+
+        return new PaymentInitResponse(
+                PaymentMethod.VNPAY,
+                paymentUrl
+        );
+    }
+
+    // ====== check order with payment expired =======
+    @Override
+    @Scheduled(fixedDelay = 60_000)
+    public void checkExpiredPayments() {
+        log.info("=== start check expired payments ===");
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Payment> expiredPayments =
+                paymentRepository.findByPaymentStatusInAndExpiredAtBefore(
+                        List.of(PaymentStatus.INIT, PaymentStatus.FAILED),
+                        now
+                );
+
+        if (expiredPayments.isEmpty()) {
+            return;
+        }
+
+        for (Payment payment : expiredPayments) {
+
+            Order order = payment.getOrder();
+
+            // idempotent safety
+            if (payment.getPaymentStatus() == PaymentStatus.EXPIRED ||
+                    order.getOrderStatus() == OrderStatus.CANCELLED) {
+                continue;
+            }
+
+            // ===== UPDATE PAYMENT =====
+            payment.setPaymentStatus(PaymentStatus.EXPIRED);
+            payment.setStatus("EXPIRED");
+
+            // ===== UPDATE ORDER =====
+            order.setOrderStatus(OrderStatus.CANCELLED);
+
+            historyService.logStatusChange(order, OrderStatus.CANCELLED, null);
+
+            // ===== RESTOCK INVENTORY =====
+            order.getOrderItems().forEach(item ->
+                    inventoryService.restock(
+                            item.getProduct().getProductId(),
+                            item.getQuantity()
+                    )
+            );
+
+            log.info("Order {} expired & cancelled due to payment timeout", order.getOrderId());
+        }
+
+        // flush batch
+        paymentRepository.saveAll(expiredPayments);
+    }
+
+    private String createVnpayUrl(Order order, Payment payment, HttpServletRequest request) {
+        long amount = getTotalAmountFromOrder(order.getOrderId());
+
+        Map<String, String> vnParamsMap = vnpayConfig.getVNPayConfig();
+        vnParamsMap.put("vnp_Amount", String.valueOf(amount));
+        vnParamsMap.put("vnp_BankCode", payment.getBankCode());
+        vnParamsMap.put("vnp_IpAddr", VnpayUtil.getIpAddress(request));
+        // set orderId - mã đơn hàng
+        vnParamsMap.put("vnp_TxnRef", String.valueOf(order.getOrderId()));
+
+        // query url
+        String queryUrl = VnpayUtil.getPaymentURL(vnParamsMap, true);
+        String hashData = VnpayUtil.getPaymentURL(vnParamsMap, false);
+        String vnpSecureHash = VnpayUtil.hmacSHA512(vnpayConfig.getSecretKey(), hashData);
+        queryUrl += "&vnp_SecureHash=" + vnpSecureHash;
+        String paymentUrl = vnpayConfig.getVnp_PayUrl() + "?" + queryUrl;
+
+        return paymentUrl;
+    }
+
 }

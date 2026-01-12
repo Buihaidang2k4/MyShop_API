@@ -1,8 +1,8 @@
 package com.example.MyShop_API.service.payment;
 
-import com.example.MyShop_API.dto.request.PaymentRequest;
+import com.example.MyShop_API.Enum.PaymentMethod;
 import com.example.MyShop_API.dto.response.PaymentDto;
-import com.example.MyShop_API.dto.response.PaymentResponse;
+import com.example.MyShop_API.dto.response.PaymentInitResponse;
 import com.example.MyShop_API.dto.response.VnpayResponse;
 import com.example.MyShop_API.entity.Order;
 import com.example.MyShop_API.entity.Payment;
@@ -17,6 +17,8 @@ public interface IPaymentService {
 
     PaymentDto getPaymentByOrder(Long orderId);
 
+    Payment getPaymentByOrderId(Long orderId);
+
     boolean processCashPayment(Long orderId);
 
     String createVnPayPayment(HttpServletRequest request, Long orderId, String bankCode);
@@ -24,4 +26,10 @@ public interface IPaymentService {
     VnpayResponse handleVnPayCallback(HttpServletRequest request);
 
     void confirmCodPayment(Order order);
+
+    Payment createPayment(Order order, PaymentMethod paymentMethod, long amount, String bankCode);
+
+    PaymentInitResponse payOrderwithVnpay(Long orderId, HttpServletRequest request);
+
+    void checkExpiredPayments();
 }

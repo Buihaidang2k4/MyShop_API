@@ -44,6 +44,14 @@ public class OrderController {
     OrderMapper orderMapper;
     UserRepository userRepository;
 
+    @PostMapping("/buy-now-test")
+    @Operation(summary = "Buy now ")
+    ResponseEntity<ApiResponse<OrderResponse>> buyNowTest(
+            @Valid @RequestBody OrderRequest orderRequest) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "buy now orders", orderService.buyNow(orderRequest)));
+    }
+
+
     @GetMapping("/all")
     ResponseEntity<ApiResponse<List<OrderResponse>>> getOrders() {
         List<OrderResponse> responses = orderMapper.toResponse(orderService.getOrders());
@@ -98,21 +106,17 @@ public class OrderController {
     @PostMapping("/buy-now")
     @Operation(summary = "Buy now ")
     ResponseEntity<ApiResponse<Object>> buyNow(
-            @Valid @RequestBody OrderRequest orderRequest,
-            HttpServletRequest request) {
-        Object result = orderService.buyNow(orderRequest, request);
-        return buildOrderResponse(result);
+            @Valid @RequestBody OrderRequest orderRequest) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "Place order success", orderService.buyNow(orderRequest)));
     }
 
     //============= PLACE ORDER FROM LIST CART ITEM ===============
     @PostMapping("/from-cart-items")
     @Operation(summary = "Place order from list cart items")
     ResponseEntity<ApiResponse<Object>> placeOrderFromListItem(
-            @Valid @RequestBody OrderPlaceListItemRequest listItemRequest,
-            HttpServletRequest request
-    ) {
-        Object result = orderService.placeOrderFromListCartItems(listItemRequest, request);
-        return buildOrderResponse(result);
+            @Valid @RequestBody OrderPlaceListItemRequest listItemRequest) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "Place order from cart by items success", orderService.placeOrderFromListCartItems(listItemRequest)));
+
     }
 
     // ============= PLACE ORDER FROM CART  ===============
@@ -122,9 +126,7 @@ public class OrderController {
             @RequestBody PlaceOrderFromCartRequest orderRequest,
             HttpServletRequest request
     ) {
-        Object result = orderService.placeOrder(orderRequest, request);
-
-        return buildOrderResponse(result);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Place order from cart success", orderService.placeOrder(orderRequest)));
     }
 
     // ============== CONFIRM PAYMENT CASH =================
@@ -157,7 +159,7 @@ public class OrderController {
     }
 
     @PutMapping("/order/{orderId}/cancelOrder")
-    ResponseEntity<ApiResponse> cancelOrder(@PathVariable Long orderId) {
+    ResponseEntity<ApiResponse<?>> cancelOrder(@PathVariable Long orderId) {
         orderService.cancelOrder(orderId);
         return ResponseEntity.ok(new ApiResponse(200, "Cancel Order", null));
     }
@@ -179,27 +181,8 @@ public class OrderController {
     }
 
     @DeleteMapping("/order/{orderId}/delete")
-    ResponseEntity<ApiResponse> deleteOrder(@PathVariable Long orderId) {
+    ResponseEntity<ApiResponse<?>> deleteOrder(@PathVariable Long orderId) {
         orderService.deleteOrder(orderId);
         return ResponseEntity.ok(new ApiResponse(200, "Delete Order Success", null));
     }
-
-    private ResponseEntity<ApiResponse<Object>> buildOrderResponse(Object result) {
-        // CASH
-        if (result instanceof Order savedOrder) {
-            OrderResponse response = orderMapper.toResponse(savedOrder);
-            return ResponseEntity.ok(new ApiResponse<>(200, "Place order success", response));
-        }
-
-        // VNPAY
-        if (result instanceof String paymentUrl) {
-            return ResponseEntity.ok(new ApiResponse<>(200, "Redirect to Vnpay", paymentUrl));
-        }
-
-        // fallback
-        return ResponseEntity.ok(
-                new ApiResponse<>(500, "Unexpected return type", null)
-        );
-    }
-
 }

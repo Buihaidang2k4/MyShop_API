@@ -35,6 +35,7 @@ public class Order {
     OrderStatus orderStatus;
 
     @JsonIgnore
+    @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<OrderItem> orderItems = new HashSet<>();
 
@@ -52,9 +53,15 @@ public class Order {
     @JoinColumn(name = "coupon_id", unique = false)
     Coupon coupon;
 
+    @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     List<OrderStatusHistory> statusHistory = new ArrayList<>();
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     OrderDeliveryAddress deliveryAddress;
+
+    public void addOrderItem(OrderItem item) {
+        orderItems.add(item);
+        item.setOrder(this);
+    }
 }

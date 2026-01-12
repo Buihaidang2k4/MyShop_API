@@ -31,11 +31,11 @@ public interface IOrderService {
 
     List<Order> getUserOrders(Long userProfileId);
 
-    Object buyNow(OrderRequest orderRequest, HttpServletRequest request);
+    OrderResponse buyNow(OrderRequest orderRequest);
 
-    Object placeOrderFromListCartItems(OrderPlaceListItemRequest orderRequest, HttpServletRequest request);
+    Object placeOrderFromListCartItems(OrderPlaceListItemRequest orderRequest);
 
-    Object placeOrder(PlaceOrderFromCartRequest orderRequest, HttpServletRequest request) throws AppException;
+    OrderResponse placeOrder(PlaceOrderFromCartRequest orderRequest) throws AppException;
 
     VnpayResponse finalizeVnPayCallback(HttpServletRequest request);
 

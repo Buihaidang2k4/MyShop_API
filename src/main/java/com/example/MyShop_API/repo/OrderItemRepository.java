@@ -68,4 +68,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             """, nativeQuery = true)
     List<Object[]> getRevenueByCategory(@Param("year") int year,
                                         @Param("month") int month);
+
+
 }

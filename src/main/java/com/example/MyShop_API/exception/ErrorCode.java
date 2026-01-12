@@ -66,7 +66,10 @@ public enum ErrorCode {
     PAYMENT_DECLINED(1602, "Payment declined", NOT_FOUND),
     INVALID_PAYMENT_METHOD(1602, "Invalid payment method", NOT_FOUND),
     PAYMENT_NOT_PAID(1603, "Payment must be PAID before confirming delivery", HttpStatus.CONFLICT),
-
+    BANK_CODE_REQUIRED(1604, "Bank code is required for this payment method", BAD_REQUEST),
+    PAYMENT_ALREADY_PROCESSED(1605, "Payment has already been processed", HttpStatus.CONFLICT),
+    PAYMENT_EXPIRED(1606, "Payment session has expired", HttpStatus.GONE),
+    
 
     // ========== CART ==========
     CART_NOT_EXISTED(1700, "Cart not found", NOT_FOUND),

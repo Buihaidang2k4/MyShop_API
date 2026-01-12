@@ -20,7 +20,7 @@ public class OrderStatusHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long historyId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     Order order;
 

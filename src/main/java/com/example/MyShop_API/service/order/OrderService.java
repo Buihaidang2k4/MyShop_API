@@ -53,10 +53,10 @@ public class OrderService implements IOrderService {
     IOrderStatusHistoryService historyService;
     PaymentRepository paymentRepository;
     IOrderDeliveryAddressService deliveryAddressService;
-    CartRepository cartRepository;
     AddressRepository addressRepository;
     OrderMapper orderMapper;
     IUserService userService;
+    CartItemRepository cartItemRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -93,114 +93,137 @@ public class OrderService implements IOrderService {
     // ===================== Buy Now =============================
     @Override
     @Transactional
-    public Object buyNow(OrderRequest orderRequest, HttpServletRequest request) throws AppException {
-        log.info("================= START BUY NOW ===================");
-        Product product = productRepository.findById(orderRequest.getProductId()).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
-        UserProfile profile = profileRepository.findById(orderRequest.getProfileId()).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
+    public OrderResponse buyNow(OrderRequest orderRequest) {
+        Product product = productRepository.findById(orderRequest.getProductId())
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
 
-        // Check stock
-        boolean reserved = inventoryService.reserveStock(product.getProductId(), orderRequest.getQuantity());
-        if (!reserved) throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
+        UserProfile profile = profileRepository.findById(orderRequest.getProfileId())
+                .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
 
-        // create order + orderItem
-        Order order = Order.builder().profile(profile).orderDate(LocalDate.now()).orderStatus(OrderStatus.PENDING).build();
+        if (!inventoryService.reserveStock(product.getProductId(), orderRequest.getQuantity())) {
+            throw new AppException(ErrorCode.INVENTORY_NOT_ENOUGH);
+        }
 
-        OrderItem orderItem = OrderItem.builder()
-                .product(product)
-                .quantity(orderRequest.getQuantity())
-                .order(order)
-                .price(product.getSpecialPrice() != null ? product.getSpecialPrice() : product.getPrice())
+        OrderStatus status = orderRequest.getPaymentMethod() == PaymentMethod.VNPAY
+                ? OrderStatus.CREATED
+                : OrderStatus.PENDING;
+
+        Order order = Order.builder()
+                .profile(profile)
+                .orderDate(LocalDate.now())
+                .orderStatus(status)
                 .build();
 
-        order.setOrderItems(new HashSet<>(List.of(orderItem)));
+        OrderItem item = OrderItem.builder()
+                .product(product)
+                .quantity(orderRequest.getQuantity())
+                .price(product.getSpecialPrice() != null
+                        ? product.getSpecialPrice()
+                        : product.getPrice())
+                .build();
 
-        // calculate final total
-        calculateTotalAmount(order, orderRequest.getShippingFee(), orderRequest.getCouponCode(), profile);
 
-        Order savedOrder = orderRepository.save(order);
+        order.addOrderItem(item);
 
-        // set address shipping
-        setShippingOrder(savedOrder, orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
+        calculateTotalAmount(
+                order,
+                orderRequest.getShippingFee(),
+                orderRequest.getCouponCode(),
+                profile
+        );
 
-        // log audit status (system)
-        historyService.logStatusChange(savedOrder, OrderStatus.PENDING, null);
+        setShippingOrder(
+                order,
+                orderRequest.getAddressId(),
+                orderRequest.getProfileId(),
+                orderRequest.getOrderNote()
+        );
 
-        try {
-            log.info("================= END BUY NOW ===================");
-            // payment
-            return processPayment(savedOrder, orderRequest.getPaymentMethod(), request, orderRequest.getBankCode());
-        } catch (AppException e) {
-            inventoryService.restock(product.getProductId(), orderRequest.getQuantity());
-            log.error("Error Buy now : {}", e.getMessage());
-            throw e;
-        }
+        orderRepository.save(order);
+        Payment payment = paymentService.createPayment(
+                order,
+                orderRequest.getPaymentMethod(),
+                order.getTotalAmount().longValue(),
+                orderRequest.getBankCode()
+        );
+
+        order.setPayment(payment);
+
+        orderRepository.save(order);
+
+        historyService.logStatusChange(order, status, null);
+
+        return orderMapper.toResponse(order);
     }
 
     // ============== PLACE ORDER FROM LIST CART ITEMS (Dành cho tích chọn sản phẩm giỏ hàng) ==================
     @Override
     @Transactional
-    public Object placeOrderFromListCartItems(OrderPlaceListItemRequest orderRequest, HttpServletRequest request) {
+    public OrderResponse placeOrderFromListCartItems(OrderPlaceListItemRequest orderRequest) {
         log.info("====================== START PLACE ORDER FROM LIST CART ITEMS ======================");
         // tim profile
-        UserProfile profile = profileRepository.findById(orderRequest.getProfileId()).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
+        UserProfile profile = profileRepository.findById(orderRequest.getProfileId())
+                .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
 
-        // Lấy item từ list itemId nguời dùng chọn
-        Cart cart = cartRepository
-                .findByUserProfileId(profile.getProfileId())
-                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
-
-        List<CartItem> cartItems = cart.getCartItems().stream()
-                .filter(ci -> orderRequest.getListItemId().contains(ci.getCartItemId()))
-                .toList();
+        // lấy items người dùng đã chọn
+        List<CartItem> cartItems = cartItemRepository.lockCartItems(orderRequest.getListItemId());
 
         if (cartItems.isEmpty())
             throw new AppException(ErrorCode.LIST_CART_ITEMS_EMPTY);
 
-        try {
-            // Tạo đơn hàng
-            Order order = createOrderFromCartItem(cartItems, profile);
-            calculateTotalAmount(order, orderRequest.getShippingFee(), orderRequest.getCouponCode(), profile);
-            Order saveOrder = orderRepository.save(order);
+        OrderStatus status = orderRequest.getPaymentMethod() == PaymentMethod.VNPAY
+                ? OrderStatus.CREATED
+                : OrderStatus.PENDING;
+        // Tạo đơn hàng
+        Order order = createOrderFromCartItem(cartItems, profile);
+        order.setOrderStatus(status);
+        calculateTotalAmount(order, orderRequest.getShippingFee(), orderRequest.getCouponCode(), profile);
+        Order saveOrder = orderRepository.save(order);
 
-            // set address shipping from address profile
-            setShippingOrder(saveOrder, orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
+        // set address shipping from address profile
+        setShippingOrder(saveOrder, orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
 
-            // Process payment
-            Object paymentResult = processPayment(saveOrder, orderRequest.getPaymentMethod(), request, orderRequest.getBankCode());
 
-            // Xóa các sản phẩm đã chọn khỏi giỏ hàng sau khi xử lý thanh toán thành công
-            if (orderRequest.getPaymentMethod() == PaymentMethod.CASH && paymentResult instanceof Order) {
-                processOrderSuccess(saveOrder);
-            }
+        Payment payment = paymentService.createPayment(
+                order,
+                orderRequest.getPaymentMethod(),
+                order.getTotalAmount().longValue(),
+                orderRequest.getBankCode()
+        );
 
-            log.info("====================== END PLACE ORDER FROM LIST CART ITEMS ======================");
-            return paymentResult;
-        } catch (AppException e) {
-            // Hoàn hàng nếu có lỗi nghiệp vụ
-            cartItems.forEach(item -> inventoryService.restock(item.getProduct().getProductId(), item.getQuantity()));
-            log.error("AppException in place order from list cart item: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            // Hoàn hàng cho các lỗi hệ thống/khác
-            cartItems.forEach(item -> inventoryService.restock(item.getProduct().getProductId(), item.getQuantity()));
-            log.error("System Error in place order from list cart item: {}", e.getMessage());
-            throw new AppException(ErrorCode.PAYMENT_FAILED, "Lỗi hệ thống: " + e.getMessage());
-        }
+        order.setPayment(payment);
+
+        orderRepository.save(order);
+
+        historyService.logStatusChange(order, status, null);
+
+        // xoa item sau khi dat
+        cartService.removeSelectedItemsFromCartByItemIds(
+                order.getProfile().getCart().getCartId(),
+                orderRequest.getListItemId()
+        );
+
+        return orderMapper.toResponse(saveOrder);
     }
 
     // placeOrder Buy from Cart -> create OrderItem -> Order -> Payment
     // =================== PLACE ORDER FROM CART ======================
     @Override
     @Transactional
-    public Object placeOrder(PlaceOrderFromCartRequest orderRequest, HttpServletRequest request) {
+    public OrderResponse placeOrder(PlaceOrderFromCartRequest orderRequest) {
         log.info("================= START PLACE ORDER ===================");
 
         // Đặt hàng
         Cart cart = cartService.getCartByUserProfileId(orderRequest.getProfileId());
         if (cart.getCartItems().isEmpty()) throw new AppException(ErrorCode.CART_NOT_EXISTED);
 
+        OrderStatus status = orderRequest.getPaymentMethod() == PaymentMethod.VNPAY
+                ? OrderStatus.CREATED
+                : OrderStatus.PENDING;
+
         // Tạo đơn hàng
         Order order = createOrderFromCart(cart);
+        order.setOrderStatus(status);
 
         calculateTotalAmount(order, orderRequest.getShippingFee(), orderRequest.getCouponCode(), cart.getProfile());
         Order saveOrder = orderRepository.save(order);
@@ -208,70 +231,62 @@ public class OrderService implements IOrderService {
         // set address shipping from address profile
         setShippingOrder(saveOrder, orderRequest.getAddressId(), orderRequest.getProfileId(), orderRequest.getOrderNote());
 
-        try {
-            // Process payment
-            Object paymentResult = processPayment(saveOrder, orderRequest.getPaymentMethod(), request, orderRequest.getBankCode());
 
-            if (orderRequest.getPaymentMethod() == PaymentMethod.CASH && paymentResult instanceof Order) {
-                processOrderSuccessAndClearAllCart(saveOrder, cart);
-            }
-            log.info("================= END PLACE ORDER ===================");
-            return paymentResult;
-        } catch (Exception e) {
-            // Hoàn hàng nếu có lỗi
-            cart.getCartItems().forEach(item -> inventoryService.restock(item.getProduct().getProductId(), item.getQuantity()));
-            log.error("Error : {}", e);
-            throw new AppException(ErrorCode.PAYMENT_FAILED, e.getMessage());
-        }
+        Payment payment = paymentService.createPayment(
+                order,
+                orderRequest.getPaymentMethod(),
+                order.getTotalAmount().longValue(),
+                orderRequest.getBankCode()
+        );
+
+        order.setPayment(payment);
+
+        orderRepository.save(order);
+
+        historyService.logStatusChange(order, status, null);
+
+        // clear cart
+        cartService.clearCart(cart.getCartId());
+
+        return orderMapper.toResponse(saveOrder);
     }
 
-    //================ Vnpay callback finalizer =====================
+    // test
     @Transactional
     public VnpayResponse finalizeVnPayCallback(HttpServletRequest request) {
-        // paymentService.handleVnPayCallback will create Payment record and attach to Order
+
         VnpayResponse resp = paymentService.handleVnPayCallback(request);
 
-        String code = resp.getCode();
-        Long orderId = null;
-        try {
-            orderId = Long.parseLong(request.getParameter("vnp_TxnRef"));
-        } catch (Exception ignored) {
-        }
-
-        if (orderId == null) {
+        String txnRef = request.getParameter("vnp_TxnRef");
+        if (txnRef == null) {
             return resp;
         }
 
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+        Long orderId = Long.parseLong(txnRef);
 
-        if ("00".equals(code)) {
-            // Payment success -> confirm reserved stock for all items
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+
+        Payment payment = paymentRepository.findByOrder_OrderId(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
+
+        // ========== PAYMENT SUCCESS ==========
+        if (payment.getPaymentStatus() == PaymentStatus.PAID) {
             order.setOrderStatus(OrderStatus.PENDING);
-
-            // Xóa item khỏi cart
-            List<Long> cartItemIdsToRemove = order.getOrderItems().stream()
-                    .map(OrderItem::getCartItemId)
-                    .filter(Objects::nonNull)
-                    .toList();
-
-            if (!cartItemIdsToRemove.isEmpty()) {
-                cartService.removeSelectedItemsFromCartByItemIds(order.getProfile().getCart().getCartId(), cartItemIdsToRemove);
-            }
-
-            // Log system change status
-            historyService.logStatusChange(order, OrderStatus.PENDING, null);
-            // test
-            order.getPayment().setPaymentStatus(PaymentStatus.PAID);
-            orderRepository.save(order);
-            return resp;
-        } else {
-            // Payment failed/declined -> release reservations
-            order.getOrderItems().forEach(i -> inventoryService.restock(i.getProduct().getProductId(), i.getQuantity()));
-            order.setOrderStatus(OrderStatus.CANCELLED);
-            orderRepository.save(order);
-            return resp;
         }
+
+        // ===== PAYMENT FAILED → CHO PHÉP RETRY =====
+        if (payment.getPaymentStatus() == PaymentStatus.FAILED) {
+            if (order.getOrderStatus() != OrderStatus.CREATED) {
+                order.setOrderStatus(OrderStatus.CREATED);
+                historyService.logStatusChange(order, OrderStatus.CREATED, null);
+            }
+        }
+
+        orderRepository.save(order);
+        return resp;
     }
+
 
     // ================== CONFIRM COD ============================
     @Override
@@ -302,7 +317,6 @@ public class OrderService implements IOrderService {
 
         return orderMapper.toResponse(order);
     }
-
 
     @Override
     @AdminOnly
@@ -417,23 +431,6 @@ public class OrderService implements IOrderService {
         return orderRepository.save(order);
     }
 
-    // =========== PROCESS PAYMENT ===============
-    private Object processPayment(Order order, PaymentMethod method, HttpServletRequest request, Object... extraParams) {
-        if (method == PaymentMethod.CASH) {
-            boolean ok = paymentService.processCashPayment(order.getOrderId());
-            if (!ok) throw new AppException(ErrorCode.PAYMENT_DECLINED);
-
-            orderRepository.save(order);
-            return order;
-        }
-
-        if (method == PaymentMethod.VNPAY) {
-            return paymentService.createVnPayPayment(request, order.getOrderId(), (String) (extraParams.length > 0 ? extraParams[0] : null));
-        }
-
-        throw new AppException(ErrorCode.PAYMENT_METHOD_NOT_SUPPORT);
-    }
-
     // =========== CREATE ORDER FROM CART =============
     private Order createOrderFromCart(Cart cart) {
         Order order = Order.builder()
@@ -536,20 +533,4 @@ public class OrderService implements IOrderService {
         order.setDeliveryAddress(deliveryAddress);
     }
 
-
-    // ============= PROCESS ORDER SUCCESS PLACE CART ITEM FROM LIST SELECTED ==================
-    public void processOrderSuccess(Order order) {
-        order.setOrderStatus(OrderStatus.PENDING);
-        historyService.logStatusChange(order, OrderStatus.PENDING, null);
-        cartService.removeItemAfterOrder(order);
-        orderRepository.save(order);
-    }
-
-    // ========== CONSOLIDATE INVENTORY AND CLEAR WHOLE CART UTILITY =============
-    private void processOrderSuccessAndClearAllCart(Order order, Cart cart) {
-        order.setOrderStatus(OrderStatus.PENDING);
-        historyService.logStatusChange(order, OrderStatus.PENDING, null);
-        cartService.clearCart(cart.getCartId());
-        orderRepository.save(order);
-    }
 }
