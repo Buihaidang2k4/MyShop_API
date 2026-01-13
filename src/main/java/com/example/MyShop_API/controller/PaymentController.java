@@ -71,8 +71,7 @@ public class PaymentController {
         orderService.finalizeVnPayCallback(request);
 
         String redirectUrl = UriComponentsBuilder
-                .fromHttpUrl(baseUrlFe)
-                .queryParam("orderId", orderId)
+                .fromHttpUrl(baseUrlFe + orderId)
                 .build()
                 .toUriString();
 
