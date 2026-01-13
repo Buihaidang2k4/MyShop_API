@@ -1,5 +1,6 @@
 package com.example.MyShop_API.entity;
 
+import com.example.MyShop_API.Enum.CouponScope;
 import com.example.MyShop_API.Enum.DiscountType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,7 +10,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -27,6 +27,11 @@ public class Coupon {
     @Column(unique = true, length = 50, nullable = false)
     String code;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    CouponScope scope = CouponScope.GLOBAL;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     DiscountType discountType;
@@ -42,6 +47,25 @@ public class Coupon {
     boolean limitPerUser = true;
     @Column(name = "max_uses_per_user")
     Integer maxUsesPerUser = 1;
+
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(
+            name = "coupon_categories",
+            joinColumns = @JoinColumn(name = "coupon_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    Set<Category> categories = new HashSet<>();
+
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(
+            name = "coupon_products",
+            joinColumns = @JoinColumn(name = "coupon_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    Set<Product> products = new HashSet<>();
+
 
     public boolean isUsable() {
         LocalDateTime now = LocalDateTime.now();

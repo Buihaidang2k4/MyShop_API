@@ -4,10 +4,7 @@ import com.example.MyShop_API.dto.request.CreateCouponRequest;
 import com.example.MyShop_API.dto.request.UpdateCouponRequest;
 import com.example.MyShop_API.dto.response.CouponResponse;
 import com.example.MyShop_API.entity.Coupon;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 import java.util.List;
 

@@ -291,6 +291,7 @@ public class PaymentService implements IPaymentService {
     // ====== check order with payment expired =======
     @Override
     @Scheduled(fixedDelay = 60_000)
+    @Transactional
     public void checkExpiredPayments() {
         log.info("=== start check expired payments ===");
         LocalDateTime now = LocalDateTime.now();

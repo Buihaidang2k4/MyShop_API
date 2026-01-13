@@ -69,7 +69,7 @@ public enum ErrorCode {
     BANK_CODE_REQUIRED(1604, "Bank code is required for this payment method", BAD_REQUEST),
     PAYMENT_ALREADY_PROCESSED(1605, "Payment has already been processed", HttpStatus.CONFLICT),
     PAYMENT_EXPIRED(1606, "Payment session has expired", HttpStatus.GONE),
-    
+
 
     // ========== CART ==========
     CART_NOT_EXISTED(1700, "Cart not found", NOT_FOUND),
@@ -124,6 +124,16 @@ public enum ErrorCode {
     CANNOT_ENABLE_EXPIRED_COUPON(2213, "Cannot enable an expired coupon", BAD_REQUEST),
     COUPON_ALREADY_USED(2214, "Coupon has already been used and cannot be deleted", BAD_REQUEST),
     CANNOT_DELETE_ACTIVE_COUPON(2215, "Cannot delete an active coupon", BAD_REQUEST),
+    COUPON_INVALID_SCOPE(2216, "Invalid coupon scope", BAD_REQUEST),
+    COUPON_SCOPE_CONFLICT(2217, "Coupon scope conflicts with provided categories or products", CONFLICT),
+    COUPON_CATEGORY_REQUIRED(2218, "Category IDs are required when coupon scope is CATEGORY", BAD_REQUEST),
+    COUPON_PRODUCT_REQUIRED(2219, "Product IDs are required when coupon scope is PRODUCT", BAD_REQUEST),
+    CANNOT_UPDATE_START_DATE(2220, "Cannot update start date after the coupon has started", BAD_REQUEST),
+    CANNOT_SHORTEN_EXPIRY(2221, "Cannot shorten the expiry date of an active coupon", BAD_REQUEST),
+    CANNOT_UPDATE_COUPON_AFTER_USED(2222, "Cannot update coupon rules after it has been used", BAD_REQUEST),
+    COUPON_CATEGORY_NOT_APPLICABLE(2223, "Coupon not applicable for selected categories", BAD_REQUEST),
+    COUPON_PRODUCT_NOT_APPLICABLE(2224, "Coupon not applicable for selected products", BAD_REQUEST),
+
 
     // =========== REVIEW =================
     REVIEW_NOT_PURCHASED(2300, "You cannot review this item because you haven’t purchased it or it has not been delivered yet.", BAD_REQUEST),
