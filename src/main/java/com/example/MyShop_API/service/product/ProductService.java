@@ -3,6 +3,7 @@ package com.example.MyShop_API.service.product;
 import com.example.MyShop_API.dto.request.AddProductRequest;
 import com.example.MyShop_API.dto.request.productSearch.AdminProductSearchCondition;
 import com.example.MyShop_API.dto.request.productSearch.UserProductSearchCondition;
+import com.example.MyShop_API.dto.response.ProductResponse;
 import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.entity.Inventory;
 import com.example.MyShop_API.entity.Product;
@@ -190,6 +191,13 @@ public class ProductService implements IProductService {
                 .and(ProductSpecification.inStock(condition.getInStock()))
                 .and(ProductSpecification.createdBetween(condition.getFromDate(), condition.getToDate()));
         return productRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getProductsByCouponIds(List<Long> productIds) {
+        List<Product> products = productRepository.findAllById(productIds);
+        return productMapper.toResponseList(products);
     }
 
     @Override

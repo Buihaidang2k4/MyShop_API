@@ -5,6 +5,8 @@ import com.example.MyShop_API.Enum.DiscountType;
 import com.example.MyShop_API.anotation.AdminOnly;
 import com.example.MyShop_API.dto.request.CreateCouponRequest;
 import com.example.MyShop_API.dto.request.UpdateCouponRequest;
+import com.example.MyShop_API.dto.response.CategoryResponse;
+import com.example.MyShop_API.dto.response.ProductResponse;
 import com.example.MyShop_API.entity.*;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.exception.ErrorCode;

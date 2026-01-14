@@ -8,6 +8,7 @@ import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.mapper.CategoryMapper;
 import com.example.MyShop_API.service.category.CategoryService;
 import com.example.MyShop_API.service.category.ICategoryService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -35,6 +36,17 @@ public class CategoryController {
         try {
             List<CategoryResponse> categories = categoryService.getAllCategory();
             return ResponseEntity.ok(new ApiResponse<>(200, "success", categories));
+        } catch (AppException e) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse<>(500, "Error" + INTERNAL_SERVER_ERROR, null));
+        }
+
+    }
+
+    @GetMapping
+    @Operation(summary = "get by list categoryIds")
+    ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategoriesByCategoryIds(@RequestParam List<Long> categoryIds) {
+        try {
+            return ResponseEntity.ok(new ApiResponse<>(200, "success", categoryService.getCategoriesByCouponIds(categoryIds)));
         } catch (AppException e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse<>(500, "Error" + INTERNAL_SERVER_ERROR, null));
         }

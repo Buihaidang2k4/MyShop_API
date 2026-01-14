@@ -18,6 +18,8 @@ public interface IProductService {
 
     Page<Product> searchProductsForAdmin(AdminProductSearchCondition condition, Pageable pageable);
 
+    List<ProductResponse> getProductsByCouponIds(List<Long> productIds);
+
     List<Product> getProducts();
 
     Product getProductBySlug(String slug);

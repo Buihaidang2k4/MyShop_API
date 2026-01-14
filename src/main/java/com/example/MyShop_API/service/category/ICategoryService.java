@@ -9,6 +9,8 @@ import java.util.List;
 public interface ICategoryService {
     List<CategoryResponse> getAllCategory();
 
+    List<CategoryResponse> getCategoriesByCouponIds(List<Long> categoryIds);
+
     Category getCategoryById(Long id);
 
     Category getCategoryByName(String name);

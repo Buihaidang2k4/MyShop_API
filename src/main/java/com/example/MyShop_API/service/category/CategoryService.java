@@ -32,6 +32,13 @@ public class CategoryService implements ICategoryService {
         return categoryRepository.findAll().stream().map(categoryMapper::toResponse).toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryResponse> getCategoriesByCouponIds(List<Long> categoryIds) {
+        List<Category> categories = categoryRepository.findAllById(categoryIds);
+        return categoryMapper.toResponse(categories);
+    }
+
     @Transactional(readOnly = true)
     public Category getCategoryById(Long id) {
         return categoryRepository.findById(id).orElseThrow(() ->

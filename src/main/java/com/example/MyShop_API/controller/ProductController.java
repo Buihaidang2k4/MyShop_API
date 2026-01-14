@@ -10,6 +10,7 @@ import com.example.MyShop_API.entity.Product;
 import com.example.MyShop_API.exception.AppException;
 import com.example.MyShop_API.mapper.ProductMapper;
 import com.example.MyShop_API.service.product.IProductService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -80,6 +81,16 @@ public class ProductController {
 
 
             return ResponseEntity.ok(new ApiResponse<>(200, "Get products by category name successfully!", res));
+        } catch (AppException e) {
+            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(404, e.getMessage(), null));
+        }
+    }
+
+    @GetMapping
+    @Operation(summary = "get by list productIds")
+    ResponseEntity<ApiResponse<List<ProductResponse>>> getProductsByProductIds(@RequestParam List<Long> productIds) {
+        try {
+            return ResponseEntity.ok(new ApiResponse(200, "Get all products successfully!", productService.getProductsByCouponIds(productIds)));
         } catch (AppException e) {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(404, e.getMessage(), null));
         }
