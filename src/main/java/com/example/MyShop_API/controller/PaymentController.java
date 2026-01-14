@@ -89,7 +89,7 @@ public class PaymentController {
 
     // ===================== PAYMENT VNPAY ======================
     @PostMapping("/vnpay-comfirm/{orderId}")
-    @Operation(summary = "test")
+    @Operation(summary = "pay for the order vnpay")
     ResponseEntity<ApiResponse<?>> payWithVnpay(@PathVariable Long orderId, HttpServletRequest request) {
         return ResponseEntity.ok(new ApiResponse(200, "pay success", paymentService.payOrderwithVnpay(orderId, request)));
     }

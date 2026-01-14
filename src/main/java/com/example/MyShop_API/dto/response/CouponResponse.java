@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -25,5 +26,7 @@ public class CouponResponse {
     BigDecimal minOrderValue; // Minimum conditions for discount
     LocalDateTime startDate;
     LocalDateTime expiryDate;
+    List<Long> categoryIds = new ArrayList<>();
+    List<Long> productIds = new ArrayList<>();
     boolean enabled = true;
 }
