@@ -17,41 +17,50 @@ public interface CouponMapper {
 
     CouponResponse toCouponResponse(Coupon coupon);
 
-
     default List<CouponResponse> toCouponResponses(List<Coupon> coupons) {
-        if (coupons == null) return List.of();
+        if (coupons == null || coupons.isEmpty()) {
+            return List.of();
+        }
 
         return coupons.stream().map(c -> {
             CouponResponse res = new CouponResponse();
+
+            // ===== basic fields =====
             res.setCouponId(c.getCouponId());
             res.setCode(c.getCode());
             res.setScope(c.getScope());
             res.setDiscountType(c.getDiscountType());
-            res.setDiscountAmount(c.getDiscountAmount());
             res.setDiscountPercent(c.getDiscountPercent());
+            res.setDiscountAmount(c.getDiscountAmount());
+            res.setMaxDiscountAmount(c.getMaxDiscountAmount());
+            res.setMinOrderValue(c.getMinOrderValue());
+            res.setStartDate(c.getStartDate());
+            res.setExpiryDate(c.getExpiryDate());
             res.setEnabled(c.isEnabled());
 
-            if (c.getScope() == CouponScope.CATEGORY && c.getCategories() != null) {
-                res.setCategoryIds(
-                        c.getCategories()
-                                .stream()
-                                .map(Category::getCategoryId)
-                                .toList()
-                );
-            }
+            // ===== luôn set list, KHÔNG phụ thuộc scope =====
+            res.setCategoryIds(
+                    c.getCategories() == null
+                            ? List.of()
+                            : c.getCategories()
+                            .stream()
+                            .map(Category::getCategoryId)
+                            .toList()
+            );
 
-            if (c.getScope() == CouponScope.PRODUCT && c.getProducts() != null) {
-                res.setProductIds(
-                        c.getProducts()
-                                .stream()
-                                .map(Product::getProductId)
-                                .toList()
-                );
-            }
+            res.setProductIds(
+                    c.getProducts() == null
+                            ? List.of()
+                            : c.getProducts()
+                            .stream()
+                            .map(Product::getProductId)
+                            .toList()
+            );
 
             return res;
         }).toList();
     }
+
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateCoupon(UpdateCouponRequest request, @MappingTarget Coupon coupon);
