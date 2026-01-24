@@ -166,7 +166,16 @@ public class ReportRevenueService implements IRevenueReportService {
         return result;
     }
 
+
     private BigDecimal calculateAverage(BigDecimal revenue, int totalOrders) {
-        return totalOrders == 0 ? BigDecimal.ZERO : revenue.divide(BigDecimal.valueOf(totalOrders));
+        if (totalOrders == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return revenue.divide(
+                BigDecimal.valueOf(totalOrders),
+                2,                    // scale: 2 chữ số sau dấu phẩy
+                RoundingMode.HALF_UP // làm tròn chuẩn
+        );
     }
 }
