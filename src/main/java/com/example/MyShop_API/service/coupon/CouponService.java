@@ -49,7 +49,6 @@ public class CouponService implements ICouponService {
         return couponRepository.findAll();
     }
 
-
     // ================== CREATE COUPON (ADMIN) ==========================
     @AdminOnly
     @Override
@@ -197,6 +196,7 @@ public class CouponService implements ICouponService {
 
             coupon.setExpiryDate(request.getExpiryDate());
         }
+
 
         // 4. enable
         if (request.getEnabled() != null) {

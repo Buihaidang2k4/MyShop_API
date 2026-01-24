@@ -25,7 +25,6 @@ public interface CouponMapper {
         return coupons.stream().map(c -> {
             CouponResponse res = new CouponResponse();
 
-            // ===== basic fields =====
             res.setCouponId(c.getCouponId());
             res.setCode(c.getCode());
             res.setScope(c.getScope());
@@ -38,7 +37,6 @@ public interface CouponMapper {
             res.setExpiryDate(c.getExpiryDate());
             res.setEnabled(c.isEnabled());
 
-            // ===== luôn set list, KHÔNG phụ thuộc scope =====
             res.setCategoryIds(
                     c.getCategories() == null
                             ? List.of()

@@ -19,6 +19,7 @@ public final class SecurityWhitelist {
             "/api/v1/products/page",
             "/api/v1/products/category/by-category-name",
             "/api/v1/products/product/{productId}",
+            "/api/v1/products/product/{slug}/slug",
             "/api/v1/products/all",
 
             // payment

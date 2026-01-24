@@ -1,6 +1,5 @@
 package com.example.MyShop_API.service.category;
 
-import com.example.MyShop_API.dto.request.CategoryRequest;
 import com.example.MyShop_API.dto.response.CategoryResponse;
 import com.example.MyShop_API.entity.Category;
 import com.example.MyShop_API.exception.AppException;
@@ -16,8 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j

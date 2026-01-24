@@ -44,6 +44,7 @@ public class SecurityConfig {
             "/api/v1/products/product/by-product-name",
             "/api/v1/products/page",
             "/api/v1/products/category/by-category-name",
+            "/api/v1/products/product/{slug}/slug",
             "/api/v1/products/all",
 
             // Image
